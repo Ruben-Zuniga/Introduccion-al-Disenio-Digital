@@ -1,3 +1,4 @@
+`timescale 1ns/100ps
 // Sugerencia: que el nombre del archivo sea igual al del modulo
 module top 
 #(

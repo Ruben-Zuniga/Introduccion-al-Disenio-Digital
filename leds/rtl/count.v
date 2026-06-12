@@ -1,3 +1,4 @@
+`timescale 1ns/100ps
 `define NB_COUNTER 32
 
 module count
