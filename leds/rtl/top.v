@@ -1,5 +1,6 @@
 `timescale 1ns/100ps
 // Sugerencia: que el nombre del archivo sea igual al del modulo
+// Probar subir a la fpga con NB_COUNTER = 16
 module top 
 #(
     parameter NB_SWITCH  = 4 ,

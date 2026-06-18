@@ -10,6 +10,7 @@ module count
 (
     output                     o_valid  ,
     input  [NB_SWITCH - 1 : 0] i_switch ,
+    // Conviene poner i_rst_n para indicar que es negado
     input                      i_rst    ,
     input                      clk
 );

@@ -7,6 +7,7 @@ module shiftreg
 (
     output [NB_LEDS - 1 : 0] o_led   ,
     input                    i_valid ,
+    // Conviene poner i_rst_n para indicar que es negado
     input                    i_rst   ,
     input                    clk
 );
