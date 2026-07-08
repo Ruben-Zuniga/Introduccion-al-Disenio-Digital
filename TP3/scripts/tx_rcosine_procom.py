@@ -20,7 +20,7 @@ T     = 1/Fbaud # Periodo de baudio
 Nsymb = 1000          # Numero de simbolos
 os    = 8
 ## Parametros de la respuesta en frecuencia
-Nfreqs = 256          # Cantidad de frecuencias
+Nfreqs = 2048          # Cantidad de frecuencias
 
 ## Parametros del filtro de caida cosenoidal
 beta   = [0.0,0.5,0.99] # Roll-Off
@@ -54,23 +54,58 @@ def rcosine(beta, Tbaud, oversampling, Nbauds, Norm):
 
 # In[3]:
 
-
-### Calculo de tres pusos con diferente roll-off
+### Calculo de tres pulsos con diferente roll-off
 (t,rc0) = rcosine(beta[0], T,os,Nbauds,Norm=False)
 (t,rc1) = rcosine(beta[1], T,os,Nbauds,Norm=False)
 (t,rc2) = rcosine(beta[2], T,os,Nbauds,Norm=False)
 
 print (np.sum(rc0**2),np.sum(rc1**2),np.sum(rc2**2))
 
+# Conversion a punto fijo
+# S(8,7)
+rc0_s87 = arrayFixedInt(8, 7, rc0, 'S', 'trunc', 'saturate')
+rc0_s64 = arrayFixedInt(6, 4, rc1, 'S', 'trunc', 'saturate')
+rc0_s32 = arrayFixedInt(3, 2, rc2, 'S', 'trunc', 'saturate')
+
+rc0_s87_fvalue = np.array([val.fValue for val in rc0_s87])
+rc0_s64_fvalue = np.array([val.fValue for val in rc0_s64])
+rc0_s32_fvalue = np.array([val.fValue for val in rc0_s32])
+
+# print(rc0_s32[0].showValueRange())
+# s64_range = np.arange(-2.0, 1.9375, 0.0625)
+# float_range = np.arange(-2.0, 2.0, 0.0625) # S(6,4)
+# float_range = np.arange(-1.0, 1.0, 0.007812) # S(8,7)
+float_range = np.arange(-1.0, 1.0, 0.25) # S(3,2)
+float_func = np.sin(t/T)
+fixed_range = arrayFixedInt(3, 2, float_range, 'S', 'trunc', 'saturate')
+fixed_range_fvalue = np.array([val.fValue for val in fixed_range])
+fixed_func = arrayFixedInt(3, 2, float_func, 'S', 'trunc', 'saturate')
+fixed_func_fvalue = np.array([val.fValue for val in fixed_func])
+
 ### Generacion de las graficas
+# Rango de valores de punto fijo
 plt.figure(figsize=[14,7])
-plt.plot(t,rc0,'ro-',linewidth=2.0,label=r'$\beta=0.0$')
-plt.plot(t,rc1,'gs-',linewidth=2.0,label=r'$\beta=0.5$')
-plt.plot(t,rc2,'k^-',linewidth=2.0,label=r'$\beta=1.0$')
-plt.legend()
-plt.grid(True)
+
+plt.plot(t, fixed_func_fvalue, 'ok-', linewidth=1.5, label='S(8,7)')
+plt.plot(t, float_func     , 'xr-', linewidth=1.5, label='Float')
+
+for val in fixed_range_fvalue:
+    plt.plot(t, val*np.ones(len(t)), 'k-', linewidth=0.5)
+
+# Filtro cuantizado
+plt.figure(figsize=[14,7])
+plt.plot(t, rc0         , 'b-' , linewidth=1.0, label=r'Float')
+# plt.plot(t, rc0_fixed_fvalue, 'ro-', linewidth=2.0, label=r'S(8,7)')
+plt.plot(t, rc0_s32_fvalue, 'gs-', linewidth=2.0, label=r'S(8,7)')
+# plt.plot(t, rc0_s32_fvalue, 'k^-', linewidth=2.0, label=r'S(3,2)')
+
+for val in fixed_range_fvalue:
+    plt.plot(t, val*np.ones(len(t)), 'k-', linewidth=0.5)
+
+# plt.legend()
+plt.grid(False)
 #plt.xlim(0,len(rc0)-1)
-plt.xlabel('Muestras')
+plt.xlabel('Tiempo [s]')
 plt.ylabel('Magnitud')
 
 symb00    = np.zeros(int(os)*3+1);symb00[os:len(symb00)-1:int(os)] = 1.0
@@ -158,22 +193,36 @@ def resp_freq(filt, Ts, Nfreqs):
         H.append(mfout.sum()/len(mfout))
         A.append(afout.sum()/len(afout))
 
-    return [H,A,list(np.squeeze(np.array(freqs)))]
+    return [H,list(np.squeeze(np.array(freqs)))]
+
+def resp_freq_np(filt, Ts, Nfreqs):
+    """Computo de la respuesta en frecuencia usando numpy"""
+    H = np.fft.fftshift(np.fft.fft(filt, Nfreqs))
+    f = np.fft.fftshift(np.fft.fftfreq(len(H), d=Ts))
+
+    return H, f
 
 
 # In[5]:
 
 
 ### Calculo respuesta en frec para los tres pulsos
-[H0,A0,F0] = resp_freq(rc0, Ts, Nfreqs)
-[H1,A1,F1] = resp_freq(rc1, Ts, Nfreqs)
-[H2,A2,F2] = resp_freq(rc2, Ts, Nfreqs)
+# [H0,F0] = resp_freq(rc0_s87_fvalue, Ts, Nfreqs)
+# [H1,F1] = resp_freq(rc0_s64_fvalue, Ts, Nfreqs)
+# [H2,F2] = resp_freq(rc0_s32_fvalue, Ts, Nfreqs)
+# [H3,F3] = resp_freq(rc0, Ts, Nfreqs)
+
+[H0,F0] = resp_freq_np(rc0_s87_fvalue, Ts, Nfreqs)
+[H1,F1] = resp_freq_np(rc0_s64_fvalue, Ts, Nfreqs)
+[H2,F2] = resp_freq_np(rc0_s32_fvalue, Ts, Nfreqs)
+[H3,F3] = resp_freq_np(rc0           , Ts, Nfreqs)
 
 ### Generacion de los graficos
 plt.figure(figsize=[14,6])
-plt.semilogx(F0, 20*np.log10(H0),'r', linewidth=2.0, label=r'$\beta=0.0$')
-plt.semilogx(F1, 20*np.log10(H1),'g', linewidth=2.0, label=r'$\beta=0.5$')
-plt.semilogx(F2, 20*np.log10(H2),'k', linewidth=2.0, label=r'$\beta=1.0$')
+plt.semilogx(F0, 20*np.log10(H0),'r'  , linewidth=2.0, label=r'S(8,7)')
+plt.semilogx(F1, 20*np.log10(H1),'g'  , linewidth=2.0, label=r'S(6,4)')
+plt.semilogx(F2, 20*np.log10(H2),'b'  , linewidth=2.0, label=r'S(3,2)')
+plt.semilogx(F3, 20*np.log10(H3),'k', linewidth=1.2, label=r'Float')
 
 plt.axvline(x=(1./Ts)/2.,color='k',linewidth=2.0)
 plt.axvline(x=(1./T)/2.,color='k',linewidth=2.0)
@@ -320,7 +369,7 @@ plt.show()
 # In[16]:
 
 
-offset = 2
+offset = 6
 plt.figure(figsize=[6,6])
 plt.plot(symb_out0I[100+offset:len(symb_out0I)-(100-offset):int(os)],
          symb_out0Q[100+offset:len(symb_out0Q)-(100-offset):int(os)],
