@@ -16,3 +16,4 @@ sum.assign(a + c)
 print('float: %f'%a.fValue,' + %f'%c.fValue,' = %f'%sum.fValue)
 print('binario: ',bin(a.intvalue),' + ',bin(c.intvalue),' = ',bin(sum.intvalue))
 
+print(1/10)
