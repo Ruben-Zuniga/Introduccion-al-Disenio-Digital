@@ -18,6 +18,22 @@ from tool._fixedInt import *
 
 # print(sum)
 
+## Parametros generales
+Fbaud = 1e9 # Frecuencia de baudio
+T     = 1/Fbaud # Periodo de baudio
+Nsymb = 1000          # Numero de simbolos
+os    = 8
+## Parametros de la respuesta en frecuencia
+Nfreqs = 2048          # Cantidad de frecuencias
+
+## Parametros del filtro de caida cosenoidal
+beta   = [0.0,0.5,0.99] # Roll-Off
+Nbauds = 16     # Cantidad de baudios del filtro
+## Parametros funcionales
+Ts = T/os              # Frecuencia de muestreo
+
+t = np.arange(-0.5*Nbauds*T, 0.5*Nbauds*T, float(T)/os)
+
 # s64_range = np.arange(-2.0, 1.9375, 0.0625)
 # float_range = np.arange(-2.0, 2.0, 0.0625) # S(6,4)
 # float_range = np.arange(-1.0, 1.0, 0.007812) # S(8,7)
