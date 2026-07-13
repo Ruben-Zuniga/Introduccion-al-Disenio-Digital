@@ -46,32 +46,62 @@ print (np.sum(rc0**2),np.sum(rc1**2),np.sum(rc2**2))
 print (np.sum(rc0),np.sum(rc1),np.sum(rc2))
 
 ### Conversion a punto fijo
-# Beta = 0
-rc0_s87 = arrayFixedInt(8, 7, rc0, 'S', 'round', 'saturate')
-rc0_s64 = arrayFixedInt(6, 4, rc0, 'S', 'round', 'saturate')
-rc0_s32 = arrayFixedInt(3, 2, rc0, 'S', 'round', 'saturate')
+## Beta = 0
+# Truncado
+rc0_s87_trunc = arrayFixedInt(8, 7, rc0, 'S', 'trunc', 'saturate')
+rc0_s64_trunc = arrayFixedInt(6, 4, rc0, 'S', 'trunc', 'saturate')
+rc0_s32_trunc = arrayFixedInt(3, 2, rc0, 'S', 'trunc', 'saturate')
 
-rc0_s87_fvalue = np.array([val.fValue for val in rc0_s87])
-rc0_s64_fvalue = np.array([val.fValue for val in rc0_s64])
-rc0_s32_fvalue = np.array([val.fValue for val in rc0_s32])
+rc0_s87_trunc_fvalue = np.array([val.fValue for val in rc0_s87_trunc])
+rc0_s64_trunc_fvalue = np.array([val.fValue for val in rc0_s64_trunc])
+rc0_s32_trunc_fvalue = np.array([val.fValue for val in rc0_s32_trunc])
 
-# Beta = 0.5
-rc1_s87 = arrayFixedInt(8, 7, rc1, 'S', 'round', 'saturate')
-rc1_s64 = arrayFixedInt(6, 4, rc1, 'S', 'round', 'saturate')
-rc1_s32 = arrayFixedInt(3, 2, rc1, 'S', 'round', 'saturate')
+# Redondeo
+rc0_s87_round = arrayFixedInt(8, 7, rc0, 'S', 'round', 'saturate')
+rc0_s64_round = arrayFixedInt(6, 4, rc0, 'S', 'round', 'saturate')
+rc0_s32_round = arrayFixedInt(3, 2, rc0, 'S', 'round', 'saturate')
 
-rc1_s87_fvalue = np.array([val.fValue for val in rc1_s87])
-rc1_s64_fvalue = np.array([val.fValue for val in rc1_s64])
-rc1_s32_fvalue = np.array([val.fValue for val in rc1_s32])
+rc0_s87_round_fvalue = np.array([val.fValue for val in rc0_s87_round])
+rc0_s64_round_fvalue = np.array([val.fValue for val in rc0_s64_round])
+rc0_s32_round_fvalue = np.array([val.fValue for val in rc0_s32_round])
 
-# Beta = 0.99
-rc2_s87 = arrayFixedInt(8, 7, rc2, 'S', 'round', 'saturate')
-rc2_s64 = arrayFixedInt(6, 4, rc2, 'S', 'round', 'saturate')
-rc2_s32 = arrayFixedInt(3, 2, rc2, 'S', 'round', 'saturate')
+## Beta = 0.5
+# Truncado
+rc1_s87_trunc = arrayFixedInt(8, 7, rc1, 'S', 'trunc', 'saturate')
+rc1_s64_trunc = arrayFixedInt(6, 4, rc1, 'S', 'trunc', 'saturate')
+rc1_s32_trunc = arrayFixedInt(3, 2, rc1, 'S', 'trunc', 'saturate')
 
-rc2_s87_fvalue = np.array([val.fValue for val in rc2_s87])
-rc2_s64_fvalue = np.array([val.fValue for val in rc2_s64])
-rc2_s32_fvalue = np.array([val.fValue for val in rc2_s32])
+rc1_s87_trunc_fvalue = np.array([val.fValue for val in rc1_s87_trunc])
+rc1_s64_trunc_fvalue = np.array([val.fValue for val in rc1_s64_trunc])
+rc1_s32_trunc_fvalue = np.array([val.fValue for val in rc1_s32_trunc])
+
+# Redondeo
+rc1_s87_round = arrayFixedInt(8, 7, rc1, 'S', 'round', 'saturate')
+rc1_s64_round = arrayFixedInt(6, 4, rc1, 'S', 'round', 'saturate')
+rc1_s32_round = arrayFixedInt(3, 2, rc1, 'S', 'round', 'saturate')
+
+rc1_s87_round_fvalue = np.array([val.fValue for val in rc1_s87_round])
+rc1_s64_round_fvalue = np.array([val.fValue for val in rc1_s64_round])
+rc1_s32_round_fvalue = np.array([val.fValue for val in rc1_s32_round])
+
+## Beta = 0.99
+# Truncado
+rc2_s87_trunc = arrayFixedInt(8, 7, rc2, 'S', 'trunc', 'saturate')
+rc2_s64_trunc = arrayFixedInt(6, 4, rc2, 'S', 'trunc', 'saturate')
+rc2_s32_trunc = arrayFixedInt(3, 2, rc2, 'S', 'trunc', 'saturate')
+
+rc2_s87_trunc_fvalue = np.array([val.fValue for val in rc2_s87_trunc])
+rc2_s64_trunc_fvalue = np.array([val.fValue for val in rc2_s64_trunc])
+rc2_s32_trunc_fvalue = np.array([val.fValue for val in rc2_s32_trunc])
+
+# Redondeo
+rc2_s87_round = arrayFixedInt(8, 7, rc2, 'S', 'round', 'saturate')
+rc2_s64_round = arrayFixedInt(6, 4, rc2, 'S', 'round', 'saturate')
+rc2_s32_round = arrayFixedInt(3, 2, rc2, 'S', 'round', 'saturate')
+
+rc2_s87_round_fvalue = np.array([val.fValue for val in rc2_s87_round])
+rc2_s64_round_fvalue = np.array([val.fValue for val in rc2_s64_round])
+rc2_s32_round_fvalue = np.array([val.fValue for val in rc2_s32_round])
 
 ### Generacion de las graficas
 # Filtro flotante
@@ -86,17 +116,42 @@ plt.title(r'Respuesta al Impulso (Punto Flotante). $BR = 1\, $GBd. $OS = 8$')
 plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
-
-# Filtro cuantizado
+## Filtro cuantizado
+# Beta fijo
 plt.figure(figsize=[14,7])
-plt.plot(t, rc0           , 'b-' , linewidth=1.0, label=r'Float')
-plt.plot(t, rc0_s87_fvalue, 'ro-', linewidth=2.0, label=r'S(8,7)')
-plt.plot(t, rc0_s64_fvalue, 'gs-', linewidth=2.0, label=r'S(6,4)')
-plt.plot(t, rc0_s32_fvalue, 'k^-', linewidth=2.0, label=r'S(3,2)')
+# plt.plot(t, rc1                 , 'b-' , linewidth=1.0, label=r'Float')
+plt.plot(t*1e9, rc1_s32_trunc_fvalue, 'b^-', linewidth=2.0, label=r'S(3,2) Trunc.')
+plt.plot(t*1e9, rc1_s64_trunc_fvalue, 'gs-', linewidth=2.0, label=r'S(6,4) Trunc.')
+plt.plot(t*1e9, rc1_s87_trunc_fvalue, 'ro-', linewidth=2.0, label=r'S(8,7) Trunc.')
 
 plt.legend()
 plt.grid(True)
-plt.xlabel('Tiempo [s]')
+plt.title(r'Respuesta al Impulso. $\beta=0.5$')
+plt.xlabel('Tiempo [períodos de símbolo T]')
+plt.ylabel('Magnitud')
+
+# Formato fijo
+plt.figure(figsize=[14,7])
+plt.plot(t*1e9, rc0_s64_trunc_fvalue, 'ro-', linewidth=2.0, label=r'$\beta=0.0$')
+plt.plot(t*1e9, rc1_s64_trunc_fvalue, 'gs-', linewidth=2.0, label=r'$\beta=0.5$')
+plt.plot(t*1e9, rc2_s64_trunc_fvalue, 'k^-', linewidth=2.0, label=r'$\beta=1.0$')
+
+plt.legend()
+plt.grid(True)
+plt.title(r'Respuesta al Impulso. Formato: S(6,4) Truncado.')
+plt.xlabel('Tiempo [períodos de símbolo T]')
+plt.ylabel('Magnitud')
+
+# Beta y formato fijos
+plt.figure(figsize=[14,7])
+plt.plot(t*1e9, rc1                 , 'k-' , linewidth=1.0, label=r'Float')
+plt.plot(t*1e9, rc1_s64_trunc_fvalue, 'ro-', linewidth=2.0, label=r'S(6,4) Trunc.')
+plt.plot(t*1e9, rc1_s64_round_fvalue, 'gs-', linewidth=2.0, label=r'S(6,4) Red.')
+
+plt.legend()
+plt.grid(True)
+plt.title(r'Respuesta al Impulso. $\beta=0.5$. Formato: S(6,4)')
+plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
 symb00    = np.zeros(int(os)*3+1);symb00[os:len(symb00)-1:int(os)] = 1.0
@@ -192,26 +247,47 @@ def resp_freq_np(filt, Ts, Nfreqs):
 
 
 ### Calculo respuesta en frec para los tres pulsos
-# Beta = 0
-[H0,F0]         = resp_freq_np(rc0           , Ts, Nfreqs)
-[H0_s87,F0_s87] = resp_freq_np(rc0_s87_fvalue, Ts, Nfreqs)
-[H0_s64,F0_s64] = resp_freq_np(rc0_s64_fvalue, Ts, Nfreqs)
-[H0_s32,F0_s32] = resp_freq_np(rc0_s32_fvalue, Ts, Nfreqs)
+## Beta = 0
+[H0          , F0          ] = resp_freq_np(rc0                 , Ts, Nfreqs)
 
-# Beta = 0.5
-[H1,F1]         = resp_freq_np(rc1           , Ts, Nfreqs)
-[H1_s87,F1_s87] = resp_freq_np(rc1_s87_fvalue, Ts, Nfreqs)
-[H1_s64,F1_s64] = resp_freq_np(rc1_s64_fvalue, Ts, Nfreqs)
-[H1_s32,F1_s32] = resp_freq_np(rc1_s32_fvalue, Ts, Nfreqs)
+# Truncado
+[H0_s87_trunc, F0_s87_trunc] = resp_freq_np(rc0_s87_trunc_fvalue, Ts, Nfreqs)
+[H0_s64_trunc, F0_s64_trunc] = resp_freq_np(rc0_s64_trunc_fvalue, Ts, Nfreqs)
+[H0_s32_trunc, F0_s32_trunc] = resp_freq_np(rc0_s32_trunc_fvalue, Ts, Nfreqs)
 
-# Beta = 0.99
-[H2,F2]         = resp_freq_np(rc2           , Ts, Nfreqs)
-[H2_s87,F2_s87] = resp_freq_np(rc2_s87_fvalue, Ts, Nfreqs)
-[H2_s64,F2_s64] = resp_freq_np(rc2_s64_fvalue, Ts, Nfreqs)
-[H2_s32,F2_s32] = resp_freq_np(rc2_s32_fvalue, Ts, Nfreqs)
+# Redondeo
+[H0_s87_round, F0_s87_round] = resp_freq_np(rc0_s87_round_fvalue, Ts, Nfreqs)
+[H0_s64_round, F0_s64_round] = resp_freq_np(rc0_s64_round_fvalue, Ts, Nfreqs)
+[H0_s32_round, F0_s32_round] = resp_freq_np(rc0_s32_round_fvalue, Ts, Nfreqs)
+
+## Beta = 0.5
+[H1          , F1          ] = resp_freq_np(rc1                 , Ts, Nfreqs)
+
+# Truncado
+[H1_s87_trunc, F1_s87_trunc] = resp_freq_np(rc1_s87_trunc_fvalue, Ts, Nfreqs)
+[H1_s64_trunc, F1_s64_trunc] = resp_freq_np(rc1_s64_trunc_fvalue, Ts, Nfreqs)
+[H1_s32_trunc, F1_s32_trunc] = resp_freq_np(rc1_s32_trunc_fvalue, Ts, Nfreqs)
+
+# Redondeo
+[H1_s87_round, F1_s87_round] = resp_freq_np(rc1_s87_round_fvalue, Ts, Nfreqs)
+[H1_s64_round, F1_s64_round] = resp_freq_np(rc1_s64_round_fvalue, Ts, Nfreqs)
+[H1_s32_round, F1_s32_round] = resp_freq_np(rc1_s32_round_fvalue, Ts, Nfreqs)
+
+## Beta = 0.99
+[H2          , F2          ] = resp_freq_np(rc2                 , Ts, Nfreqs)
+
+# Truncado
+[H2_s87_trunc, F2_s87_trunc] = resp_freq_np(rc2_s87_trunc_fvalue, Ts, Nfreqs)
+[H2_s64_trunc, F2_s64_trunc] = resp_freq_np(rc2_s64_trunc_fvalue, Ts, Nfreqs)
+[H2_s32_trunc, F2_s32_trunc] = resp_freq_np(rc2_s32_trunc_fvalue, Ts, Nfreqs)
+
+# Redondeo
+[H2_s87_round, F2_s87_round] = resp_freq_np(rc2_s87_round_fvalue, Ts, Nfreqs)
+[H2_s64_round, F2_s64_round] = resp_freq_np(rc2_s64_round_fvalue, Ts, Nfreqs)
+[H2_s32_round, F2_s32_round] = resp_freq_np(rc2_s32_round_fvalue, Ts, Nfreqs)
 
 ### Generacion de los graficos
-# Float
+## Float
 plt.figure(figsize=[14,6])
 plt.semilogx(F0, 20*np.log10(H0), 'r', linewidth=2.0, label=r'$\beta=0.0$')
 plt.semilogx(F1, 20*np.log10(H1), 'g', linewidth=2.0, label=r'$\beta=0.5$')
@@ -221,27 +297,59 @@ plt.axvline(x=(1./T)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label
 plt.axhline(y=20*np.log10(0.5),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
 plt.legend(loc=3)
 plt.grid(True)
-plt.xlim(F2[1],F2[len(F2)-1])
+plt.xlim(F2[len(F2)//2+1],F2[len(F2)-1])
 plt.title(r'Respuesta en Frecuencia (Punto Flotante). $BR = 1\,$GBd. $OS = 8$')
 plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 
-# Fixed
+## Fixed
+# Beta fijo
 plt.figure(figsize=[14,6])
-plt.semilogx(F0_s87, 20*np.log10(H0_s87), 'r', linewidth=2.0, label=r'S(8,7)')
-plt.semilogx(F0_s64, 20*np.log10(H0_s64), 'g', linewidth=2.0, label=r'S(6,4)')
-plt.semilogx(F0_s32, 20*np.log10(H0_s32), 'b', linewidth=2.0, label=r'S(3,2)')
-plt.semilogx(F0, 20*np.log10(H0), 'k', linewidth=1.0, label=r'Float')
+plt.semilogx(F1_s32_trunc, 20*np.log10(H1_s32_trunc), 'b', linewidth=2.0, label=r'S(3,2)')
+plt.semilogx(F1_s64_trunc, 20*np.log10(H1_s64_trunc), 'g', linewidth=2.0, label=r'S(6,4)')
+plt.semilogx(F1_s87_trunc, 20*np.log10(H1_s87_trunc), 'r', linewidth=2.0, label=r'S(8,7)')
+plt.semilogx(F1          , 20*np.log10(H1          ), 'k', linewidth=0.8, label=r'Float')
 
 plt.axvline(x=(1./T)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
-plt.axhline(y=20*np.log10(0.5),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
+plt.axhline(y=20*np.log10(H1[len(H1)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
 plt.legend(loc=3)
 plt.grid(True)
-plt.xlim(F0_s32[1],F0_s32[len(F0_s32)-1])
+plt.xlim(F1_s32_trunc[len(F1_s32_trunc)//2+1],F1_s32_trunc[len(F1_s32_trunc)-1])
+plt.title(r'Respuesta en Frecuencia. $\beta=0.5$')
+plt.xlabel('Frequencia [Hz]')
+plt.ylabel('Magnitud [dB]')
+
+# Formato fijo
+plt.figure(figsize=[14,6])
+plt.semilogx(F0_s64_trunc, 20*np.log10(H0_s64_trunc), 'r', linewidth=2.0, label=r'$\beta=0.0$')
+plt.semilogx(F1_s64_trunc, 20*np.log10(H1_s64_trunc), 'g', linewidth=2.0, label=r'$\beta=0.5$')
+plt.semilogx(F2_s64_trunc, 20*np.log10(H2_s64_trunc), 'b', linewidth=2.0, label=r'$\beta=1.0$')
+# plt.semilogx(F0          , 20*np.log10(H0          ), 'k', linewidth=0.8, label=r'Float')
+
+plt.axvline(x=(1./T)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
+plt.axhline(y=20*np.log10(H0_s64_trunc[len(H0_s64_trunc)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
+plt.legend(loc=3)
+plt.grid(True)
+plt.xlim(F0[len(F0)//2+1],F0[len(F0)-1])
+plt.title(r'Respuesta en Frecuencia. Formato: S(6,4) Truncado')
+plt.xlabel('Frequencia [Hz]')
+plt.ylabel('Magnitud [dB]')
+
+# Beta y formato fijos
+plt.figure(figsize=[14,6])
+plt.semilogx(F1_s64_trunc, 20*np.log10(H1_s64_trunc), 'r', linewidth=2.0, label=r'S(6,4) Trunc.')
+plt.semilogx(F1_s64_round, 20*np.log10(H1_s64_round), 'g', linewidth=2.0, label=r'S(6,4) Red.')
+plt.semilogx(F1          , 20*np.log10(H1          ), 'k', linewidth=0.8, label=r'Float')
+
+plt.axvline(x=(1./T)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
+plt.axhline(y=20*np.log10(H1[len(H1)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
+plt.legend(loc=3)
+plt.grid(True)
+plt.xlim(F1[len(F1)//2+1],F1[len(F1)-1])
+plt.title(r'Respuesta en Frecuencia. $\beta=0.5$. Formato: S(6,4)')
 plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 plt.show()
-
 
 ### Generacion de simbolos. La funcion devuelve num. reales
 symbolsI = 2*(np.random.uniform(-1,1,Nsymb)>0.0)-1;
