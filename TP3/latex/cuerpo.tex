@@ -1,38 +1,58 @@
 \section{Introducción}
 
+Luego de haber estudiado los conceptos de aritmética de \emph{punto fijo}, se propuso como trabajo generar filtros de \emph{coseno realzado} (RC) en distintos formatos de punto fijo, para comparar cómo la cuantización afecta su desempeño a la hora de limitar el ancho de banda de un canal.
+
 \section{Desarrollo}
 
 \subsection{Filtros en Punto Flotante}
 
+Se diseñaron en Python tres filtros RC con Rolloff 0, $0.5$ y 1. Estos están en punto flotante para determinar sus diferencias antes de cuantizarlos y las características que comparten son:
 
+\begin{itemize}
+    \item $BR$ (Baudrate) $= 1\,$GBd
+    \item Duración: 16 períodos de baudio.
+    \item $OS$ (Oversampling) $= 8$
+\end{itemize}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{img/freq_float.pdf}
-    \caption{cap.}
-    \label{fig:freq_float}
-\end{figure}
+En la figura \ref{fig:imp_float} se muestra la respuesta al impulso de los filtros. Así como se observó en el trabajo práctico N°1, se observa que los lóbulos de un filtro con rolloff menor decaen más lento en amplitud, por lo que se requiere un mayor número de coeficientes. También cruzan por cero en múltiplos del período de símbolo $T$, lo que les da la capacidad de eliminación de I.S.I.
+
+En la figura \ref{fig:freq_float} se puede observar la respuesta en frecuencia utilizando la función \texttt{fft} de numpy y normalizando los filtros en amplitud para que tengan ganancia de $0\,$dB en la banda de paso. Se observa la transición abrupta en $\beta=0$, pero con una atenuación pobre fuera de banda, ya que los lóbulos laterales en el tiempo no se terminan de extinguir; mientras que con rolloff más alto, la transición es más suave (ocupando más ancho de banda) pero atenúa mejor fuera de banda. Se debe tener en cuenta que, en este caso, los lóbulos en la banda de atenuación se ven más ``prolijos'' que en el caso de un filtro en punto fijo, como se verá más adelante.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/imp_float.pdf}
-    \caption{cap.}
+    \caption{Respuesta al impulso de los filtros en punto flotante.}
     \label{fig:imp_float}
 \end{figure}
 
 \begin{figure}[H]
     \centering
+    \includegraphics[width=\linewidth]{img/freq_float.pdf}
+    \caption{Respuesta en frecuencia de los filtros normalizados en punto flotante.}
+    \label{fig:freq_float}
+\end{figure}
+
+Durante la transmisión, el DSP realiza la convolución del RC con los símbolos a enviar. En Python se graficó la convolución de dos símbolos con estos tres filtros en la figura \ref{fig:conv_float}; como estos símbolos son un impulso, de la convolución se obtuvo la suma de dos RC, donde la suma se encuentra en color azul. La diferencia que se observa entre los distintos $\beta$, es que con un $\beta$ muy bajo se produce una señal de larga duración y muy oscilante, mientras que con un $\beta$ bajo, la señal es de menor duración y menos oscilante.
+
+Finalmente, se generaron varios símbolos en un esquema de modulación QPSK y se los filtró con los tres RC de punto flotante anteriores. Luego se graficó la \emph{constelación} resultante con la fase óptima en la figura \ref{fig:const_float}. Una constelación es un diagrama que representa los símbolos recibidos muestreados en el instante óptimo de decisión. En ese instante, todos los filtros RC —sin importar el valor de $\beta$— cumplen el criterio para I.S.I. cero y el valor muestreado corresponde únicamente al símbolo transmitido.
+
+\begin{figure}[H]
+    \centering
     \includegraphics[width=\linewidth]{img/conv_float.pdf}
-    \caption{cap.}
+    \caption{Convolución de los tres filtros con dos símbolos.}
     \label{fig:conv_float}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/const_float.pdf}
-    \caption{cap.}
+    \caption{Diagrama de constelación para los filtros en punto flotante. Modulación QPSK.}
     \label{fig:const_float}
 \end{figure}
+
+Por lo tanto, el factor de rolloff no influye en la posición de los puntos de la constelación cuando el filtro está en formato de punto flotante.
+
+\subsection{Filtros en Punto Fijo}
 
 \section{Conclusión}
 

@@ -32,8 +32,8 @@ def rcosine(beta, Tbaud, oversampling, Nbauds, Norm):
     y_vect = np.array(y_vect)
 
     if(Norm):
-        return (t_vect, y_vect/np.sqrt(np.sum(y_vect**2)))
-        #return (t_vect, y_vect/y_vect.sum())
+        # return (t_vect, y_vect/np.sqrt(np.sum(y_vect**2)))
+        return (t_vect, y_vect/y_vect.sum())
     else:
         return (t_vect,y_vect)
 
@@ -43,6 +43,7 @@ def rcosine(beta, Tbaud, oversampling, Nbauds, Norm):
 (t,rc2) = rcosine(beta[2], T,os,Nbauds,Norm=False)
 
 print (np.sum(rc0**2),np.sum(rc1**2),np.sum(rc2**2))
+print (np.sum(rc0),np.sum(rc1),np.sum(rc2))
 
 ### Conversion a punto fijo
 # Beta = 0
@@ -222,7 +223,7 @@ plt.legend(loc=3)
 plt.grid(True)
 plt.xlim(F2[1],F2[len(F2)-1])
 plt.title(r'Respuesta en Frecuencia (Punto Flotante). $BR = 1\,$GBd. $OS = 8$')
-plt.xlabel('Frequencia [MHz]')
+plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 
 # Fixed
@@ -237,7 +238,7 @@ plt.axhline(y=20*np.log10(0.5),color='k',linestyle='dashed',linewidth=1.5, label
 plt.legend(loc=3)
 plt.grid(True)
 plt.xlim(F0_s32[1],F0_s32[len(F0_s32)-1])
-plt.xlabel('Frequencia [MHz]')
+plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 plt.show()
 
