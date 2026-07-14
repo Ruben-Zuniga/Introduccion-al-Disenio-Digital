@@ -54,13 +54,148 @@ Por lo tanto, el factor de rolloff no influye en la posición de los puntos de l
 
 \subsection{Filtros en Punto Fijo}
 
+Para esta sección, los filtros de punto flotante anteriores fueron cuantizados en los siguientes formatos de punto fijo:
+
+\begin{itemize}
+    \item S(8,7): valores signados de 8 bits en total y 7 bits fraccionales.
+    \item S(6,4): valores signados de 6 bits en total y 4 bits fraccionales.
+    \item S(3,2): valores signados de 3 bits en total y 2 bits fraccionales.
+\end{itemize}
+
+Se realizó la conversión en estos formatos, aplicando los métodos de truncado y redondeo, para poder acortar la representación en 32 bits del punto flotante a la cantidad de bits correspondientes del punto fijo. Se resumieron algunas características de los formatos en el cuadro \ref{tab:formatos}.
+
+\begin{table}[H]
+    \centering
+
+    \begin{tabular}{lccc}
+        \textbf{Formato} & \textbf{Precisión} & \textbf{Resolución} & \textbf{Rango} \\
+        \hline\hline
+        \textbf{S(8,7)} & 8 bits (256 valores) & $0.0078125$ & $[-1:0.9921875]$ \\
+        \textbf{S(6,4)} & 6 bits (64 valores)  & $0.0625$    & $[-2:1.9375]$    \\
+        \textbf{S(3,2)} & 3 bits (8 valores)   & $0.25$      & $[-1:0.75]$      \\
+        \hline
+    \end{tabular}
+
+    \caption{Comparación entre tres formatos de punto fijo.}
+    \label{tab:formatos}
+\end{table}
+
+Cabe aclarar que, a diferencia de los filtros en punto flotante, en este caso no se normalizaron para ver su respuesta en frecuencia, ya que esto implicaría tener una menor resolución final.
+
+En la figura \ref{fig:imp_fix_beta05} se muestra una comparación entre estos tres formatos. Nótese que los filtros en S(8,7) y S(3,2) no llegan a 1 en el lóbulo principal, ya que se encuentran limitados por su rango de valores representables, mostrados en el cuadro \ref{tab:formatos}. Además, se observa que los filtros de menor precisión S(6,4) y S(3,2) difieren más de los valores ideales de punto flotante, ya que al tener menor precisión tienen también menor resolución.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_fix_beta05.pdf}
+    \caption{Respuesta al impulso de un RC en punto fijo, con truncado.}
+    \label{fig:imp_fix_beta05}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\linewidth]{img/imp_fix_beta05_2.pdf}
+    \caption{Acercamiento al lóbulo principal de la respuesta. El coeficiente en S(8,7) no llega a 1.}
+    \label{fig:imp_fix_beta05_2}
+\end{figure}
+
+La respuesta en frecuencia de estos filtros en la figura \ref{fig:freq_fix_beta05} evidencia que una resolución muy baja implica una respuesta mas pobre en frecuencia. El filtro en S(3,2) es diferente incluso en la banda de paso, por lo que no sería útil en la práctica. Por otro lado, el filtro en S(6,4) sigue un poco mejor a la respuesta ideal pero en la banda de paso tiene una ganancia distinta. El filtro S(8,7) es el que mejor sigue al ideal, aunque fuera de banda hay poca atenuación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/freq_fix_beta05.pdf}
+    \caption{Respuesta en frecuencia de un RC en punto fijo, con truncado.}
+    \label{fig:freq_fix_beta05}
+\end{figure}
+
+En la figura \ref{fig:imp_fix_s64} se compararon los distintos factores de rolloff en un filtro cuantizado, observándose que para un rolloff de 1 los lóbulos laterales no se terminan de extinguir. Esto provoca que el filtro no pueda atenuar altas frecuencias, como se observa en la figura \ref{fig:freq_fix_s64}, donde la atenuación para este caso es la misma. Se concluye entonces que, para baja resolución, la atenuación en altas frecuencias depende del formato de punto fijo y no necesariamente del rolloff.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_fix_s64.pdf}
+    \caption{Respuesta al impulso de un RC en punto fijo según el rolloff.}
+    \label{fig:imp_fix_s64}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/freq_fix_s64.pdf}
+    \caption{Respuesta en frecuencia de un RC en punto fijo según el rolloff.}
+    \label{fig:freq_fix_s64}
+\end{figure}
+
+Nuevamente prestando atención a un rolloff de 1, la diferencia entre un filtro en punto fijo con truncado y uno con redondeo se muestra en la figura \ref{fig:imp_fix_trunc_red_beta1}. Se puede observar detenidamente que el filtro con truncado no es simétrico, mientras que el filtro con redondeo sí lo es. Esto, sumado a que los coeficientes sí se extinguen en este caso, se espera la respuesta en frecuencia de la figura \ref{fig:freq_fix_trunc_red_beta1}; la respuesta con redondeo tiene mejor atenuación, ya que los lóbulos laterales son directamente cero y no oscilan, mientras que la banda de paso es contante.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_fix_trunc_red_beta1.pdf}
+    \caption{Respuesta al impulso de un filtro con truncado y uno con redondeo.}
+    \label{fig:imp_fix_trunc_red_beta1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/freq_fix_trunc_red_beta1.pdf}
+    \caption{Respuesta en frecuencia de un filtro con truncado y uno con redondeo.}
+    \label{fig:freq_fix_trunc_red_beta1}
+\end{figure}
+
+En la figura \ref{fig:imp_fix_beta05_round} se puede ver una comparación entre los tres formatos con redondeo donde los coeficientes son simétricos, a diferencia de la figura \ref{fig:imp_fix_beta05}. La respuesta en frecuencia en la figura \ref{fig:freq_fix_beta05_round} también muestra una mejora en la banda de paso, comparado con la figura \ref{fig:freq_fix_beta05}. Observando todas estas diferencias, se deduce que un filtro con redondeo tiene un mejor comportamiento respecto a uno con truncado, por lo que en la práctica es más frecuente el uso del redondeo en la conversión.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_fix_beta05_round.pdf}
+    \caption{Respuesta al impulso del RC en punto fijo, con redondeo.}
+    \label{fig:imp_fix_beta05_round}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/freq_fix_beta05_round.pdf}
+    \caption{Respuesta en frecuencia del RC en punto fijo, con redondeo.}
+    \label{fig:freq_fix_beta05_round}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/conv_fix_s32_trunc.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/conv_fix_s32_round.pdf}
+    \end{minipage}
+
+    \caption{cap.}
+    \label{fig:conv_fix_s32}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/conv_fix_s64_trunc.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/conv_fix_s64_round.pdf}
+    \end{minipage}
+
+    \caption{cap.}
+    \label{fig:conv_fix_s64}
+\end{figure}
+
 \section{Conclusión}
 
 \appendix
 
-\section{Códigos en Verilog} \label{appx:rtl}
+\section{Scripts de Python} \label{appx:scripts}
 
-Los códigos en RTL y el testbench del proyecto se encuentran en el siguiente link: \url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP3}
+Los scripts del trabajo se encuentran en el siguiente link: \url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP3}
 
 % \begin{equation}
 %     \boxed{
