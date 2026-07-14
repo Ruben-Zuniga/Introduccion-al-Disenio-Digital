@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tool._fixedInt import *
 
-##  ipython nbconvert --to latex --post PDF <Name.ipynb>
-
+# -------------------------------------------------------------
+### PARAMETROS 
+# -------------------------------------------------------------
 ## Parametros generales
 Fbaud = 1e9 # Frecuencia de baudio
 T     = 1/Fbaud # Periodo de baudio
@@ -17,6 +18,10 @@ beta   = [0.0,0.5,0.99] # Roll-Off
 Nbauds = 16     # Cantidad de baudios del filtro
 ## Parametros funcionales
 Ts = T/os              # Frecuencia de muestreo
+
+# -------------------------------------------------------------
+### GENERACION COSENO REALZADO 
+# -------------------------------------------------------------
 
 def rcosine(beta, Tbaud, oversampling, Nbauds, Norm):
     """ Respuesta al impulso del pulso de caida cosenoidal """
@@ -45,7 +50,9 @@ def rcosine(beta, Tbaud, oversampling, Nbauds, Norm):
 print(np.sum(rc0**2),np.sum(rc1**2),np.sum(rc2**2))
 print(np.sum(rc0),np.sum(rc1),np.sum(rc2))
 
-### Conversion a punto fijo
+# -------------------------------------------------------------
+### CONVERSION A PUNTO FIJO 
+# -------------------------------------------------------------
 ## Beta = 0
 # Truncado
 rc0_s87_trunc = arrayFixedInt(8, 7, rc0, 'S', 'trunc', 'saturate')
@@ -107,8 +114,10 @@ rc2_s32_round_fvalue = np.array([val.fValue for val in rc2_s32_round])
 # print(rc0_s64_round[0].showRange())
 # print(rc0_s32_round[0].showRange())
 
-### Generacion de las graficas
-# Filtro flotante
+# -------------------------------------------------------------
+### RESP. AL IMPULSO 
+# -------------------------------------------------------------
+## Filtro flotante
 plt.figure(figsize=[14,7])
 plt.plot(t*1e9, rc0, 'bo-' , linewidth=1.5, label=r'$\beta=0.0$')
 plt.plot(t*1e9, rc1, 'rs-' , linewidth=1.5, label=r'$\beta=0.5$')
@@ -121,9 +130,8 @@ plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
 ## Filtro cuantizado
-# Beta fijo
+# Formato variable
 plt.figure(figsize=[14,7])
-# plt.plot(t, rc1                 , 'b-' , linewidth=1.0, label=r'Float')
 plt.plot(t*1e9, rc1_s32_trunc_fvalue, 'b^-', linewidth=2.0, label=r'S(3,2) Trunc.')
 plt.plot(t*1e9, rc1_s64_trunc_fvalue, 'gs-', linewidth=2.0, label=r'S(6,4) Trunc.')
 plt.plot(t*1e9, rc1_s87_trunc_fvalue, 'ro-', linewidth=2.0, label=r'S(8,7) Trunc.')
@@ -134,7 +142,7 @@ plt.title(r'Respuesta al Impulso. $\beta=0.5$')
 plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
-# Formato fijo
+# Beta variable
 plt.figure(figsize=[14,7])
 plt.plot(t*1e9, rc0_s64_trunc_fvalue, 'ro-', linewidth=2.0, label=r'$\beta=0.0$')
 plt.plot(t*1e9, rc1_s64_trunc_fvalue, 'gs-', linewidth=2.0, label=r'$\beta=0.5$')
@@ -146,7 +154,7 @@ plt.title(r'Respuesta al Impulso. Formato: S(6,4) Truncado.')
 plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
-# Beta y formato fijos
+# Truncado y redondeo
 plt.figure(figsize=[14,7])
 plt.plot(t*1e9, rc2                 , 'k-' , linewidth=1.0, label=r'Float')
 plt.plot(t*1e9, rc2_s64_trunc_fvalue, 'ro-', linewidth=2.0, label=r'S(6,4) Trunc.')
@@ -158,7 +166,7 @@ plt.title(r'Respuesta al Impulso. $\beta=1$. Formato: S(6,4)')
 plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
-# Beta fijo con redondeo
+# Formato variable con redondeo
 plt.figure(figsize=[14,7])
 # plt.plot(t, rc1                 , 'b-' , linewidth=1.0, label=r'Float')
 plt.plot(t*1e9, rc1_s32_round_fvalue, 'b^-', linewidth=2.0, label=r'S(3,2) Red.')
@@ -172,7 +180,9 @@ plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 plt.show()
 
-### Convolución con simbolos
+# -------------------------------------------------------------
+### CONVOLUCION CON SIMBOLOS 
+# -------------------------------------------------------------
 symb00    = np.zeros(int(os)*3+1);symb00[os:len(symb00)-1:int(os)] = 1.0
 
 ## Float
@@ -215,7 +225,6 @@ plt.stem(np.arange(offsetPot,len(symb00)+offsetPot),symb00,label='Símbolos')
 plt.plot(rc0Symb00[os::],'--',linewidth=2.0,label='Convolución')
 plt.legend()
 plt.grid(True)
-#plt.xlim(0,35)
 plt.ylim(-0.2,1.4)
 plt.xlabel('Muestras')
 plt.ylabel('Magnitud')
@@ -228,11 +237,9 @@ plt.stem(np.arange(offsetPot,len(symb00)+offsetPot),symb00,label='Símbolos')
 plt.plot(rc1Symb00[os::],'--',linewidth=2.0,label='Convolución')
 plt.legend()
 plt.grid(True)
-#plt.xlim(0,35)
 plt.ylim(-0.2,1.4)
 plt.xlabel('Muestras')
 plt.ylabel('Magnitud')
-#plt.title('Rcosine - OS: %d'%int(os))
 
 plt.subplot(3,1,3)
 plt.plot(np.arange(0,len(rc2)),rc2,'r.-',linewidth=1.0,label=r'$\beta=1.0$')
@@ -241,7 +248,6 @@ plt.stem(np.arange(offsetPot,len(symb00)+offsetPot),symb00,label='Símbolos')
 plt.plot(rc2Symb00[os::],'--',linewidth=2,label='Convolución')
 plt.legend()
 plt.grid(True)
-#plt.xlim(0,35)
 plt.ylim(-0.2,1.4)
 plt.xlabel('Muestras')
 plt.ylabel('Magnitud')
@@ -485,7 +491,9 @@ plt.ylabel('Magnitud')
 
 plt.show()
 
-
+# -------------------------------------------------------------
+### RESP. EN FRECUENCIA
+# -------------------------------------------------------------
 def resp_freq(filt, Ts, Nfreqs):
     """Computo de la respuesta en frecuencia de cualquier filtro FIR"""
     H = [] # Lista de salida de la magnitud
@@ -647,6 +655,9 @@ plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 plt.show()
 
+# -------------------------------------------------------------
+### GENERACION DE SIMBOLOS Y CONVOLUCION
+# -------------------------------------------------------------
 ### Generacion de simbolos. La funcion devuelve num. reales
 symbolsI = 2*(np.random.uniform(-1,1,Nsymb)>0.0)-1;
 symbolsQ = 2*(np.random.uniform(-1,1,Nsymb)>0.0)-1;
@@ -665,7 +676,9 @@ symb_out1I = np.convolve(rc1,zsymbI,'same'); symb_out1Q = np.convolve(rc1,zsymbQ
 # Beta = 0.99
 symb_out2I = np.convolve(rc2,zsymbI,'same'); symb_out2Q = np.convolve(rc2,zsymbQ,'same')
 
-### Diagrama de ojo
+# -------------------------------------------------------------
+### DIAGRAMA DE OJO 
+# -------------------------------------------------------------
 def eyediagram(data, n, offset, period):
     span     = 2*n
     segments = int(len(data)/span)
@@ -702,7 +715,9 @@ eyediagram(symb_out2Q[100:len(symb_out2Q)-100],os,5,Nbauds)
 
 plt.show()
 
-### Constelaciones
+# -------------------------------------------------------------
+### CONSTELACIONES 
+# -------------------------------------------------------------
 offset = 6
 plt.figure(figsize=[14,6])
 
