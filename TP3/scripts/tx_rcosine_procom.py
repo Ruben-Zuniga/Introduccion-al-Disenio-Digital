@@ -667,14 +667,61 @@ zsymbI = np.zeros(os*Nsymb); zsymbI[1:len(zsymbI):int(os)]=symbolsI
 zsymbQ = np.zeros(os*Nsymb); zsymbQ[1:len(zsymbQ):int(os)]=symbolsQ
 
 ### Convolucion
+## Float
 # Beta = 0
 symb_out0I = np.convolve(rc0,zsymbI,'same'); symb_out0Q = np.convolve(rc0,zsymbQ,'same')
-
 # Beta = 0.5
 symb_out1I = np.convolve(rc1,zsymbI,'same'); symb_out1Q = np.convolve(rc1,zsymbQ,'same')
-
-# Beta = 0.99
+# Beta = 1
 symb_out2I = np.convolve(rc2,zsymbI,'same'); symb_out2Q = np.convolve(rc2,zsymbQ,'same')
+
+## S(8,7) trunc
+symb_out0I_s87_trunc = np.convolve(rc0_s87_trunc_fvalue,zsymbI,'same')
+symb_out0Q_s87_trunc = np.convolve(rc0_s87_trunc_fvalue,zsymbQ,'same')
+symb_out1I_s87_trunc = np.convolve(rc1_s87_trunc_fvalue,zsymbI,'same')
+symb_out1Q_s87_trunc = np.convolve(rc1_s87_trunc_fvalue,zsymbQ,'same')
+symb_out2I_s87_trunc = np.convolve(rc2_s87_trunc_fvalue,zsymbI,'same')
+symb_out2Q_s87_trunc = np.convolve(rc2_s87_trunc_fvalue,zsymbQ,'same')
+
+## S(8,7) round
+symb_out0I_s87_round = np.convolve(rc0_s87_round_fvalue,zsymbI,'same')
+symb_out0Q_s87_round = np.convolve(rc0_s87_round_fvalue,zsymbQ,'same')
+symb_out1I_s87_round = np.convolve(rc1_s87_round_fvalue,zsymbI,'same')
+symb_out1Q_s87_round = np.convolve(rc1_s87_round_fvalue,zsymbQ,'same')
+symb_out2I_s87_round = np.convolve(rc2_s87_round_fvalue,zsymbI,'same')
+symb_out2Q_s87_round = np.convolve(rc2_s87_round_fvalue,zsymbQ,'same')
+
+## S(6,4) trunc
+symb_out0I_s64_trunc = np.convolve(rc0_s64_trunc_fvalue,zsymbI,'same')
+symb_out0Q_s64_trunc = np.convolve(rc0_s64_trunc_fvalue,zsymbQ,'same')
+symb_out1I_s64_trunc = np.convolve(rc1_s64_trunc_fvalue,zsymbI,'same')
+symb_out1Q_s64_trunc = np.convolve(rc1_s64_trunc_fvalue,zsymbQ,'same')
+symb_out2I_s64_trunc = np.convolve(rc2_s64_trunc_fvalue,zsymbI,'same')
+symb_out2Q_s64_trunc = np.convolve(rc2_s64_trunc_fvalue,zsymbQ,'same')
+
+## S(6,4) round
+symb_out0I_s64_round = np.convolve(rc0_s64_round_fvalue,zsymbI,'same')
+symb_out0Q_s64_round = np.convolve(rc0_s64_round_fvalue,zsymbQ,'same')
+symb_out1I_s64_round = np.convolve(rc1_s64_round_fvalue,zsymbI,'same')
+symb_out1Q_s64_round = np.convolve(rc1_s64_round_fvalue,zsymbQ,'same')
+symb_out2I_s64_round = np.convolve(rc2_s64_round_fvalue,zsymbI,'same')
+symb_out2Q_s64_round = np.convolve(rc2_s64_round_fvalue,zsymbQ,'same')
+
+## S(3,2) trunc
+symb_out0I_s32_trunc = np.convolve(rc0_s32_trunc_fvalue,zsymbI,'same')
+symb_out0Q_s32_trunc = np.convolve(rc0_s32_trunc_fvalue,zsymbQ,'same')
+symb_out1I_s32_trunc = np.convolve(rc1_s32_trunc_fvalue,zsymbI,'same')
+symb_out1Q_s32_trunc = np.convolve(rc1_s32_trunc_fvalue,zsymbQ,'same')
+symb_out2I_s32_trunc = np.convolve(rc2_s32_trunc_fvalue,zsymbI,'same')
+symb_out2Q_s32_trunc = np.convolve(rc2_s32_trunc_fvalue,zsymbQ,'same')
+
+## S(3,2) round
+symb_out0I_s32_round = np.convolve(rc0_s32_round_fvalue,zsymbI,'same')
+symb_out0Q_s32_round = np.convolve(rc0_s32_round_fvalue,zsymbQ,'same')
+symb_out1I_s32_round = np.convolve(rc1_s32_round_fvalue,zsymbI,'same')
+symb_out1Q_s32_round = np.convolve(rc1_s32_round_fvalue,zsymbQ,'same')
+symb_out2I_s32_round = np.convolve(rc2_s32_round_fvalue,zsymbI,'same')
+symb_out2Q_s32_round = np.convolve(rc2_s32_round_fvalue,zsymbQ,'same')
 
 # -------------------------------------------------------------
 ### DIAGRAMA DE OJO 
@@ -718,11 +765,11 @@ plt.show()
 # -------------------------------------------------------------
 ### CONSTELACIONES 
 # -------------------------------------------------------------
-offset = 6
 plt.figure(figsize=[14,6])
-
 plt.subplots_adjust(left=0.057, bottom=0.128, right=0.97, top=0.846, wspace=0.292, hspace=0.2)
 
+## Float
+offset = 6
 # Beta = 0
 plt.subplot(1,3,1)
 plt.plot(symb_out0I[100+offset:len(symb_out0I)-(100-offset):int(os)],
@@ -759,9 +806,119 @@ plt.title(r'Constelación (Punto Flotante). $\beta=1.0$')
 plt.xlabel('Real')
 plt.ylabel('Imag')
 
+
+## Fijo truncado
+plt.figure(figsize=[14,6])
+plt.subplots_adjust(left=0.057, bottom=0.128, right=0.97, top=0.846, wspace=0.292, hspace=0.2)
+offset = 6
+
+plt.subplot(1,3,1)
+plt.plot(symb_out0I_s32_trunc[100+offset:len(symb_out0I_s32_trunc)-(100-offset):int(os)],
+         symb_out0Q_s32_trunc[100+offset:len(symb_out0Q_s32_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_trunc[100+offset:len(symb_out0I_s64_trunc)-(100-offset):int(os)],
+         symb_out0Q_s64_trunc[100+offset:len(symb_out0Q_s64_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out0I_s87_trunc[100+offset:len(symb_out0I_s87_trunc)-(100-offset):int(os)],
+         symb_out0Q_s87_trunc[100+offset:len(symb_out0Q_s87_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-3.5, 3.5))
+plt.ylim((-3.5, 3.5))
+plt.grid(True)
+plt.title(r'Constelación (Punto Fijo Truncado). $\beta=0.0$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+plt.subplot(1,3,2)
+plt.plot(symb_out0I_s32_trunc[100+offset:len(symb_out0I_s32_trunc)-(100-offset):int(os)],
+         symb_out0Q_s32_trunc[100+offset:len(symb_out0Q_s32_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_trunc[100+offset:len(symb_out0I_s64_trunc)-(100-offset):int(os)],
+         symb_out0Q_s64_trunc[100+offset:len(symb_out0Q_s64_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out1I_s87_trunc[100+offset:len(symb_out1I_s87_trunc)-(100-offset):int(os)],
+         symb_out1Q_s87_trunc[100+offset:len(symb_out1Q_s87_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-3.5, 3.5))
+plt.ylim((-3.5, 3.5))
+plt.grid(True)
+plt.title(r'Constelación (Punto Fijo Truncado). $\beta=0.5$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+plt.subplot(1,3,3)
+plt.plot(symb_out0I_s32_trunc[100+offset:len(symb_out0I_s32_trunc)-(100-offset):int(os)],
+         symb_out0Q_s32_trunc[100+offset:len(symb_out0Q_s32_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_trunc[100+offset:len(symb_out0I_s64_trunc)-(100-offset):int(os)],
+         symb_out0Q_s64_trunc[100+offset:len(symb_out0Q_s64_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out2I_s87_trunc[100+offset:len(symb_out2I_s87_trunc)-(100-offset):int(os)],
+         symb_out2Q_s87_trunc[100+offset:len(symb_out2Q_s87_trunc)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-3.5, 3.5))
+plt.ylim((-3.5, 3.5))
+plt.grid(True)
+plt.legend(loc='upper right')
+plt.title(r'Constelación (Punto Fijo Truncado). $\beta=1.0$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+## Fijo redondeado
+plt.figure(figsize=[14,6])
+plt.subplots_adjust(left=0.057, bottom=0.128, right=0.97, top=0.846, wspace=0.292, hspace=0.2)
+offset = 6
+
+plt.subplot(1,3,1)
+plt.plot(symb_out0I_s32_round[100+offset:len(symb_out0I_s32_round)-(100-offset):int(os)],
+         symb_out0Q_s32_round[100+offset:len(symb_out0Q_s32_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_round[100+offset:len(symb_out0I_s64_round)-(100-offset):int(os)],
+         symb_out0Q_s64_round[100+offset:len(symb_out0Q_s64_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out0I_s87_round[100+offset:len(symb_out0I_s87_round)-(100-offset):int(os)],
+         symb_out0Q_s87_round[100+offset:len(symb_out0Q_s87_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-2, 2))
+plt.ylim((-2, 2))
+plt.grid(True)
+plt.title(r'Constelación (Punto Fijo Redondeado). $\beta=0.0$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+plt.subplot(1,3,2)
+plt.plot(symb_out0I_s32_round[100+offset:len(symb_out0I_s32_round)-(100-offset):int(os)],
+         symb_out0Q_s32_round[100+offset:len(symb_out0Q_s32_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_round[100+offset:len(symb_out0I_s64_round)-(100-offset):int(os)],
+         symb_out0Q_s64_round[100+offset:len(symb_out0Q_s64_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out1I_s87_round[100+offset:len(symb_out1I_s87_round)-(100-offset):int(os)],
+         symb_out1Q_s87_round[100+offset:len(symb_out1Q_s87_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-2, 2))
+plt.ylim((-2, 2))
+plt.grid(True)
+plt.title(r'Constelación (Punto Fijo Redondeado). $\beta=0.5$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+plt.subplot(1,3,3)
+plt.plot(symb_out0I_s32_round[100+offset:len(symb_out0I_s32_round)-(100-offset):int(os)],
+         symb_out0Q_s32_round[100+offset:len(symb_out0Q_s32_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(3,2)')
+plt.plot(symb_out0I_s64_round[100+offset:len(symb_out0I_s64_round)-(100-offset):int(os)],
+         symb_out0Q_s64_round[100+offset:len(symb_out0Q_s64_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(6,4)')
+plt.plot(symb_out2I_s87_round[100+offset:len(symb_out2I_s87_round)-(100-offset):int(os)],
+         symb_out2Q_s87_round[100+offset:len(symb_out2Q_s87_round)-(100-offset):int(os)],
+             '.',linewidth=2.0,label='S(8,7)')
+plt.xlim((-2, 2))
+plt.ylim((-2, 2))
+plt.grid(True)
+plt.legend(loc='upper right')
+plt.title(r'Constelación (Punto Fijo Redondeado). $\beta=1.0$')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
 plt.show()
-
-
-
-
-
