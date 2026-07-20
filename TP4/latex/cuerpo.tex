@@ -1,14 +1,102 @@
 \section{Introducción}
 
+En este trabajo se diseñó un sistema de comunicaciones digitales básico, aplicando un flujo de trabajo completo, desde la simulación en punto flotante hasta la implementación física en una FPGA. El sistema propuesto se muestra en la figura \ref{fig:esq}, que consiste en bloques generadores de PRBS, filtros transmisores, diezmador y contador de BER.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/esq.png}
+    \caption{cap.}
+    \label{fig:esq}
+\end{figure}
+
+Las características del sistema son:
+
+\begin{itemize}
+    \item \textbf{Modulación:} QPSK
+    \item \textbf{Frecuencia de reloj:} 100\,MHz
+    \item \textbf{Factor de sobremuestreo:} 4
+    \item \textbf{Tipo de filtro:} coseno realzado de 6 baudios
+    \item \textbf{Rolloff:} 0.5
+    \item \textbf{Control:} Controla el funcionamiento a diferentes velocidades de los módulos del sistema.
+    \item \textbf{BER:} El contador de BER realiza una etapa de inicialización cada vez que se cambia la fase de muestreo.
+    \item \textbf{Seed PRBS9:} \texttt{0x1AA} (canal I) y \texttt{0x1FE} (canal Q).
+\end{itemize}
+
+\section{Objetivos}
+
+El objetivo del trabajo es aplicar los conceptos de Python, Verilog y Aritmética de Punto Fijo aplicados
+en un sistema de comunicaciones básico.
 
 \section{Desarrollo}
 
-\subsection{Filtros en Punto Flotante}
+\subsection{Simulación en Punto Flotante}
+
+Se contempló todo el diseño en un simulador de punto flotante, que fue adaptado del simulador del Trabajo Práctico N°3.
+
+Se graficó la respuesta al impulso y en frecuencia del filtro (figuras \ref{fig:float_imp} y \ref{fig:float_freq}). Luego, se graficó la convolución de este filtro con una secuencia de símbolos pseudoaleatorios (figura \ref{fig:float_conv}). Finalmente, se generaron gráficas del diagrama de ojo y constelación según la fase de muestreo (figuras \ref{fig:float_eye} y \ref{fig:float_const}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/float_imp.pdf}
+    \caption{cap.}
+    \label{fig:float_imp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/float_freq.pdf}
+    \caption{cap.}
+    \label{fig:float_freq}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/float_conv.pdf}
+    \caption{cap.}
+    \label{fig:float_conv}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/float_eye.pdf}
+    \caption{cap.}
+    \label{fig:float_eye}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/float_const.pdf}
+    \caption{cap.}
+    \label{fig:float_const}
+\end{figure}
+
+La decimación se realizó para cada una de las cuatro fases posibles, descartando los primeros 100 símbolos para contar BER, ya que son parte del transitorio de la convolución con el filtro y no se llegó al estado estacionario. El resultado de BER se muestra en el cuadro \ref{tab:float_ber}, donde el único caso de errores en la decisión del símbolo es cuando la fase es igual a 3. Esto es de esperarse, ya que en la figura \ref{fig:float_const} se observa que las muestras caen dentro de la zona correcta de decisión en las fases 0, 1, y 2.
+
+\begin{table}[H]
+    \centering
+
+    \begin{tabular}{lcc}
+        \textbf{Fase} & \textbf{BER (I)} & \textbf{BER (Q)} \\
+        \hline\hline
+        0 & 0 & 0 \\
+        1 & 0 & 0 \\
+        2 & 0 & 0 \\
+        3 & 0.18643 & 0.18623 \\
+        \hline
+    \end{tabular}
+    \caption{cap.}
+    \label{tab:float_ber}
+\end{table}
+
+\subsection{Simulación en Punto Fijo}
 
 
 
-\subsection{Filtros en Punto Fijo}
+\subsection{Implementación en Verilog}
+
+
+
+\subsection{Implementación en FPGA}
 
 
 
@@ -20,10 +108,10 @@
 
 \section{Scripts de Python} \label{appx:scripts}
 
-Los scripts del trabajo se encuentran en el siguiente link: 
+Los scripts y RTL del trabajo se encuentran en el siguiente link: 
 
 \noindent
-\url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP3}
+\url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP4}
 
 % \begin{equation}
 %     \boxed{
@@ -33,7 +121,7 @@ Los scripts del trabajo se encuentran en el siguiente link:
 
 % \begin{table}[H]
 %     \centering
-
+%
 %     \begin{tabular}{lcc}
 %         \textbf{A} & \textbf{B} & \textbf{C} \\
 %         \hline\hline
@@ -41,7 +129,7 @@ Los scripts del trabajo se encuentran en el siguiente link:
 %         A & B & C \\
 %         \hline
 %     \end{tabular}
-
+%
 %     \caption{cap.}
 %     \label{tab:tab}
 % \end{table}

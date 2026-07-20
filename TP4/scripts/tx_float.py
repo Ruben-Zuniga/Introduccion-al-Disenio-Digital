@@ -8,7 +8,7 @@ from tool._fixedInt import *
 ## Parametros generales
 f_baud = 25e6 # Frecuencia de baudio (f_clk / os)
 T_baud = 1/f_baud # Periodo de baudio
-N_symb = 1000          # Numero de simbolos
+N_symb = 10000          # Numero de simbolos
 os    = 4
 ## Parametros de la respuesta en frecuencia
 N_freqs = 2048          # Cantidad de frecuencias
@@ -37,8 +37,8 @@ def rcosine(beta, Tbaud, oversampling, N_bauds, Norm):
     y_vect = np.array(y_vect)
 
     if(Norm):
-        # return (t_vect, y_vect/np.sqrt(np.sum(y_vect**2)))
-        return (t_vect, y_vect/y_vect.sum())
+        return (t_vect, y_vect/np.sqrt(np.sum(y_vect**2)))
+        # return (t_vect, y_vect/y_vect.sum())
     else:
         return (t_vect,y_vect)
 
@@ -56,8 +56,8 @@ plt.plot(t*1e9, rc0, 'bo-' , linewidth=1.5, label=r'$\beta=%2.2f$'%beta)
 
 plt.legend()
 plt.grid(True)
-plt.title(rf'Respuesta al Impulso (Punto Flotante). $BR = {f_baud/1e6}\, $MBd. $OS = 8$')
-plt.xlabel('Tiempo [períodos de símbolo T_baud]')
+plt.title(rf'Respuesta al Impulso. $BR = {f_baud/1e6}\, $MBd. $OS = {os}$')
+plt.xlabel('Tiempo [períodos de símbolo T]')
 plt.ylabel('Magnitud')
 
 # -------------------------------------------------------------
@@ -77,12 +77,12 @@ def resp_freq_np(filt, Ts, N_freqs):
 plt.figure(figsize=[14,6])
 plt.semilogx(F0, 20*np.log10(H0), 'r', linewidth=2.0, label=r'$\beta=%2.2f$'%beta)
 
-plt.axvline(x=(1./T_baud)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
+plt.axvline(x=(1./T_baud)/2.,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
 plt.axhline(y=20*np.log10(H0[len(H0)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
 plt.legend(loc=3)
 plt.grid(True)
 plt.xlim(F0[len(F0)//2+1],F0[len(F0)-1])
-plt.title(r'Respuesta en Frecuencia (Punto Flotante). $BR = 1\,$GBd. $OS = 8$')
+plt.title(rf'Respuesta en Frecuencia. $BR = {f_baud/1e6}\, $MBd. $OS = {os}$')
 plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 
@@ -92,12 +92,12 @@ plt.show()
 ### GENERACION DE SIMBOLOS Y CONVOLUCION
 # -------------------------------------------------------------
 ### Generacion de simbolos. La funcion uniform devuelve num. reales
-symbolsI = 2*(np.random.uniform(-1,1,N_symb)>0.0)-1
-symbolsQ = 2*(np.random.uniform(-1,1,N_symb)>0.0)-1
+symb_inI = 2*(np.random.uniform(-1,1,N_symb)>0.0)-1
+symb_inQ = 2*(np.random.uniform(-1,1,N_symb)>0.0)-1
 
 ### Sobremuestreo de los simbolos
-zsymbI = np.zeros(os*N_symb); zsymbI[1:len(zsymbI):int(os)]=symbolsI
-zsymbQ = np.zeros(os*N_symb); zsymbQ[1:len(zsymbQ):int(os)]=symbolsQ
+zsymbI = np.zeros(os*N_symb); zsymbI[1:len(zsymbI):int(os)]=symb_inI
+zsymbQ = np.zeros(os*N_symb); zsymbQ[1:len(zsymbQ):int(os)]=symb_inQ
 
 ### Convolucion
 symb_out0I = np.convolve(rc0,zsymbI,'same')
@@ -145,8 +145,10 @@ def eyediagram(data, n, offset, period):
 plt.figure(figsize=[14,6])
 plt.subplot(1,2,1)
 eyediagram(symb_out0I[100:len(symb_out0I)-100],os,5,N_bauds)
+plt.title(r'Diagrama de ojo (I)')
 plt.subplot(1,2,2)
 eyediagram(symb_out0Q[100:len(symb_out0Q)-100],os,5,N_bauds)
+plt.title(r'Diagrama de ojo (Q)')
 
 # -------------------------------------------------------------
 ### CONSTELACIONES 
@@ -157,10 +159,27 @@ plt.figure(figsize=[8,7])
 plt.subplots_adjust(left=0.142, bottom=0.085, right=0.903, top=0.922, wspace=0.37, hspace=0.361)
 
 for offset in offset_v:
+    # Muestreo y eliminacion del transitorio
+    symb_out0I_trim = symb_out0I[100+offset:len(symb_out0I)-(100-offset):int(os)]
+    symb_out0Q_trim = symb_out0Q[100+offset:len(symb_out0Q)-(100-offset):int(os)]
+    zsymbI_trim = zsymbI[100+1:len(zsymbI)-(100-1):int(os)]
+    zsymbQ_trim = zsymbQ[100+1:len(zsymbQ)-(100-1):int(os)]
+
+    # Slicer
+    symb_out0I_slicer = np.where(symb_out0I_trim >= 0, 1, -1)
+    symb_out0Q_slicer = np.where(symb_out0Q_trim >= 0, 1, -1)
+    
+    errors_I = np.sum(symb_out0I_slicer != zsymbI_trim)
+    errors_Q = np.sum(symb_out0Q_slicer != zsymbQ_trim)
+    ber_I = errors_I / len(zsymbI_trim)
+    ber_Q = errors_Q / len(zsymbQ_trim)
+
+    print(f'---- Fase {offset} ----')
+    print(f'BER (I): {ber_I}')
+    print(f'BER (Q): {ber_Q}')
+
     plt.subplot(int(os/2), int(os/2), offset+1)
-    plt.plot(symb_out0I[100+offset:len(symb_out0I)-(100-offset):int(os)],
-            symb_out0Q[100+offset:len(symb_out0Q)-(100-offset):int(os)],
-                '.',linewidth=2.0)
+    plt.plot(symb_out0I_trim, symb_out0Q_trim, '.',linewidth=2.0, alpha=0.5)
     plt.xlim((-2, 2))
     plt.ylim((-2, 2))
     plt.grid(True)
