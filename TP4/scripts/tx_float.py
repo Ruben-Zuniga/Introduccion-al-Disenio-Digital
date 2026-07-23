@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tool._fixedInt import *
 
 # -------------------------------------------------------------
 ### PARAMETROS 
@@ -123,6 +122,7 @@ plt.grid(True)
 plt.legend(loc='upper right')
 plt.xlabel('Muestras')
 plt.ylabel('Magnitud')
+plt.tight_layout()
 
 plt.show()
 
@@ -187,4 +187,5 @@ for offset in offset_v:
     plt.xlabel('Real')
     plt.ylabel('Imag')
 
+plt.tight_layout()
 plt.show()
