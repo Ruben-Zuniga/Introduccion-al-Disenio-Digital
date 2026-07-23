@@ -38,39 +38,41 @@ Se graficó la respuesta al impulso y en frecuencia del filtro (figuras \ref{fig
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\linewidth]{img/float_imp.pdf}
-    \caption{cap.}
+    \caption{Respuesta al impulso del filtro RC a implementar.}
     \label{fig:float_imp}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\linewidth]{img/float_freq.pdf}
-    \caption{cap.}
+    \caption{Respuesta en frecuencia del filtro RC a implementar.}
     \label{fig:float_freq}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/float_conv.pdf}
-    \caption{cap.}
+    \caption{Comparación de la salida del filtro con los símbolos generados.}
     \label{fig:float_conv}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/float_eye.pdf}
-    \caption{cap.}
+    \includegraphics[width=0.9\linewidth]{img/float_eye.pdf}
+    \caption{Diagrama de ojo de la salida.}
     \label{fig:float_eye}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/float_const.pdf}
-    \caption{cap.}
+    \includegraphics[width=0.9\linewidth]{img/float_const.pdf}
+    \caption{Diagrama de constelación de la salida para cada fase.}
     \label{fig:float_const}
 \end{figure}
 
 La decimación se realizó para cada una de las cuatro fases posibles, descartando los primeros 100 símbolos para contar BER, ya que son parte del transitorio de la convolución con el filtro y no se llegó al estado estacionario. El resultado de BER se muestra en el cuadro \ref{tab:float_ber}, donde el único caso de errores en la decisión del símbolo es cuando la fase es igual a 3. Esto es de esperarse, ya que en la figura \ref{fig:float_const} se observa que las muestras caen dentro de la zona correcta de decisión en las fases 0, 1, y 2.
+
+Luego de realizada la simulación, se concluyó que la cantidad de símbolos necesarios para una buena estimación de la BER es de aproximadamente 10 mil.
 
 \begin{table}[H]
     \centering
@@ -84,7 +86,7 @@ La decimación se realizó para cada una de las cuatro fases posibles, descartan
         3 & 0.18643 & 0.18623 \\
         \hline
     \end{tabular}
-    \caption{cap.}
+    \caption{BER obtenidas de la simulación.}
     \label{tab:float_ber}
 \end{table}
 
