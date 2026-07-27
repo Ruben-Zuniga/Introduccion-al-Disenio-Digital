@@ -8,7 +8,7 @@ from tool._fixedInt import *
 ## Parametros generales
 f_baud = 25e6 # Frecuencia de baudio (f_clk / os)
 T_baud = 1/f_baud # Periodo de baudio
-N_symb = 50000          # Numero de simbolos
+N_symb = 10000          # Numero de simbolos
 os    = 4
 
 ## Parametros del filtro de caida cosenoidal
@@ -54,7 +54,7 @@ print(f'Ganancia del RC: {np.sum(rc0)}')
 # -------------------------------------------------------------
 
 rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', 'trunc', 'saturate')
-N_corr = 32
+N_corr = 8
 
 # Logs para plottear
 symb_tx_log = []
@@ -102,10 +102,10 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     register_dec = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
     register_prbs_rx = np.zeros(1024, dtype=int)
 
-    errors = 0
-    ber_phase = 0
-    ber_count = 0
-    min_found = False
+    error_count = 0
+    sync_phase = 0
+    total_count = 0
+    sync_flag = False
 
     out_sum = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
     dec_rx = DeFixedInt(Nb + 3, Nb - 1, 'S', 'trunc', 'saturate')
@@ -163,37 +163,40 @@ def top_model(sample_phase, prbs_seed ,N_corr):
         register_prbs_rx = np.concatenate(([prbs_rx[8]], register_prbs_rx[0:1023]))
         prbs_rx_log.append(prbs_rx[8])
 
-        # print(n, symb_rx, register_prbs_rx[ber_phase])
+        # print(n, symb_rx, register_prbs_rx[sync_phase])
         
-        errors = errors + (register_prbs_rx[ber_phase] ^ symb_rx)
+        error_count = error_count + (register_prbs_rx[sync_phase] ^ symb_rx)
 
         # Si no esta sincronizado
-        if not min_found:
+        if not sync_flag:
             # Luego de terminar la secuencia del PRBS
             if n % 511 == 0 and n != 0:
-                register_corr[ber_phase] = errors
-                print(f'Registro de errores: fase {ber_phase}/{N_corr} -> {register_corr[ber_phase]}')
-                ber_phase = ber_phase + 1
-                errors = 0
+                register_corr[sync_phase] = error_count
+                print(f'Registro de errores: fase {sync_phase}/{N_corr} -> {register_corr[sync_phase]}')
+                sync_phase = sync_phase + 1
+                error_count = 0
 
             # Luego de terminar de recorrer todas las fases
-            if ber_phase >= N_corr:
+            if sync_phase >= N_corr:
                 # Encontrar la fase con el error minimo
                 min_corr = 512
                 for i in range(N_corr):
                     if register_corr[i] < min_corr:
-                        ber_phase = i
+                        sync_phase = i
                         min_corr = register_corr[i]
-                errors = 0
-                min_found = True
+                error_count = 0
+                sync_flag = True
                 # Guardar índice para graficar luego
                 idx_count = n+1
         # Si ya sincronizó
         else:
             # Comenzar a contar los simbolos totales para contar BER
-            ber_count = ber_count + 1
+            total_count = total_count + 1
+        
+        # total_count = total_count + 1
+        # idx_count = 0
 
-    return errors, min_found, idx_count, ber_count
+    return error_count, sync_flag, idx_count, total_count, sync_phase
 
 # -------------------------------------------------------------
 ### LOGS Y GRAFICOS
@@ -201,7 +204,7 @@ def top_model(sample_phase, prbs_seed ,N_corr):
 
 prbs_seed_I = np.array([0,1,0,1,0,1,0,1,1]) # 0x1AA al reves [8:0]
 prbs_seed_Q = np.array([0,1,1,1,1,1,1,1,1]) # 0x1FE
-errors_I, min_found_I, idx_count_I, ber_count_I = top_model(sample_phase, prbs_seed_I, N_corr)
+error_count_I, sync_flag_I, idx_count_I, total_count_I, sync_phase_I = top_model(sample_phase, prbs_seed_I, N_corr)
 
 # Guardar y resetear logs
 symb_tx_log_I = symb_tx_log
@@ -215,7 +218,7 @@ signal_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
 
-errors_Q, min_found_Q, idx_count_Q, ber_count_Q = top_model(sample_phase, prbs_seed_Q, N_corr)
+error_count_Q, sync_flag_Q, idx_count_Q, total_count_Q, sync_phase_Q = top_model(sample_phase, prbs_seed_Q, N_corr)
 
 # Guardar logs
 symb_tx_log_Q = symb_tx_log
@@ -224,17 +227,17 @@ signal_rx_log_Q = signal_rx_log
 symb_rx_log_Q = symb_rx_log
 prbs_rx_log_Q = prbs_rx_log
 
-ber_I = errors_I / ber_count_I
-ber_Q = errors_Q / ber_count_Q
+ber_I = error_count_I / total_count_I
+ber_Q = error_count_Q / total_count_Q
 
-print(f'Sincronizacion del RX: {min_found_I}, {min_found_Q}')
-print(f'Nro. de errores: {errors_I}, {errors_Q}')
+print(f'Sincronizacion del RX: {sync_flag_I}, {sync_flag_Q}')
+print(f'Nro. de errores: {error_count_I}, {error_count_Q}')
 print(f'BER (I): {ber_I}')
 print(f'BER (Q): {ber_Q}')
 
 out_tx_log_I = np.array(out_tx_log_I)
 symb_tx_log_I = np.array(symb_tx_log_I)
-symb_tx_log_I = np.concatenate((np.zeros(N_bauds // 2 + 1), symb_tx_log_I[0:-N_bauds // 2 - 1]))
+symb_tx_log_I = np.concatenate((np.zeros(sync_phase_I-1), symb_tx_log_I[0:-sync_phase_I+1]))
 signal_rx_log_I = np.array(signal_rx_log_I)
 symb_rx_log_I = np.array(symb_rx_log_I)
 
