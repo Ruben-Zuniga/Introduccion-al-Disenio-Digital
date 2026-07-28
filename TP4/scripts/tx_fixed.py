@@ -16,7 +16,7 @@ beta   = 0.5 # Roll-Off
 N_bauds = 6     # Cantidad de baudios del filtro
 
 ## Parametros funcionales
-sample_phase = 2 # Fase de muestreo
+sample_phase = 0 # Fase de muestreo
 Ts = T_baud/os              # Frecuencia de muestreo
 Nb = 8 # Numero de bits totales
 Nbf = Nb - 1 # Numero de bits fraccionales
@@ -54,6 +54,7 @@ print(f'Ganancia del RC: {np.sum(rc0)}')
 # -------------------------------------------------------------
 
 rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', 'trunc', 'saturate')
+rc_fvalue = [val.fValue for val in rc]
 N_corr = 8
 
 # Logs para plottear
@@ -63,13 +64,13 @@ signal_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
 
-# plt.figure()
-# plt.plot(rc_fvalue, '-o')
-# plt.title('Filtro RC')
-# plt.xlabel('N bauds')
-# plt.ylabel('Amplitud')
-# plt.grid()
-# plt.show()
+plt.figure()
+plt.plot(rc_fvalue, '-o')
+plt.title('Filtro RC')
+plt.xlabel('N bauds')
+plt.ylabel('Amplitud')
+plt.grid()
+plt.show()
 
 ## Matriz de coeficientes del filtro
 coeffs = [[0]*N_bauds]*os
@@ -251,6 +252,28 @@ plt.xlabel('N symbs')
 plt.ylabel('Amplitud')
 plt.legend(loc='upper right')
 plt.grid()
+plt.show()
+
+def eyediagram(data, n, offset, period):
+    span     = 2*n
+    segments = int(len(data)/span)
+    xmax     = (n-1)*period
+    xmin     = -(n-1)*period
+    x        = list(np.arange(-n,n,)*period)
+    xoff     = offset
+
+    for i in range(0,segments-1):
+        plt.plot(x, data[(i*span+xoff):((i+1)*span+xoff)],'b')       
+    plt.grid(True)
+    plt.xlim(xmin, xmax)
+
+plt.figure(figsize=[14,6])
+plt.subplot(1,2,1)
+eyediagram(out_tx_log_I,os,0,N_bauds)
+plt.title(r'Diagrama de ojo (I)')
+plt.subplot(1,2,2)
+eyediagram(out_tx_log_Q,os,0,N_bauds)
+plt.title(r'Diagrama de ojo (Q)')
 plt.show()
 
 plt.figure(figsize=[8,7])
