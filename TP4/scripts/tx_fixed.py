@@ -60,31 +60,31 @@ N_corr = 8
 rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', round_mode, 'saturate')
 rc_fvalue = [val.fValue for val in rc]
 
-# Respuesta al impulso
-plt.figure()
-plt.plot(rc_fvalue, '-or')
-plt.title(rf'Respuesta al Impulso. $OS = {os}$')
-plt.xlabel('N bauds')
-plt.ylabel('Amplitud')
-plt.grid()
+# # Respuesta al impulso
+# plt.figure()
+# plt.plot(rc_fvalue, '-or')
+# plt.title(rf'Respuesta al Impulso. $OS = {os}$')
+# plt.xlabel('N bauds')
+# plt.ylabel('Amplitud')
+# plt.grid()
 
-# Respuesta en frecuencia
-Nfreqs = 2048
-H = np.abs(np.fft.fftshift(np.fft.fft(rc_fvalue, Nfreqs)))
-f = np.fft.fftshift(np.fft.fftfreq(len(H), d=Ts))
+# # Respuesta en frecuencia
+# Nfreqs = 2048
+# H = np.abs(np.fft.fftshift(np.fft.fft(rc_fvalue, Nfreqs)))
+# f = np.fft.fftshift(np.fft.fftfreq(len(H), d=Ts))
 
-plt.figure(figsize=[14,6])
-plt.semilogx(f, 20*np.log10(H), 'r', linewidth=2.0, label=r'$H(f)$')
+# plt.figure(figsize=[14,6])
+# plt.semilogx(f, 20*np.log10(H), 'r', linewidth=2.0, label=r'$H(f)$')
 
-plt.axvline(x=(1./T_baud)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
-plt.axhline(y=20*np.log10(H[len(H)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
-plt.legend(loc=3)
-plt.xlim(f[len(f)//2+1],f[len(f)-1])
-plt.title(rf'Respuesta en Frecuencia. $BR = {int(f_baud/1e6)}\,$MBd. $OS = {os}$')
-plt.xlabel('Frequencia [Hz]')
-plt.ylabel('Magnitud [dB]')
-plt.grid(True)
-plt.show()
+# plt.axvline(x=(1./T_baud)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
+# plt.axhline(y=20*np.log10(H[len(H)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
+# plt.legend(loc=3)
+# plt.xlim(f[len(f)//2+1],f[len(f)-1])
+# plt.title(rf'Respuesta en Frecuencia. $BR = {int(f_baud/1e6)}\,$MBd. $OS = {os}$')
+# plt.xlabel('Frequencia [Hz]')
+# plt.ylabel('Magnitud [dB]')
+# plt.grid(True)
+# plt.show()
 
 # Logs para plottear
 symb_tx_log = []
@@ -268,41 +268,84 @@ symb_tx_log_I = np.concatenate((np.zeros(sync_phase_I-1), symb_tx_log_I[0:-sync_
 signal_rx_log_I = np.array(signal_rx_log_I)
 symb_rx_log_I = np.array(symb_rx_log_I)
 
-plt.figure()
-plt.plot(range(N_symb), out_tx_log_I, '-o', label='Tx output')
-plt.plot(range(0, N_symb, os), -(symb_tx_log_I*2-1), '-o', label='Tx symbols')
-plt.plot(range(0, N_symb, os), signal_rx_log_I, '-o', label='Rx decimated')
-plt.plot(range(0, N_symb, os), -(symb_rx_log_I*2-1), '-o', label='Rx symbols')
-plt.title('Salida')
-plt.xlabel('N symbs')
-plt.ylabel('Amplitud')
-plt.legend(loc='upper right')
-plt.grid()
-plt.show()
+out_tx_log_Q = np.array(out_tx_log_Q)
+symb_tx_log_Q = np.array(symb_tx_log_Q)
+symb_tx_log_Q = np.concatenate((np.zeros(sync_phase_Q-1), symb_tx_log_Q[0:-sync_phase_Q+1]))
+signal_rx_log_Q = np.array(signal_rx_log_Q)
+symb_rx_log_Q = np.array(symb_rx_log_Q)
 
-def eyediagram(data, n, offset, period):
-    span     = 2*n
-    segments = int(len(data)/span)
-    xmax     = (n-1)*period
-    xmin     = -(n-1)*period
-    x        = list(np.arange(-n,n,)*period)
-    xoff     = offset
+N_points = 100
 
-    for i in range(0,segments-1):
-        plt.plot(x, data[(i*span+xoff):((i+1)*span+xoff)],'b')       
-    plt.grid(True)
-    plt.xlim(xmin, xmax)
+# # Canal I
+# plt.figure(figsize=[14,6])
 
-plt.figure(figsize=[14,6])
-plt.subplot(1,2,1)
-eyediagram(out_tx_log_I,os,0,N_bauds)
-plt.title(r'Diagrama de ojo (I)')
-plt.subplot(1,2,2)
-eyediagram(out_tx_log_Q,os,0,N_bauds)
-plt.title(r'Diagrama de ojo (Q)')
-plt.show()
+# plt.subplot(2,1,1)
+# plt.stem(range(0, N_points, os), -(symb_tx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Tx symbols')
+# plt.plot(range(N_points), out_tx_log_I[:N_points], '-o', color='red', label='Tx output')
+# plt.title('Transmisor (I)')
+# plt.ylabel('Amplitud')
+# plt.legend(loc='upper right')
+# plt.xlim((-1, N_points+1))
+# plt.grid()
 
-plt.figure(figsize=[8,7])
+# plt.subplot(2,1,2)
+# plt.stem(range(0, N_points, os), -(symb_rx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Rx symbols')
+# plt.plot(range(0, N_points, os), signal_rx_log_I[:N_points//os], '-o', color='red', label='Rx decimated')
+# plt.title('Receptor (I)')
+# plt.xlabel('N symbs')
+# plt.ylabel('Amplitud')
+# plt.legend(loc='upper right')
+# plt.xlim((-1, N_points+1))
+# plt.grid()
+# plt.tight_layout()
+
+# # Canal Q
+# plt.figure(figsize=[14,6])
+
+# plt.subplot(2,1,1)
+# plt.stem(range(0, N_points, os), -(symb_tx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Tx symbols')
+# plt.plot(range(N_points), out_tx_log_Q[:N_points], '-o', color='red', label='Tx output')
+# plt.title('Transmisor (Q)')
+# plt.ylabel('Amplitud')
+# plt.legend(loc='upper right')
+# plt.xlim((-1, N_points+1))
+# plt.grid()
+
+# plt.subplot(2,1,2)
+# plt.stem(range(0, N_points, os), -(symb_rx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Rx symbols')
+# plt.plot(range(0, N_points, os), signal_rx_log_Q[:N_points//os], '-o', color='red', label='Rx decimated')
+# plt.title('Receptor (Q)')
+# plt.xlabel('N symbs')
+# plt.ylabel('Amplitud')
+# plt.legend(loc='upper right')
+# plt.xlim((-1, N_points+1))
+# plt.grid()
+# plt.tight_layout()
+# plt.show()
+
+# def eyediagram(data, n, offset, period):
+#     span     = 2*n
+#     segments = int(len(data)/span)
+#     xmax     = (n-1)*period
+#     xmin     = -(n-1)*period
+#     x        = list(np.arange(-n,n,)*period)
+#     xoff     = offset
+
+#     for i in range(0,segments-1):
+#         plt.plot(x, data[(i*span+xoff):((i+1)*span+xoff)],'b')       
+#     plt.grid(True)
+#     plt.xlim(xmin, xmax)
+
+# plt.figure(figsize=[14,6])
+# plt.subplot(1,2,1)
+# eyediagram(out_tx_log_I,os,0,N_bauds)
+# plt.title(r'Diagrama de ojo (I)')
+# plt.subplot(1,2,2)
+# eyediagram(out_tx_log_Q,os,0,N_bauds)
+# plt.title(r'Diagrama de ojo (Q)')
+# plt.show()
+
+plt.figure(figsize=[6,5])
 plt.subplots_adjust(left=0.142, bottom=0.085, right=0.903, top=0.922, wspace=0.37, hspace=0.361)
 
 # Recortar desde cuando se comienza a contar BER
