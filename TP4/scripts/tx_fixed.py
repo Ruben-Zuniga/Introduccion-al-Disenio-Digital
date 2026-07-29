@@ -20,6 +20,7 @@ sample_phase = 0 # Fase de muestreo
 Ts = T_baud/os              # Frecuencia de muestreo
 Nb = 8 # Numero de bits totales
 Nbf = Nb - 1 # Numero de bits fraccionales
+round_mode = 'round'
 
 # -------------------------------------------------------------
 ### GENERACION COSENO REALZADO 
@@ -53,9 +54,37 @@ print(f'Ganancia del RC: {np.sum(rc0)}')
 ### VARIABLES 
 # -------------------------------------------------------------
 
-rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', 'trunc', 'saturate')
-rc_fvalue = [val.fValue for val in rc]
 N_corr = 8
+
+# Filtro
+rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', round_mode, 'saturate')
+rc_fvalue = [val.fValue for val in rc]
+
+# Respuesta al impulso
+plt.figure()
+plt.plot(rc_fvalue, '-or')
+plt.title(rf'Respuesta al Impulso. $OS = {os}$')
+plt.xlabel('N bauds')
+plt.ylabel('Amplitud')
+plt.grid()
+
+# Respuesta en frecuencia
+Nfreqs = 2048
+H = np.abs(np.fft.fftshift(np.fft.fft(rc_fvalue, Nfreqs)))
+f = np.fft.fftshift(np.fft.fftfreq(len(H), d=Ts))
+
+plt.figure(figsize=[14,6])
+plt.semilogx(f, 20*np.log10(H), 'r', linewidth=2.0, label=r'$H(f)$')
+
+plt.axvline(x=(1./T_baud)/2.       ,color='k',linestyle='dotted',linewidth=1.5, label=r'BR/2')
+plt.axhline(y=20*np.log10(H[len(H)//2]/2),color='k',linestyle='dashed',linewidth=1.5, label=r'$-6\,$dB')
+plt.legend(loc=3)
+plt.xlim(f[len(f)//2+1],f[len(f)-1])
+plt.title(rf'Respuesta en Frecuencia. $BR = {int(f_baud/1e6)}\,$MBd. $OS = {os}$')
+plt.xlabel('Frequencia [Hz]')
+plt.ylabel('Magnitud [dB]')
+plt.grid(True)
+plt.show()
 
 # Logs para plottear
 symb_tx_log = []
@@ -63,14 +92,6 @@ out_tx_log = []
 signal_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
-
-# plt.figure()
-# plt.plot(rc_fvalue, '-o')
-# plt.title('Filtro RC')
-# plt.xlabel('N bauds')
-# plt.ylabel('Amplitud')
-# plt.grid()
-# plt.show()
 
 ## Matriz de coeficientes del filtro
 coeffs = [[0]*N_bauds]*os
@@ -85,7 +106,7 @@ for i in range(os):
 
 ## Producto
 # Valor -1 en punto fijo para multiplicar por los demas valores
-neg = DeFixedInt(Nb, Nb - 1, 'S', 'trunc', 'saturate')
+neg = DeFixedInt(Nb, Nb - 1, 'S', round_mode, 'saturate')
 neg.value = -1.
 
 def prod(x, h):
@@ -100,7 +121,7 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     prbs_tx = prbs_seed
     prbs_rx = prbs_tx
     register_rc = np.zeros(N_bauds)
-    register_dec = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
+    register_dec = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', round_mode, 'saturate')
     register_prbs_rx = np.zeros(1024, dtype=int)
 
     os_count = 0
@@ -110,8 +131,8 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     idx_count = 0
     sync_flag = False
 
-    out_sum = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
-    dec_rx = DeFixedInt(Nb + 3, Nb - 1, 'S', 'trunc', 'saturate')
+    out_sum = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', round_mode, 'saturate')
+    dec_rx = DeFixedInt(Nb + 3, Nb - 1, 'S', round_mode, 'saturate')
     register_corr = np.zeros(N_corr, dtype=int)
 
     for n in range(N_symb):
@@ -127,11 +148,12 @@ def top_model(sample_phase, prbs_seed ,N_corr):
             register_rc = np.concatenate(([symb_tx], register_rc[0 : N_bauds-1]))
 
         ### Filtro RC
-
-        out_sum[os_count].value = 0
-        for i in range(N_bauds):
-            out_sum[os_count].assign(out_sum[os_count] + prod(register_rc[i], coeffs[os_count][i]))
-            # print(n, i, out_sum)
+        # Estructura combinacional del filtro. "os" estructuras FIR con "N_bauds" multiplicaciones c/u
+        for i in range(os):
+            out_sum[i].value = 0
+            for j in range(N_bauds):
+                out_sum[i].assign(out_sum[i] + prod(register_rc[j], coeffs[i][j]))
+                # print(n, j, out_sum)
 
         # out_sum[os_count] =  prod(register_rc[0], coeffs[os_count][0]) \
         #             + prod(register_rc[1], coeffs[os_count][1]) \
