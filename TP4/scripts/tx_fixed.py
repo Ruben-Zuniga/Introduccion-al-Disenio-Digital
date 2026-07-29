@@ -8,7 +8,7 @@ from tool._fixedInt import *
 ## Parametros generales
 f_baud = 25e6 # Frecuencia de baudio (f_clk / os)
 T_baud = 1/f_baud # Periodo de baudio
-N_symb = 10000          # Numero de simbolos
+N_symb = 40000          # Numero de simbolos
 os    = 4
 
 ## Parametros del filtro de caida cosenoidal
@@ -64,13 +64,13 @@ signal_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
 
-plt.figure()
-plt.plot(rc_fvalue, '-o')
-plt.title('Filtro RC')
-plt.xlabel('N bauds')
-plt.ylabel('Amplitud')
-plt.grid()
-plt.show()
+# plt.figure()
+# plt.plot(rc_fvalue, '-o')
+# plt.title('Filtro RC')
+# plt.xlabel('N bauds')
+# plt.ylabel('Amplitud')
+# plt.grid()
+# plt.show()
 
 ## Matriz de coeficientes del filtro
 coeffs = [[0]*N_bauds]*os
@@ -103,9 +103,11 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     register_dec = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
     register_prbs_rx = np.zeros(1024, dtype=int)
 
+    os_count = 0
     error_count = 0
     sync_phase = 0
     total_count = 0
+    idx_count = 0
     sync_flag = False
 
     out_sum = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', 'trunc', 'saturate')
@@ -113,91 +115,93 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     register_corr = np.zeros(N_corr, dtype=int)
 
     for n in range(N_symb):
+        if os_count == 0:
+            # print(prbs_tx, '  ', register_rc, '  ', out_sum)
 
-        # print(prbs_tx, '  ', register_rc, '  ', out_sum)
+            ### PRBS9 TX
+            symb_tx = prbs_tx[8]
+            feedback = symb_tx ^ prbs_tx[4]
+            prbs_tx = np.concatenate(([feedback], prbs_tx[0:8]))
+            symb_tx_log.append(symb_tx)
 
-        ### PRBS9 TX
-        symb_tx = prbs_tx[8]
-        feedback = symb_tx ^ prbs_tx[4]
-        prbs_tx = np.concatenate(([feedback], prbs_tx[0:8]))
-        symb_tx_log.append(symb_tx)
+            register_rc = np.concatenate(([symb_tx], register_rc[0 : N_bauds-1]))
 
         ### Filtro RC
-        for m in range(os):
 
-            out_sum[m].value = 0
-            for i in range(N_bauds):
-                out_sum[m].assign(out_sum[m] + prod(register_rc[i], coeffs[m][i]))
+        out_sum[os_count].value = 0
+        for i in range(N_bauds):
+            out_sum[os_count].assign(out_sum[os_count] + prod(register_rc[i], coeffs[os_count][i]))
+            # print(n, i, out_sum)
 
-            # out_sum[m] =  prod(register_rc[0], coeffs[m][0]) \
-            #             + prod(register_rc[1], coeffs[m][1]) \
-            #             + prod(register_rc[2], coeffs[m][2]) \
-            #             + prod(register_rc[3], coeffs[m][3]) \
-            #             + prod(register_rc[4], coeffs[m][4]) \
-            #             + prod(register_rc[5], coeffs[m][5])
-            # print(out_sum[m])
+        # out_sum[os_count] =  prod(register_rc[0], coeffs[os_count][0]) \
+        #             + prod(register_rc[1], coeffs[os_count][1]) \
+        #             + prod(register_rc[2], coeffs[os_count][2]) \
+        #             + prod(register_rc[3], coeffs[os_count][3]) \
+        #             + prod(register_rc[4], coeffs[os_count][4]) \
+        #             + prod(register_rc[5], coeffs[os_count][5])
+        # print(out_sum[os_count])
 
-            out_rc = out_sum[m]
-            out_tx_log.append(out_rc.fValue)
+        out_rc = out_sum[os_count]
+        out_tx_log.append(out_rc.fValue)
 
-            ### Decimador
-            register_dec = np.concatenate(([out_rc], register_dec[0:os]))
-            if m == 0:
-                dec_rx.assign(register_dec[sample_phase])
-                signal_rx_log.append(dec_rx.fValue)
+        ### Decimador
+        register_dec = np.concatenate(([out_rc], register_dec[0:os]))
+        if os_count == 0:
+            dec_rx.assign(register_dec[sample_phase])
+            signal_rx_log.append(dec_rx.fValue)
+                
+            # print(dec_rx)
+
+            ### Decimador (cont.)
+            if dec_rx.fValue >= 0:
+                symb_rx = 0
+            else:
+                symb_rx = 1
+            symb_rx_log.append(symb_rx)
+
+            ### BER
+            # PRBS Rx
+            feedback = prbs_rx[8] ^ prbs_rx[4]
+            prbs_rx = np.concatenate(([feedback], prbs_rx[0:8]))
+            register_prbs_rx = np.concatenate(([prbs_rx[8]], register_prbs_rx[0:1023]))
+            prbs_rx_log.append(prbs_rx[8])
+
+            # print(n, symb_rx, register_prbs_rx[sync_phase])
             
-        # print(dec_rx)
+            error_count = error_count + (register_prbs_rx[sync_phase] ^ symb_rx)
 
-        register_rc = np.concatenate(([symb_tx], register_rc[0 : N_bauds-1]))
+            # Si no esta sincronizado
+            if not sync_flag:
+                # Luego de terminar la secuencia del PRBS
+                if n % 511 == 0 and n != 0:
+                    register_corr[sync_phase] = error_count
+                    print(f'Registro de errores: fase {sync_phase}/{N_corr} -> {register_corr[sync_phase]}')
+                    sync_phase = sync_phase + 1
+                    error_count = 0
 
-        ### Decimador (cont.)
-        if dec_rx.fValue >= 0:
-            symb_rx = 0
-        else:
-            symb_rx = 1
-        symb_rx_log.append(symb_rx)
+                # Luego de terminar de recorrer todas las fases
+                if sync_phase >= N_corr:
+                    # Encontrar la fase con el error minimo
+                    min_corr = 512
+                    for i in range(N_corr):
+                        if register_corr[i] < min_corr:
+                            sync_phase = i
+                            min_corr = register_corr[i]
+                    error_count = 0
+                    sync_flag = True
+                    # Guardar índice para graficar luego
+                    idx_count = n+1
+            # Si ya sincronizó
+            else:
+                # Comenzar a contar los simbolos totales para contar BER
+                total_count = total_count + 1
+            
+            # total_count = total_count + 1
+            # idx_count = 0
 
-        ### BER
-        # PRBS Rx
-        feedback = prbs_rx[8] ^ prbs_rx[4]
-        prbs_rx = np.concatenate(([feedback], prbs_rx[0:8]))
-        register_prbs_rx = np.concatenate(([prbs_rx[8]], register_prbs_rx[0:1023]))
-        prbs_rx_log.append(prbs_rx[8])
+        os_count = (os_count + 1) % os
 
-        # print(n, symb_rx, register_prbs_rx[sync_phase])
-        
-        error_count = error_count + (register_prbs_rx[sync_phase] ^ symb_rx)
-
-        # Si no esta sincronizado
-        if not sync_flag:
-            # Luego de terminar la secuencia del PRBS
-            if n % 511 == 0 and n != 0:
-                register_corr[sync_phase] = error_count
-                print(f'Registro de errores: fase {sync_phase}/{N_corr} -> {register_corr[sync_phase]}')
-                sync_phase = sync_phase + 1
-                error_count = 0
-
-            # Luego de terminar de recorrer todas las fases
-            if sync_phase >= N_corr:
-                # Encontrar la fase con el error minimo
-                min_corr = 512
-                for i in range(N_corr):
-                    if register_corr[i] < min_corr:
-                        sync_phase = i
-                        min_corr = register_corr[i]
-                error_count = 0
-                sync_flag = True
-                # Guardar índice para graficar luego
-                idx_count = n+1
-        # Si ya sincronizó
-        else:
-            # Comenzar a contar los simbolos totales para contar BER
-            total_count = total_count + 1
-        
-        # total_count = total_count + 1
-        # idx_count = 0
-
-    return error_count, sync_flag, idx_count, total_count, sync_phase
+    return error_count, sync_flag, idx_count//os, total_count, sync_phase
 
 # -------------------------------------------------------------
 ### LOGS Y GRAFICOS
@@ -243,10 +247,10 @@ signal_rx_log_I = np.array(signal_rx_log_I)
 symb_rx_log_I = np.array(symb_rx_log_I)
 
 plt.figure()
-plt.plot(range(0, N_symb*os, os), -(symb_tx_log_I*2-1), '-o', label='Tx symbols')
-plt.plot(range(N_symb*os), out_tx_log_I, '-o', label='Tx output')
-plt.plot(range(0, N_symb*os, os), signal_rx_log_I, '-o', label='Rx decimated')
-plt.plot(range(0, N_symb*os, os), -(symb_rx_log_I*2-1), '-o', label='Rx symbols')
+plt.plot(range(N_symb), out_tx_log_I, '-o', label='Tx output')
+plt.plot(range(0, N_symb, os), -(symb_tx_log_I*2-1), '-o', label='Tx symbols')
+plt.plot(range(0, N_symb, os), signal_rx_log_I, '-o', label='Rx decimated')
+plt.plot(range(0, N_symb, os), -(symb_rx_log_I*2-1), '-o', label='Rx symbols')
 plt.title('Salida')
 plt.xlabel('N symbs')
 plt.ylabel('Amplitud')
@@ -280,8 +284,8 @@ plt.figure(figsize=[8,7])
 plt.subplots_adjust(left=0.142, bottom=0.085, right=0.903, top=0.922, wspace=0.37, hspace=0.361)
 
 # Recortar desde cuando se comienza a contar BER
-symb_rx_trimm_I = signal_rx_log_I[idx_count_I:N_symb]
-symb_rx_trimm_Q = signal_rx_log_Q[idx_count_I:N_symb]
+symb_rx_trimm_I = signal_rx_log_I[idx_count_I:-1]
+symb_rx_trimm_Q = signal_rx_log_Q[idx_count_Q:-1]
 
 plt.plot(symb_rx_trimm_I, symb_rx_trimm_Q, '.',linewidth=2.0, alpha=0.5)
 plt.xlim((-2, 2))
