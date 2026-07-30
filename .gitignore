@@ -4,3 +4,4 @@ del_profe/
 out_dir/
 fir_freq.v
 test.py
+*.bkp
