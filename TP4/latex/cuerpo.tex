@@ -1,12 +1,12 @@
 \section{Introducción}
 
-En este trabajo se diseñó un sistema de comunicaciones digitales básico, aplicando un flujo de trabajo completo, desde la simulación en punto flotante hasta la implementación física en una FPGA. El sistema propuesto se muestra en la figura \ref{fig:esq}, que consiste en bloques generadores de PRBS, filtros transmisores, diezmador y contador de BER.
+En este trabajo se diseñó un sistema de comunicaciones digitales básico, aplicando un flujo de trabajo completo, desde la simulación en punto flotante hasta la implementación física en una FPGA. El sistema propuesto se muestra en la figura \ref{fig:esq_consigna}, que consiste en bloques generadores de PRBS, filtros transmisores, diezmador y contador de BER.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{img/esq.png}
+    \includegraphics[width=0.85\linewidth]{img/esq_consigna.png}
     \caption{cap.}
-    \label{fig:esq}
+    \label{fig:esq_consigna}
 \end{figure}
 
 Las características del sistema son:
@@ -83,16 +83,181 @@ Luego de realizada la simulación, se concluyó que la cantidad de símbolos nec
         0 & 0 & 0 \\
         1 & 0 & 0 \\
         2 & 0 & 0 \\
-        3 & 0.18643 & 0.18623 \\
+        3 & $0.18643$ & $0.18623$ \\
         \hline
     \end{tabular}
-    \caption{BER obtenidas de la simulación.}
+    \caption{BER obtenidas de la simulación en punto flotante.}
     \label{tab:float_ber}
 \end{table}
 
+\subsection{Arquitectura del Hardware}
+
+Para poder modelar el comportamiento del diseño en Python con punto fijo, primero se propuso una arquitectura posible del sistema de comunicaciones.
+
+El bloque PRBS9 se muestra en la figura \ref{fig:esq_prbs}. Consiste en un registro de desplazamiento de 9 bits, realimentado utilizando una compuerta XOR y funcionando a tasa de baudio. A esta arquitectura tambien se la conoce como \emph{LFSR} (Linear Feedback Shift Register).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/esq_prbs.pdf}
+    \caption{Arquitectura del PRBS9, a tasa de baudio.}
+    \label{fig:esq_prbs}
+\end{figure}
+
+Para realizar el filtrado, se utilizó una arquitectura de filtro polifásico para no tener multiplicaciones por 0. En la figura \ref{fig:esq_filtro} se puede observar una estructura simplificada, con una tasa de sobremuestreo de 2 y un filtro de 3 baudios de duración. El resultado es un shift register de tamaño 3 y dos conjuntos de multiplicaciones y sumas, donde la salida es intercalada a tasa de sobremuestreo. Para el caso de este trabajo, el shift register es de 6 bits y la cantidad de estructura de multiplicaciones y sumas es de 4.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_filtro.pdf}
+    \caption{Arquitectura del filtro polifásico.}
+    \label{fig:esq_filtro}
+\end{figure}
+
+Para realizar la decimación y el conteo de errores, se utilizó la estrategia de la figura \ref{fig:esq_ber}, donde el cambio de tasa ocurre utilizando registros y la fase de muestreo se realiza con un multiplexor. Luego, el receptor cuenta con su propio generador de PRBS que compara esta secuencia con los bits de llegada. Esta PRBS va cambiando de fase periódicamente hasta que la cantidad de errores contados por fase sea el mínimo (se logra la sincronización), y cuando esto ocurre, se levanta una bandera de sincronización que habilita el contador de errores. Cuando el contador indica 0, se enciende un led.
+
+Cabe aclarar que, como en la FPGA es complejo realizar divisiones, solo se cuenta la cantidad de errores en lugar del BER.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_ber.pdf}
+    \caption{Arquitectura para el decimador y el monitor de BER.}
+    \label{fig:esq_ber}
+\end{figure}
+
 \subsection{Simulación en Punto Fijo}
 
+Luego de diseñar la arquitectura del hardware, se realizó en Python la simulación del mismo en punto fijo, donde el flujo de los datos dependiente del reloj se modela como una iteración de un ciclo \texttt{for} y solo se utilizan vectores para los registros de desplazamiento y el almacenamiento de los coeficientes del filtro transmisor.
 
+En primer lugar se determinó la resolución a utilizar, y para ello se graficó una curva del error de cuantización según la cantidad de bits fraccionales, en caso de usar solo 1 bit entero (caso de máxima resolución).
+
+El error de cuantización puede expresarse en forma de la \emph{relación señal-error} (SER), y esta relación es
+
+\begin{equation}
+    SER = 10 \log_{10} \left( \frac{\sum h_{\text{fixed}}^2}{\sum \left( h_{\text{fixed}}-h_{\text{float}} \right)^2} \right) \ \text{[dB]}
+\end{equation}
+
+\noindent
+donde un valor aceptable ronda a partir de los 40\,dB.
+
+La curva de la SER según el número de bits se muestra en la figura \ref{fig:ser_vs_nbits}. Se concluyó entonces que la resolución a utilizar fue de \textbf{S(8,7) con redondeo}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/ser_vs_nbits.pdf}
+    \caption{Gráfico de la SER según la cantidad de bits.}
+    \label{fig:ser_vs_nbits}
+\end{figure}
+
+Se realizó entonces una simulación de 40.000 símbolos, utilizando una frecuencia de símbolo de 25\,MBd y variando la fase de muestreo. El filtro transmisor fue normalizado en potencia para poder abarcar los valores altos del lóbulo principal dentro del rango de representación del punto fijo.
+
+La respuesta del filtro obtenido, siguiendo las especificaciones del enunciado, se muestra en las figuras \ref{fig:fix_imp} y \ref{fig:fix_freq}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/fix_imp.pdf}
+    \caption{Respuesta al impulso del filtro RC cuantizado.}
+    \label{fig:fix_imp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/fix_freq.pdf}
+    \caption{Respuesta en frecuencia del filtro RC cuantizado.}
+    \label{fig:fix_freq}
+\end{figure}
+
+El diagrama de ojo, mostrado en la figura \ref{fig:fix_eye}, indica que el modelo funciona según lo esperado, ya que tiene una forma similar al diagrama obtenido en punto flotante. Por otro lado, las constelaciones obtenidas de la figura \ref{fig:fix_const} muestran un patrón que no es simétrico y difiere un poco del ideal en punto flotante; esto puede deberse a la disminución de la precisión propia del punto fijo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/fix_eye.pdf}
+    \caption{Diagrama de ojo del modelo de punto fijo.}
+    \label{fig:fix_eye}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_const_0.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_const_1.pdf}
+    \end{minipage}
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_const_2.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_const_3.pdf}
+    \end{minipage}
+
+    \caption{Diagrama de constelación de la salida en punto fijo, por cada fase.}
+    \label{fig:fix_const}
+\end{figure}
+
+Finalmente, el contador de BER mostró los resultados del cuadro \ref{tab:fix_ber}, donde el valor en la fase más alejada de la óptima es mayor al valor mostrado en el cuadro \ref{tab:float_ber}, nuevamente debido a la reducción de la precisión.
+
+\begin{table}[H]
+    \centering
+
+    \begin{tabular}{lcc}
+        \textbf{Fase} & \textbf{BER (I)} & \textbf{BER (Q)} \\
+        \hline\hline
+        0 & 0 & 0 \\
+        1 & 0 & 0 \\
+        2 & $0.25004$ & $0.24987$ \\
+        3 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{BER obtenidas de la simulación en punto fijo.}
+    \label{tab:fix_ber}
+\end{table}
+
+Para apreciar mejor los errores debido a la fase, se graficaron las señales del modelo del transmisor y el receptor en las figuras \ref{} y \ref{}.
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.96\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_symb_i0.pdf}
+        \subcaption{Canal I, fase 0.}
+    \end{minipage}
+    
+    \begin{minipage}{0.96\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_symb_q0.pdf}
+        \subcaption{Canal Q, fase 0.}
+    \end{minipage}
+
+    \caption{Señales obtenidas en la simulación con fase 0.}
+    \label{fig:symb_0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.96\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_symb_i2.pdf}
+        \subcaption{Canal I, fase 2.}
+    \end{minipage}
+    
+    \begin{minipage}{0.96\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/fix_symb_q2.pdf}
+        \subcaption{Canal Q, fase 2.}
+    \end{minipage}
+
+    \caption{Señales obtenidas en la simulación con fase 2.}
+    \label{fig:symb_2}
+\end{figure}
 
 \subsection{Implementación en Verilog}
 

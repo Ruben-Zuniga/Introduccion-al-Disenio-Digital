@@ -61,7 +61,7 @@ rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', round_mode, 'saturate')
 rc_fvalue = [val.fValue for val in rc]
 
 # Respuesta al impulso
-plt.figure()
+plt.figure(figsize=[14,6])
 plt.plot(rc_fvalue, '-or')
 plt.title(rf'Respuesta al Impulso. $OS = {os}$')
 plt.xlabel('N bauds')
