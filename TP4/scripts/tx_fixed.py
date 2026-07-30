@@ -89,7 +89,7 @@ plt.show()
 # Logs para plottear
 symb_tx_log = []
 out_tx_log = []
-signal_rx_log = []
+dec_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
 
@@ -170,7 +170,7 @@ def top_model(sample_phase, prbs_seed ,N_corr):
         register_dec = np.concatenate(([out_rc], register_dec[0:os]))
         if os_count == 0:
             dec_rx.assign(register_dec[sample_phase])
-            signal_rx_log.append(dec_rx.fValue)
+            dec_rx_log.append(dec_rx.fValue)
                 
             # print(dec_rx)
 
@@ -206,7 +206,7 @@ def top_model(sample_phase, prbs_seed ,N_corr):
                     # Encontrar la fase con el error minimo
                     min_corr = 512
                     for i in range(N_corr):
-                        if register_corr[i] < min_corr:
+                        if register_corr[i] <= min_corr:
                             sync_phase = i
                             min_corr = register_corr[i]
                     error_count = 0
@@ -236,12 +236,12 @@ error_count_I, sync_flag_I, idx_count_I, total_count_I, sync_phase_I = top_model
 # Guardar y resetear logs
 symb_tx_log_I = symb_tx_log
 out_tx_log_I = out_tx_log
-signal_rx_log_I = signal_rx_log
+dec_rx_log_I = dec_rx_log
 symb_rx_log_I = symb_rx_log
 prbs_rx_log_I = prbs_rx_log
 symb_tx_log = []
 out_tx_log = []
-signal_rx_log = []
+dec_rx_log = []
 symb_rx_log = []
 prbs_rx_log = []
 
@@ -250,28 +250,28 @@ error_count_Q, sync_flag_Q, idx_count_Q, total_count_Q, sync_phase_Q = top_model
 # Guardar logs
 symb_tx_log_Q = symb_tx_log
 out_tx_log_Q = out_tx_log
-signal_rx_log_Q = signal_rx_log
+dec_rx_log_Q = dec_rx_log
 symb_rx_log_Q = symb_rx_log
 prbs_rx_log_Q = prbs_rx_log
 
 ber_I = error_count_I / total_count_I
 ber_Q = error_count_Q / total_count_Q
 
-print(f'Sincronizacion del RX: {sync_flag_I}, {sync_flag_Q}')
-print(f'Nro. de errores: {error_count_I}, {error_count_Q}')
+print(f'Sincronizacion del RX: I -> {sync_flag_I}; Q -> {sync_flag_Q}')
+print(f'Nro. de errores: I -> {error_count_I}; Q -> {error_count_Q}')
 print(f'BER (I): {ber_I}')
 print(f'BER (Q): {ber_Q}')
 
 out_tx_log_I = np.array(out_tx_log_I)
 symb_tx_log_I = np.array(symb_tx_log_I)
-symb_tx_log_I = np.concatenate((np.zeros(sync_phase_I-1), symb_tx_log_I[0:-sync_phase_I+1]))
-signal_rx_log_I = np.array(signal_rx_log_I)
+symb_tx_log_I = np.concatenate((np.zeros(sync_phase_I-1), symb_tx_log_I[:-sync_phase_I+1]))
+dec_rx_log_I = np.array(dec_rx_log_I)
 symb_rx_log_I = np.array(symb_rx_log_I)
 
 out_tx_log_Q = np.array(out_tx_log_Q)
 symb_tx_log_Q = np.array(symb_tx_log_Q)
-symb_tx_log_Q = np.concatenate((np.zeros(sync_phase_Q-1), symb_tx_log_Q[0:-sync_phase_Q+1]))
-signal_rx_log_Q = np.array(signal_rx_log_Q)
+symb_tx_log_Q = np.concatenate((np.zeros(sync_phase_Q-1), symb_tx_log_Q[:-sync_phase_Q+1]))
+dec_rx_log_Q = np.array(dec_rx_log_Q)
 symb_rx_log_Q = np.array(symb_rx_log_Q)
 
 N_points = 100
@@ -280,8 +280,8 @@ N_points = 100
 plt.figure(figsize=[14,6])
 
 plt.subplot(2,1,1)
-plt.stem(range(0, N_points, os), -(symb_tx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Tx symbols')
-plt.plot(range(N_points), out_tx_log_I[:N_points], '-o', color='red', label='Tx output')
+plt.stem(range(0, N_points, os), -(symb_tx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Símbolos Tx')
+plt.plot(range(N_points), out_tx_log_I[:N_points], '-o', color='red', label='Salida Tx')
 plt.title('Transmisor (I)')
 plt.ylabel('Amplitud')
 plt.legend(loc='upper right')
@@ -289,10 +289,10 @@ plt.xlim((-1, N_points+1))
 plt.grid()
 
 plt.subplot(2,1,2)
-plt.stem(range(0, N_points, os), -(symb_rx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Rx symbols')
-plt.plot(range(0, N_points, os), signal_rx_log_I[:N_points//os], '-o', color='red', label='Rx decimated')
+plt.stem(range(0, N_points, os), -(symb_rx_log_I[:N_points//os]*2-1), '-o', linefmt='blue', label='Símbolos Rx')
+plt.plot(range(0, N_points, os), dec_rx_log_I[:N_points//os], '-o', color='red', label='Entrada Rx decimada')
 plt.title('Receptor (I)')
-plt.xlabel('N symbs')
+plt.xlabel('N símbolos')
 plt.ylabel('Amplitud')
 plt.legend(loc='upper right')
 plt.xlim((-1, N_points+1))
@@ -303,8 +303,8 @@ plt.tight_layout()
 plt.figure(figsize=[14,6])
 
 plt.subplot(2,1,1)
-plt.stem(range(0, N_points, os), -(symb_tx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Tx symbols')
-plt.plot(range(N_points), out_tx_log_Q[:N_points], '-o', color='red', label='Tx output')
+plt.stem(range(0, N_points, os), -(symb_tx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Símbolos Tx')
+plt.plot(range(N_points), out_tx_log_Q[:N_points], '-o', color='red', label='Salida Tx')
 plt.title('Transmisor (Q)')
 plt.ylabel('Amplitud')
 plt.legend(loc='upper right')
@@ -312,10 +312,10 @@ plt.xlim((-1, N_points+1))
 plt.grid()
 
 plt.subplot(2,1,2)
-plt.stem(range(0, N_points, os), -(symb_rx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Rx symbols')
-plt.plot(range(0, N_points, os), signal_rx_log_Q[:N_points//os], '-o', color='red', label='Rx decimated')
+plt.stem(range(0, N_points, os), -(symb_rx_log_Q[:N_points//os]*2-1), '-o', linefmt='blue', label='Símbolos Rx')
+plt.plot(range(0, N_points, os), dec_rx_log_Q[:N_points//os], '-o', color='red', label='Entrada Rx decimada')
 plt.title('Receptor (Q)')
-plt.xlabel('N symbs')
+plt.xlabel('N símbolos')
 plt.ylabel('Amplitud')
 plt.legend(loc='upper right')
 plt.xlim((-1, N_points+1))
@@ -349,8 +349,8 @@ plt.figure(figsize=[6,5])
 plt.subplots_adjust(left=0.142, bottom=0.085, right=0.903, top=0.922, wspace=0.37, hspace=0.361)
 
 # Recortar desde cuando se comienza a contar BER
-symb_rx_trimm_I = signal_rx_log_I[idx_count_I:-1]
-symb_rx_trimm_Q = signal_rx_log_Q[idx_count_Q:-1]
+symb_rx_trimm_I = dec_rx_log_I[idx_count_I:-1]
+symb_rx_trimm_Q = dec_rx_log_Q[idx_count_Q:-1]
 
 plt.plot(symb_rx_trimm_I, symb_rx_trimm_Q, '.',linewidth=2.0, alpha=0.5)
 plt.xlim((-2, 2))

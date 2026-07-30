@@ -49,26 +49,39 @@ rc0_sq = np.sum(rc0 ** 2)
 ### CONVERSION A VARIOS BITS
 # -------------------------------------------------------------
 
-nbf_v = np.arange(2, 17)
-rc0_fix = []
-rc0_fix_sq = []
-error_sq = []
-for nb in nbf_v:
-    rc0_fix_aux = arrayFixedInt(nb, nb-1, rc0, 'S', 'trunc', 'saturate')
-    rc0_fix_aux = np.array([val.fValue for val in rc0_fix_aux])
-    rc0_fix.append(rc0_fix_aux)
-    # Potencia de error
-    error_sq.append(np.sum((rc0 - rc0_fix_aux) ** 2))
+nb_v = np.arange(2, 17)
 
-rc0_fix_sq = np.array(rc0_fix_sq)
-error_sq = np.array(error_sq)
+rc0_fix_sq_t = []
+error_sq_t = []
+
+rc0_fix_sq_r = []
+error_sq_r = []
+
+for nb in nb_v:
+    rc0_fix_t_aux = arrayFixedInt(nb, nb-1, rc0, 'S', 'trunc', 'saturate')
+    rc0_fix_t_aux = np.array([val.fValue for val in rc0_fix_t_aux])
+    rc0_fix_sq_t.append(np.sum(rc0_fix_t_aux ** 2))
+
+    rc0_fix_r_aux = arrayFixedInt(nb, nb-1, rc0, 'S', 'round', 'saturate')
+    rc0_fix_r_aux = np.array([val.fValue for val in rc0_fix_r_aux])
+    rc0_fix_sq_r.append(np.sum(rc0_fix_r_aux ** 2))
+
+    # Potencia del error
+    error_sq_t.append(np.sum((rc0_fix_t_aux - rc0) ** 2))
+    error_sq_r.append(np.sum((rc0_fix_r_aux - rc0) ** 2))
+
+error_sq_t = np.array(error_sq_t)
+error_sq_r = np.array(error_sq_r)
 # Relacion señal-error
-ser = rc0_sq / error_sq
+ser_t = rc0_fix_sq_t / error_sq_t
+ser_r = rc0_fix_sq_r / error_sq_r
 
 plt.figure()
-plt.plot(nbf_v, 10*np.log10(ser), '-o')
+plt.plot(nb_v, 10*np.log10(ser_t), '-o', label='Truncado')
+plt.plot(nb_v, 10*np.log10(ser_r), '-o', label='Redondeo')
 plt.title('Relación Señal-Error para Máx. Resolución')
 plt.xlabel('N° Bits Totales')
 plt.ylabel('SER [dB]')
+plt.legend(loc='lower right')
 plt.grid()
 plt.show()
