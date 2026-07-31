@@ -1,35 +1,34 @@
 module tx 
 #(
     // PRBS9
-    parameter NB_PRBS = 9,
+    parameter NB_PRBS   = 9                        ,
     parameter SEED_PRBS = {{NB_PRBS-1{1'b0}}, 1'b1},
     // Filtro
-    parameter OS = 4,
-    parameter NB_COUNTER = $clog2(OS),
-    parameter N_BAUD = 6,
-    parameter NB_OUTPUT  = 8,
-    parameter NBF_OUTPUT = 7,
-    parameter NB_COEFF   = 8,
+    parameter OS         = 4         ,
+    parameter NB_COUNTER = $clog2(OS), // 2
+    parameter N_BAUD     = 6         ,
+    parameter NB_OUTPUT  = 8         ,
+    parameter NBF_OUTPUT = 7         ,
+    parameter NB_COEFF   = 8         ,
     parameter NBF_COEFF  = 7 
 )
 (
-    output wire [NB_OUTPUT-1 : 0] o_data,
-    input wire clk,
-    input wire i_rst_n,
-    input wire i_enable,
-    input wire i_valid,
-    input wire [NB_COUNTER-1 : 0] i_count
+    output wire [NB_OUTPUT-1 : 0]  o_data  ,
+    input  wire                    clk     ,
+    input  wire                    i_rst_n ,
+    input  wire                    i_enable,
+    input  wire                    i_valid ,
+    input  wire [NB_COUNTER-1 : 0] i_count
 );
 
-localparam NB_SUM     = 8 + $clog2(N_BAUD); //! 8 + 3 = 11
-localparam NBF_SUM    = NBF_COEFF; // 7
-localparam NBI_SUM    = NB_SUM - NBF_SUM; // 11 - 7 = 4
+localparam NB_SUM     = 8 + $clog2(N_BAUD)    ; // 8 + 3 = 11
+localparam NBF_SUM    = NBF_COEFF             ; // 7
+localparam NBI_SUM    = NB_SUM - NBF_SUM      ; // 11 - 7 = 4
 localparam NBI_OUTPUT = NB_OUTPUT - NBF_OUTPUT; // 8 - 7 = 1
-localparam NB_SAT     = NBI_SUM - NBI_OUTPUT; // 4 - 1 = 3
+localparam NB_SAT     = NBI_SUM - NBI_OUTPUT  ; // 4 - 1 = 3
 
 // Lectura del archivo de coeficientes
 reg signed [NB_COEFF-1 : 0] coeff [OS*N_BAUD-1 : 0];
-
 initial begin
     $readmemh("coeff.mem", coeff);
 end
@@ -42,13 +41,13 @@ end
 // };
 
 // PRBS
-wire prbs_bit;
-reg [NB_PRBS-1 : 0] lfsr;
+wire                 prbs_bit;
+reg  [NB_PRBS-1 : 0] lfsr    ;
 // Filtro
-reg [N_BAUD-1 : 1] input_filter;
-reg signed [NB_COEFF-1 : 0] prod [OS*N_BAUD - 1 : 0];
-reg signed [NB_SUM-1 : 0] sum [OS-1 : 0];
-reg signed [NB_SUM-1 : 0] data;
+reg        [N_BAUD-1   : 1] input_filter                  ;
+reg signed [NB_COEFF-1 : 0] prod         [OS*N_BAUD-1 : 0];
+reg signed [NB_SUM-1   : 0] sum          [OS-1        : 0];
+reg signed [NB_SUM-1   : 0] data                          ;
 
 assign prbs_bit = lfsr[NB_PRBS-1]; // 0 -> 1 ; 1 -> -1
 
@@ -67,13 +66,6 @@ always @(posedge clk or negedge i_rst_n) begin
             input_filter[N_BAUD-1 : 2] <= input_filter[N_BAUD-2 : 1];
             input_filter[1] <= prbs_bit;
         end
-
-        // case (i_count)
-        //     0: data <= sum[0];
-        //     1: data <= sum[1];
-        //     2: data <= sum[2];
-        //     3: data <= sum[3];
-        // endcase
 
         data <= sum[i_count]; // Probar
     end
