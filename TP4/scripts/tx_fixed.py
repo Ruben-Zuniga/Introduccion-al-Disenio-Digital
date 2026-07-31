@@ -59,6 +59,12 @@ N_corr = 8
 # Filtro
 rc = arrayFixedInt(Nb, Nb - 1, rc0, 'S', round_mode, 'saturate')
 rc_fvalue = [val.fValue for val in rc]
+rc_intvalue = [val.intvalue for val in rc]
+
+# Crear archivo de coeficientes
+with open('TP4/rtl/coeff.mem', 'w') as file:
+    for value in rc_intvalue[:-1]:
+        file.write(f'{value:02X}\n')
 
 # Respuesta al impulso
 plt.figure(figsize=[14,6])
@@ -85,6 +91,9 @@ plt.xlabel('Frequencia [Hz]')
 plt.ylabel('Magnitud [dB]')
 plt.grid(True)
 plt.show()
+
+# Logs para guardar en archivo
+out_tx_int_log = []
 
 # Logs para plottear
 symb_tx_log = []
@@ -132,7 +141,8 @@ def top_model(sample_phase, prbs_seed ,N_corr):
     sync_flag = False
 
     out_sum = arrayFixedInt(Nb + 3, Nb - 1, [0]*os, 'S', round_mode, 'saturate')
-    dec_rx = DeFixedInt(Nb + 3, Nb - 1, 'S', round_mode, 'saturate')
+    out_rc = DeFixedInt(Nb, Nb - 1, 'S', round_mode, 'saturate')
+    dec_rx = DeFixedInt(Nb, Nb - 1, 'S', round_mode, 'saturate')
     register_corr = np.zeros(N_corr, dtype=int)
 
     for n in range(N_symb):
@@ -163,7 +173,8 @@ def top_model(sample_phase, prbs_seed ,N_corr):
         #             + prod(register_rc[5], coeffs[os_count][5])
         # print(out_sum[os_count])
 
-        out_rc = out_sum[os_count]
+        out_rc.assign(out_sum[os_count])
+        out_tx_int_log.append(out_rc.intvalue)
         out_tx_log.append(out_rc.fValue)
 
         ### Decimador
@@ -232,6 +243,11 @@ def top_model(sample_phase, prbs_seed ,N_corr):
 prbs_seed_I = np.array([0,1,0,1,0,1,0,1,1]) # 0x1AA al reves [8:0]
 prbs_seed_Q = np.array([0,1,1,1,1,1,1,1,1]) # 0x1FE
 error_count_I, sync_flag_I, idx_count_I, total_count_I, sync_phase_I = top_model(sample_phase, prbs_seed_I, N_corr)
+
+# Guardar en archivo
+with open('TP4/tb/out_tx_log.mem', 'w') as file:
+    for value in out_tx_int_log[3:]:
+        file.write(f'{value:02X}\n')
 
 # Guardar y resetear logs
 symb_tx_log_I = symb_tx_log
