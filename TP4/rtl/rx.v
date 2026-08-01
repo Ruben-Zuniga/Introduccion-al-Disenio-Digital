@@ -70,74 +70,170 @@ always @(posedge clk or negedge i_rst_n) begin
     end
 end
 
-// Correlador (Arreglar que se ve muy feo)
+// Correlador: maquina de estados
 localparam NB_CORR_COUNTER = $clog2(SYNC_PHASES); // 10
 localparam PRBS_SEQUENCES = 2**NB_PRBS - 1; // 511
 localparam NB_SEQUENCE_COUNTER = $clog2(PRBS_SEQUENCES + 1); // 9
+// Estados
+localparam SEQUENCY = 2'd0;
+localparam PHASE = 2'd1;
+localparam RESET_ERRORS = 2'd2;
+localparam SYNCED = 2'd3;
+    
+reg [1:0] state;
+reg [1:0] state_next;
+reg [NB_ERRORS-1 : 0] errors; // Nro de errores
 
 reg [SYNC_PHASES-2 : 0] sync_register;
 reg [NB_CORR_COUNTER-1 : 0] corr_count;
 reg [NB_CORR_COUNTER-1 : 0] min_error_phase;
 reg [NB_ERRORS-1 : 0] min_error;
 reg [NB_SEQUENCE_COUNTER-1 : 0] sequence_count;
-reg synced;
-wire prbs_shifted;
-
-// reg [NB_ERRORS-1 : 0] errors [SYNC_PHASES-1 : 0]; // Registro de errores por fase
-reg [NB_ERRORS-1 : 0] errors; // Nro de errores cuando No esta sincronizado
-reg [NB_ERRORS-1 : 0] errors_synced; // Nro de errores cuando esta sincronizado
 
 always @(posedge clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
-        synced <= 1'b0;
-
-        sync_register <= {SYNC_PHASES{1'b0}};
-        corr_count <= {NB_CORR_COUNTER{1'b0}};
-        sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
-
+        state <= SEQUENCY;
+        sync_register <= {SYNC_PHASES-1{1'b0}};
+        errors <= {NB_ERRORS{1'b0}};
         min_error <= {NB_ERRORS{1'b1}};
         min_error_phase <= {NB_CORR_COUNTER{1'b0}};
-        
-        // for (i = 0; i < SYNC_PHASES; i = i + 1) begin // probar
-        //     errors[i] <= {NB_ERRORS{1'b0}};
-        // end
-        errors <= {NB_ERRORS{1'b0}};
-        errors_synced <= {NB_ERRORS{1'b0}};
+        sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
+        corr_count <= {NB_CORR_COUNTER{1'b0}};
     end
     else if (i_enable & i_valid) begin
+        // Pasar al estado siguiente
+        state <= state_next;
+        // Desplazar registro de sync del prbs
+        sync_register[SYNC_PHASES-2 : 1] <= sync_register[SYNC_PHASES-3 : 0];
+        sync_register[0] <= prbs_bit;
 
-        if (!synced) begin
-            // errors[corr_count] <= errors[corr_count] + (data_bit ^ prbs_shifted);
-            errors <= errors + (data_bit ^ prbs_shifted);
-            sequence_count <= sequence_count + 1'b1;
-
-            if (&sequence_count) begin
-                // if(errors[corr_count] <= min_error) begin
-                //     min_error <= errors[corr_count];
-                //     min_error_phase <= corr_count;
-                // end
+        case (state)
+            SEQUENCY: begin
+                // Comparar bit de llegada con bit del prbs
+                errors <= errors + (data_bit ^ prbs_shifted);
+                // Incrementar contador de secuencia
+                sequence_count <= sequence_count + 1'b1;
+            end
+            PHASE: begin
+                // Actualizar el error minimo y la fase correspondiente
                 if(errors <= min_error) begin
                     min_error <= errors;
                     min_error_phase <= corr_count;
                 end
 
+                // Incrementar contador de fase
                 corr_count <= corr_count + 1'b1;
+                // Resetear errores y contador de secuencia
                 errors <= {NB_ERRORS{1'b0}};
-                sync_register[SYNC_PHASES-1 : 1] <= sync_register[SYNC_PHASES-2 : 0];
-                sync_register[0] <= prbs_bit;
-
-                if (&corr_count) begin
-                    synced <= 1'b1;
-                end
+                sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
             end
-        end
-        else begin
-            errors_synced <= errors_synced + (data_bit ^ prbs_shifted);
-        end
+            RESET_ERRORS: begin
+                // Resetear errores
+                errors <= {NB_ERRORS{1'b0}};
+                // Fijar fase sincronizada
+                corr_count <= min_error_phase;
+            end
+            SYNCED: begin
+                errors <= errors + (data_bit ^ prbs_shifted);
+            end
+        endcase
     end
 end
 
-assign prbs_shifted = (min_error_phase == 0) ? prbs_bit : sync_register[min_error_phase - 1];
-assign o_led = (~|errors_synced & synced) ? 1'b1 : 1'b0;
-    
+always @(*) begin
+    case (state)
+        SEQUENCY: begin
+            if (sequence_count == (PRBS_SEQUENCES - 2))
+                state_next = PHASE;
+            else
+                state_next = SEQUENCY;
+        end
+        PHASE: begin
+            if (&corr_count)
+                state_next = RESET_ERRORS;
+            else
+                state_next = SEQUENCY;
+        end
+        RESET_ERRORS:
+            state_next = SYNCED;
+        SYNCED:
+            state_next = SYNCED;
+        default: 
+            state_next = SEQUENCY;
+    endcase
+end
+
+assign prbs_shifted = (corr_count == 0) ? prbs_bit : sync_register[corr_count - 1];
+assign o_led = ((state == SYNCED) & ~|errors) ? 1'b1 : 1'b0;
+
+// // Correlador (Arreglar que se ve muy feo)
+// localparam NB_CORR_COUNTER = $clog2(SYNC_PHASES); // 10
+// localparam PRBS_SEQUENCES = 2**NB_PRBS - 1; // 511
+// localparam NB_SEQUENCE_COUNTER = $clog2(PRBS_SEQUENCES + 1); // 9
+
+// reg [SYNC_PHASES-2 : 0] sync_register;
+// reg [NB_CORR_COUNTER-1 : 0] corr_count;
+// reg [NB_CORR_COUNTER-1 : 0] min_error_phase;
+// reg [NB_ERRORS-1 : 0] min_error;
+// reg [NB_SEQUENCE_COUNTER-1 : 0] sequence_count;
+// reg synced;
+// wire prbs_shifted;
+
+// // reg [NB_ERRORS-1 : 0] errors [SYNC_PHASES-1 : 0]; // Registro de errores por fase
+// reg [NB_ERRORS-1 : 0] errors; // Nro de errores cuando No esta sincronizado
+// reg [NB_ERRORS-1 : 0] errors_synced; // Nro de errores cuando esta sincronizado
+
+// always @(posedge clk or negedge i_rst_n) begin
+//     if (!i_rst_n) begin
+//         synced <= 1'b0;
+
+//         sync_register <= {SYNC_PHASES{1'b0}};
+//         corr_count <= {NB_CORR_COUNTER{1'b0}};
+//         sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
+
+//         min_error <= {NB_ERRORS{1'b1}};
+//         min_error_phase <= {NB_CORR_COUNTER{1'b0}};
+        
+//         // for (i = 0; i < SYNC_PHASES; i = i + 1) begin // probar
+//         //     errors[i] <= {NB_ERRORS{1'b0}};
+//         // end
+//         errors <= {NB_ERRORS{1'b0}};
+//         errors_synced <= {NB_ERRORS{1'b0}};
+//     end
+//     else if (i_enable & i_valid) begin
+
+//         if (!synced) begin
+//             // errors[corr_count] <= errors[corr_count] + (data_bit ^ prbs_shifted);
+//             errors <= errors + (data_bit ^ prbs_shifted);
+//             sequence_count <= sequence_count + 1'b1;
+
+//             if (&sequence_count) begin
+//                 // if(errors[corr_count] <= min_error) begin
+//                 //     min_error <= errors[corr_count];
+//                 //     min_error_phase <= corr_count;
+//                 // end
+//                 if(errors <= min_error) begin
+//                     min_error <= errors;
+//                     min_error_phase <= corr_count;
+//                 end
+
+//                 corr_count <= corr_count + 1'b1;
+//                 errors <= {NB_ERRORS{1'b0}};
+//                 sync_register[SYNC_PHASES-1 : 1] <= sync_register[SYNC_PHASES-2 : 0];
+//                 sync_register[0] <= prbs_bit;
+
+//                 if (&corr_count) begin
+//                     synced <= 1'b1;
+//                 end
+//             end
+//         end
+//         else begin
+//             errors_synced <= errors_synced + (data_bit ^ prbs_shifted);
+//         end
+//     end
+// end
+
+// assign prbs_shifted = (min_error_phase == 0) ? prbs_bit : sync_register[min_error_phase - 1];
+// assign o_led = (~|errors_synced & synced) ? 1'b1 : 1'b0;
+
 endmodule

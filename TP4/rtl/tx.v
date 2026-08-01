@@ -67,7 +67,7 @@ always @(posedge clk or negedge i_rst_n) begin
             input_filter[1] <= prbs_bit;
         end
 
-        data <= sum[i_count]; // Probar
+        data <= sum[i_count];
     end
 end
 

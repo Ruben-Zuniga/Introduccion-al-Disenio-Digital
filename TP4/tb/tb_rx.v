@@ -2,10 +2,18 @@
 
 module tb_rx();
 
+// General
 parameter NB_PRBS = 9;
 parameter SEED_PRBS = 9'h1AA;
 parameter OS = 4;
 parameter NB_COUNTER = $clog2(OS); // 2
+// TX
+parameter N_BAUD     = 6;
+parameter NB_OUTPUT  = 8;
+parameter NBF_OUTPUT = 7;
+parameter NB_COEFF   = 8;
+parameter NBF_COEFF  = 7;
+// RX
 parameter NB_INPUT = 8;
 parameter SYNC_PHASES = 16;
 parameter NB_ERRORS = 64;
@@ -16,8 +24,8 @@ reg i_rst_n ;
 reg i_enable;
 wire valid ;
 reg [NB_COUNTER-1 : 0] i_phase;
-reg signed [NB_INPUT-1 : 0] i_data;
 reg [NB_COUNTER-1 : 0] count;
+wire signed [NB_INPUT-1 : 0] data;
 
 // Vector Matching
 integer errors;
@@ -42,8 +50,7 @@ initial begin
     clk = 1'b0;
     i_rst_n = 1'b0;
     i_enable = 1'b0;
-    i_phase = 2'd0;
-    i_data = 8'd0;
+    i_phase = 2'd1;
 
     errors = 0;
     $readmemh("out_tx_log.mem", o_data_log);
@@ -56,13 +63,15 @@ initial begin
     @(posedge clk);
     i_enable = 1;
 
-    for (i = 0; i < 39997; i = i + 1) begin
+    for (i = 0; i < (511*SYNC_PHASES*OS + 40000); i = i + 1) begin
         @(posedge clk);
         // $display("o_data: %d, o_data_log: %d", o_data, o_data_log[i]);
+
         // if(o_data != o_data_log[i]) begin
         //     errors = errors + 1;
         // end
-        i_data = o_data_log[i];
+
+        // data = o_data_log[i % (511*OS)];
     end
     
     @(posedge clk);
@@ -94,6 +103,28 @@ initial begin
     $finish;
 end
 
+tx
+#(
+    .NB_PRBS(NB_PRBS),
+    .SEED_PRBS(SEED_PRBS),
+    .OS(OS),
+    .NB_COUNTER(NB_COUNTER),
+    .N_BAUD(N_BAUD),
+    .NB_OUTPUT(NB_OUTPUT),
+    .NBF_OUTPUT(NBF_OUTPUT),
+    .NB_COEFF(NB_COEFF),
+    .NBF_COEFF(NBF_COEFF)
+)
+u_tx
+(
+    .o_data(data)    ,
+    .clk(clk)          ,
+    .i_rst_n(i_rst_n)  ,
+    .i_enable(i_enable),
+    .i_valid(valid)  ,
+    .i_count(count)
+);
+
 rx
 #(
     .NB_PRBS(NB_PRBS),
@@ -112,7 +143,7 @@ u_rx
     .i_enable(i_enable),
     .i_valid(valid),
     .i_phase(i_phase),
-    .i_data(i_data),
+    .i_data(data),
     .i_count(count)
 );
 
