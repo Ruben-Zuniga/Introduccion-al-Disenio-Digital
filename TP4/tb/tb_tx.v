@@ -59,7 +59,7 @@ initial begin
 
     for (i = 0; i < 39997; i = i + 1) begin
         @(posedge clk);
-        $display("o_data: %d, o_data_log: %d", o_data, o_data_log[i]);
+        // $display("o_data: %d, o_data_log: %d", o_data, o_data_log[i]);
         if(o_data != o_data_log[i]) begin
             errors = errors + 1;
         end

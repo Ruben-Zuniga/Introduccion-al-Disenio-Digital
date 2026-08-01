@@ -13,12 +13,12 @@ module tx
     parameter NBF_COEFF  = 7 
 )
 (
-    output wire [NB_OUTPUT-1 : 0]  o_data  ,
-    input  wire                    clk     ,
-    input  wire                    i_rst_n ,
-    input  wire                    i_enable,
-    input  wire                    i_valid ,
-    input  wire [NB_COUNTER-1 : 0] i_count
+    output wire signed [NB_OUTPUT-1  : 0] o_data  ,
+    input  wire                           clk     ,
+    input  wire                           i_rst_n ,
+    input  wire                           i_enable,
+    input  wire                           i_valid ,
+    input  wire        [NB_COUNTER-1 : 0] i_count
 );
 
 localparam NB_SUM     = 8 + $clog2(N_BAUD)    ; // 8 + 3 = 11
