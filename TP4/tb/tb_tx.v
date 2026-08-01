@@ -37,10 +37,9 @@ always @(posedge clk or negedge i_rst_n) begin
     end
 end
 
-// El valid se levanta cuando count = 3, asi no se levanta cuando esta en reset
+// El valid se levanta cuando count = 3
 assign valid = (&count) ? 1'b1 : 1'b0;
 
-// En el initial Todo se ejecuta a la vez, una especie de asignacion no bloqueante?
 initial begin
     clk = 1'b0;
     i_rst_n = 1'b0;
