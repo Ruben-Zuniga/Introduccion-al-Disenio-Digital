@@ -7,13 +7,14 @@ module tx
     parameter OS         = 4         ,
     parameter NB_COUNTER = $clog2(OS), // 2
     parameter N_BAUD     = 6         ,
-    parameter NB_DATA  = 8         ,
-    parameter NBF_DATA = 7         ,
+    parameter NB_DATA    = 8         ,
+    parameter NBF_DATA   = 7         ,
     parameter NB_COEFF   = 8         ,
     parameter NBF_COEFF  = 7 
 )
 (
-    output wire signed [NB_DATA-1  : 0] o_data  ,
+    output wire signed [NB_DATA-1  : 0]   o_data  ,
+    output wire                           o_prbs_tx,
     input  wire                           clk     ,
     input  wire                           i_rst_n ,
     input  wire                           i_enable,
@@ -24,7 +25,7 @@ module tx
 localparam NB_SUM     = 8 + $clog2(N_BAUD)    ; // 8 + 3 = 11
 localparam NBF_SUM    = NBF_COEFF             ; // 7
 localparam NBI_SUM    = NB_SUM - NBF_SUM      ; // 11 - 7 = 4
-localparam NBI_OUTPUT = NB_DATA - NBF_DATA; // 8 - 7 = 1
+localparam NBI_OUTPUT = NB_DATA - NBF_DATA    ; // 8 - 7 = 1
 localparam NB_SAT     = NBI_SUM - NBI_OUTPUT  ; // 4 - 1 = 3
 
 // Lectura del archivo de coeficientes
@@ -50,6 +51,7 @@ reg signed [NB_SUM-1   : 0] sum          [OS-1        : 0];
 reg signed [NB_SUM-1   : 0] data                          ;
 
 assign prbs_bit = lfsr[NB_PRBS-1]; // 0 -> 1 ; 1 -> -1
+assign o_prbs_tx = prbs_bit;
 
 always @(posedge clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
@@ -70,22 +72,6 @@ always @(posedge clk or negedge i_rst_n) begin
         data <= sum[i_count];
     end
 end
-
-// // Productos parciales
-// generate
-//     genvar baud;
-//     genvar phase;
-
-//     for(baud = 0; baud < N_BAUD; baud = baud + 1) begin
-//         if (baud == 0)
-//             for(phase = 0; phase < OS; phase = phase + 1)
-//                 // Niego con "-" porque no puede haber overflow si el filtro esta normalizado
-//                 assign prod[baud*OS + phase] = (prbs_bit) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
-//         else
-//             for(phase = 0; phase < OS; phase = phase + 1)
-//                 assign prod[baud*OS + phase] = (input_filter[baud]) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
-//     end
-// endgenerate
 
 // Productos y sumas
 integer phase;
@@ -116,5 +102,22 @@ end
 // Salida saturada
 assign o_data = ( ~|data[NB_SUM-1 -: NB_SAT+1] || &data[NB_SUM-1 -: NB_SAT+1]) ? data[NB_SUM-(NBI_SUM-NBI_OUTPUT) - 1 -: NB_DATA] :
                     (data[NB_SUM-1]) ? {{1'b1},{NB_DATA-1{1'b0}}} : {{1'b0},{NB_DATA-1{1'b1}}};
+// Salida del PRBS
+
+// // Productos parciales
+// generate
+//     genvar baud;
+//     genvar phase;
+
+//     for(baud = 0; baud < N_BAUD; baud = baud + 1) begin
+//         if (baud == 0)
+//             for(phase = 0; phase < OS; phase = phase + 1)
+//                 // Niego con "-" porque no puede haber overflow si el filtro esta normalizado
+//                 assign prod[baud*OS + phase] = (prbs_bit) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
+//         else
+//             for(phase = 0; phase < OS; phase = phase + 1)
+//                 assign prod[baud*OS + phase] = (input_filter[baud]) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
+//     end
+// endgenerate
     
 endmodule

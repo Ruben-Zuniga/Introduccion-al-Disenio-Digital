@@ -92,10 +92,8 @@ plt.ylabel('Magnitud [dB]')
 plt.grid(True)
 plt.show()
 
-# Logs para guardar en archivo
+# Logs para guardar en archivo y plottear
 out_tx_int_log = []
-
-# Logs para plottear
 symb_tx_log = []
 out_tx_log = []
 dec_rx_log = []
@@ -246,8 +244,16 @@ error_count_I, sync_flag_I, idx_count_I, total_count_I, sync_phase_I = top_model
 
 # Guardar en archivo
 with open('TP4/tb/out_tx_log.mem', 'w') as file:
-    for value in out_tx_int_log[3:]:
+    for value in out_tx_int_log:
         file.write(f'{value:02X}\n')
+
+with open('TP4/tb/symb_tx_log.mem', 'w') as file:
+    for value in symb_tx_log:
+        file.write(f'{value}\n')
+
+with open('TP4/tb/symb_rx_log.mem', 'w') as file:
+    for value in symb_rx_log:
+        file.write(f'{value}\n')
 
 # Guardar y resetear logs
 symb_tx_log_I = symb_tx_log

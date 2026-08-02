@@ -9,14 +9,15 @@ module rx
     parameter NB_ERRORS = 64
 )
 (
-    output wire o_led,
-    output wire [NB_ERRORS-1 : 0] o_errors,
-    input  wire                    clk     ,
-    input  wire                    i_rst_n ,
-    input  wire                    i_enable,
-    input  wire                    i_valid ,
-    input wire [NB_COUNTER-1 : 0] i_phase,
-    input wire signed [NB_DATA-1 : 0] i_data
+    output wire                           o_led    ,
+    output wire        [NB_ERRORS-1  : 0] o_errors ,
+    output wire                           o_bits_rx,
+    input  wire                           clk      ,
+    input  wire                           i_rst_n  ,
+    input  wire                           i_enable ,
+    input  wire                           i_valid  ,
+    input  wire        [NB_COUNTER-1 : 0] i_phase  ,
+    input  wire signed [NB_DATA-1    : 0] i_data
 );
 
 integer i;
@@ -75,15 +76,16 @@ localparam NB_CORR_COUNTER = $clog2(SYNC_PHASES); // 10
 localparam PRBS_SEQUENCES = 2**NB_PRBS - 1; // 511
 localparam NB_SEQUENCE_COUNTER = $clog2(PRBS_SEQUENCES + 1); // 9
 // Estados
-localparam SEQUENCEE = 2'd0;
-localparam PHASE = 2'd1;
-localparam RESET_ERRORS = 2'd2;
-localparam SYNCED = 2'd3;
+localparam SEQUENCEE = 3'd0;
+localparam PHASE = 3'd1;
+localparam RESET_ERRORS_TO_SYNCED = 3'd2;
+localparam SYNCED = 3'd3;
+localparam RESET_ERRORS_TO_SEQUENCEE = 3'd4;
     
-reg [1:0] state;
-reg [1:0] state_next;
+reg [2:0] state;
+reg [2:0] state_next;
 reg [NB_ERRORS-1 : 0] errors; // Nro de errores
-reg [NB_COUNTER-1 : 0] phase_prev;
+reg [NB_COUNTER-1 : 0] phase_prev [1:0];
 
 reg [SYNC_PHASES-2 : 0] sync_register;
 reg [NB_CORR_COUNTER-1 : 0] corr_count;
@@ -100,14 +102,16 @@ always @(posedge clk or negedge i_rst_n) begin
         min_error_phase <= {NB_CORR_COUNTER{1'b0}};
         sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
         corr_count <= {NB_CORR_COUNTER{1'b0}};
-        phase_prev <= i_phase;
+        phase_prev[1] <= phase_prev[0];
+        phase_prev[0] <= i_phase;
     end
     else if (i_enable) begin
         if (i_valid) begin
             // Pasar al estado siguiente
             state <= state_next;
             // Guardar la fase anterior
-            phase_prev <= i_phase;
+            phase_prev[1] <= phase_prev[0];
+            phase_prev[0] <= i_phase;
             // Desplazar registro de sync del prbs
             sync_register[SYNC_PHASES-2 : 1] <= sync_register[SYNC_PHASES-3 : 0];
             sync_register[0] <= prbs_bit;
@@ -132,14 +136,18 @@ always @(posedge clk or negedge i_rst_n) begin
                     errors <= {NB_ERRORS{1'b0}};
                     sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
                 end
-                RESET_ERRORS: begin
-                    // Resetear errores
+                RESET_ERRORS_TO_SYNCED: begin
+                    // Resetear errores cuando se logra la sincronizacion
                     errors <= {NB_ERRORS{1'b0}};
                     // Fijar fase sincronizada
                     corr_count <= min_error_phase;
                 end
                 SYNCED: begin
                     errors <= errors + (data_bit ^ prbs_shifted);
+                end
+                RESET_ERRORS_TO_SEQUENCEE: begin
+                    // Resetear errores cuando se cambia de fase
+                    errors <= {NB_ERRORS{1'b0}};
                 end
             endcase
         end
@@ -153,28 +161,37 @@ end
 always @(*) begin
     case (state)
         SEQUENCEE: begin
-            if ((sequence_count >= (PRBS_SEQUENCES - 2)) && (i_phase == phase_prev))
-                state_next = PHASE;
+            if (i_phase == phase_prev[1])
+                if ((sequence_count >= (PRBS_SEQUENCES - 2)))
+                    state_next = PHASE;
+                else
+                    state_next = SEQUENCEE;
             else
-                state_next = SEQUENCEE;
+                state_next = RESET_ERRORS_TO_SEQUENCEE;
         end
         PHASE: begin
-            if (&corr_count && (i_phase == phase_prev))
-                state_next = RESET_ERRORS;
+            if (i_phase == phase_prev[1])
+                if (&corr_count && (i_phase == phase_prev[1]))
+                    state_next = RESET_ERRORS_TO_SYNCED;
+                else
+                    state_next = SEQUENCEE;
             else
-                state_next = SEQUENCEE;
+                state_next = RESET_ERRORS_TO_SEQUENCEE;
         end
-        RESET_ERRORS: begin
-            if(i_phase == phase_prev)
+        RESET_ERRORS_TO_SYNCED: begin
+            if(i_phase == phase_prev[1])
                 state_next = SYNCED;
             else
-                state_next = SEQUENCEE;
+                state_next = RESET_ERRORS_TO_SEQUENCEE;
         end
         SYNCED: begin
-            if(i_phase == phase_prev)
+            if(i_phase == phase_prev[1])
                 state_next = SYNCED;
             else
-                state_next = SEQUENCEE;
+                state_next = RESET_ERRORS_TO_SEQUENCEE;
+        end
+        RESET_ERRORS_TO_SEQUENCEE: begin
+            state_next = SEQUENCEE;
         end
         default: 
             state_next = SEQUENCEE;
@@ -182,6 +199,7 @@ always @(*) begin
 end
 
 assign prbs_shifted = (corr_count == 0) ? prbs_bit : sync_register[corr_count - 1];
+assign o_bits_rx = data_bit;
 assign o_errors = errors;
 assign o_led = ((state == SYNCED) & ~|errors) ? 1'b1 : 1'b0;
 
