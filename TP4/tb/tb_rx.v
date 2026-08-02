@@ -7,14 +7,13 @@ parameter NB_PRBS = 9;
 parameter SEED_PRBS = 9'h1AA;
 parameter OS = 4;
 parameter NB_COUNTER = $clog2(OS); // 2
+parameter NB_DATA  = 8;
+parameter NBF_DATA = 7;
 // TX
 parameter N_BAUD     = 6;
-parameter NB_OUTPUT  = 8;
-parameter NBF_OUTPUT = 7;
 parameter NB_COEFF   = 8;
 parameter NBF_COEFF  = 7;
 // RX
-parameter NB_INPUT = 8;
 parameter SYNC_PHASES = 16;
 parameter NB_ERRORS = 64;
 
@@ -110,8 +109,8 @@ tx
     .OS(OS),
     .NB_COUNTER(NB_COUNTER),
     .N_BAUD(N_BAUD),
-    .NB_OUTPUT(NB_OUTPUT),
-    .NBF_OUTPUT(NBF_OUTPUT),
+    .NB_DATA(NB_DATA),
+    .NBF_DATA(NBF_DATA),
     .NB_COEFF(NB_COEFF),
     .NBF_COEFF(NBF_COEFF)
 )
@@ -143,8 +142,7 @@ u_rx
     .i_enable(i_enable),
     .i_valid(valid),
     .i_phase(i_phase),
-    .i_data(data),
-    .i_count(count)
+    .i_data(data)
 );
 
 endmodule
