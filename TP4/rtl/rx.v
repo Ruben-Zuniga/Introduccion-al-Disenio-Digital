@@ -102,8 +102,8 @@ always @(posedge clk or negedge i_rst_n) begin
         min_error_phase <= {NB_CORR_COUNTER{1'b0}};
         sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
         corr_count <= {NB_CORR_COUNTER{1'b0}};
-        phase_prev[1] <= phase_prev[0];
-        phase_prev[0] <= i_phase;
+        phase_prev[1] <= {NB_COUNTER{1'b0}};
+        phase_prev[0] <= {NB_COUNTER{1'b0}};
     end
     else if (i_enable) begin
         if (i_valid) begin

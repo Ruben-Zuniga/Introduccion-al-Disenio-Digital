@@ -21,9 +21,9 @@ parameter NBF_COEFF  = 7         ;
 parameter SYNC_PHASES = 16;
 parameter NB_ERRORS = 64;
 
-wire o_prbs_tx;
-wire o_bits_rx;
-wire signed [NB_DATA-1 : 0] o_data;
+wire prbs_tx;
+wire bits_rx;
+wire signed [NB_DATA-1 : 0] data;
 wire [NB_LED-1 : 0] o_led;
 reg  clk;
 reg  i_rst_n;
@@ -35,12 +35,17 @@ integer vm_prbs_tx_errors;
 integer vm_bits_rx_errors;
 integer i;
 localparam N_LOG = 40000;
-reg [NB_DATA-1 : 0] o_data_log [N_LOG-1 : 0];
-reg [NB_DATA-1 : 0] o_prbs_tx_log [N_LOG/OS - 1 : 0];
-reg [NB_DATA-1 : 0] o_bits_rx_log [N_LOG/OS - 1 : 0];
+reg [NB_DATA-1 : 0] data_log [N_LOG-1 : 0];
+reg [NB_DATA-1 : 0] prbs_tx_log [N_LOG/OS - 1 : 0];
+reg [NB_DATA-1 : 0] bits_rx_log [N_LOG/OS - 1 : 0];
 
 // Reloj 100 MHz
 always #5 clk = ~clk;
+
+// Señales internas
+assign prbs_tx = dut.prbs_tx;
+assign bits_rx = dut.bits_rx;
+assign data = dut.data;
 
 initial begin
     clk = 1'b0;
@@ -50,9 +55,9 @@ initial begin
     vm_data_errors = 0;
     vm_prbs_tx_errors = 0;
     vm_bits_rx_errors = 0;
-    $readmemh("out_tx_log.mem", o_data_log);
-    $readmemh("symb_tx_log.mem", o_prbs_tx_log);
-    $readmemh("symb_rx_log.mem", o_bits_rx_log);
+    $readmemh("out_tx_log.mem", data_log);
+    $readmemh("symb_tx_log.mem", prbs_tx_log);
+    $readmemh("symb_rx_log.mem", bits_rx_log);
 
     #1000;
     @(posedge clk);
@@ -66,13 +71,13 @@ initial begin
         @(posedge clk);
         
         if(i % OS == 0) begin
-            if (o_prbs_tx != o_prbs_tx_log[i / OS])
+            if (prbs_tx != prbs_tx_log[i / OS])
                 vm_prbs_tx_errors = vm_prbs_tx_errors + 1;
-            if ((i/OS > 0) && (o_bits_rx != o_bits_rx_log[i/OS - 1]))
+            if ((i/OS > 0) && (bits_rx != bits_rx_log[i/OS - 1]))
                 vm_bits_rx_errors = vm_bits_rx_errors + 1;
         end
 
-        if(o_data != o_data_log[i])
+        if(data != data_log[i])
             vm_data_errors = vm_data_errors + 1;
     end
 
@@ -138,9 +143,6 @@ top
 )
 dut
 (
-    .o_prbs_tx(o_prbs_tx),
-    .o_bits_rx(o_bits_rx),
-    .o_data(o_data),
     .o_led(o_led),
     .clk(clk),
     .i_rst_n(i_rst_n),

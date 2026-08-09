@@ -20,9 +20,6 @@ module top
     parameter NB_ERRORS   = 64
 )
 (
-    output wire                          o_prbs_tx,
-    output wire                          o_bits_rx,
-    output wire signed [NB_DATA-1   : 0] o_data   ,
     output wire        [NB_LED-1    : 0] o_led    ,
     input  wire                          clk      ,
     input  wire                          i_rst_n  ,
@@ -106,9 +103,27 @@ u_rx
     .i_data   (data         )
 );
 
-assign o_data   = data       ;
-assign o_prbs_tx = prbs_tx;
-assign o_bits_rx = bits_rx;
+// // VIO instance
+// vio
+//     u_vio
+//     (
+//         .clk_0       (clk),
+//         .probe_in0_0 (o_led),
+//         .probe_in1_0 (o_led_blue),
+//         .probe_in2_0 (o_led_green),
+//         .probe_out0_0(select_VIO),
+//         .probe_out1_0(reset_from_VIO),
+//         .probe_out2_0(switch_from_VIO)
+//     );
+
+// // ILA Instance
+// ila
+//     u_ila
+//     (
+//         .clk_0    (clk),
+//         .probe0_0 (o_led)
+//     );
+
 assign o_led[0] = i_rst_n    ;
 assign o_led[1] = i_switch[0];
 assign o_led[2] = i_switch[1];

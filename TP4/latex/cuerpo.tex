@@ -103,7 +103,7 @@ El bloque PRBS9 se muestra en la figura \ref{fig:esq_prbs}. Consiste en un regis
     \label{fig:esq_prbs}
 \end{figure}
 
-Para realizar el filtrado, se utilizó una arquitectura de filtro polifásico para no tener multiplicaciones por 0. En la figura \ref{fig:esq_filtro} se puede observar una estructura simplificada, con una tasa de sobremuestreo de 2 y un filtro de 3 baudios de duración. El resultado es un shift register de tamaño 3 y dos conjuntos de multiplicaciones y sumas, donde la salida es intercalada a tasa de sobremuestreo. Para el caso de este trabajo, el shift register es de 6 bits y la cantidad de estructura de multiplicaciones y sumas es de 4.
+Para realizar el filtrado, se utilizó una arquitectura de filtro polifásico para no tener multiplicaciones por 0. En la figura \ref{fig:esq_filtro} se puede observar una estructura simplificada, con una tasa de sobremuestreo de 2 y un filtro de 3 baudios de duración. El resultado es un shift register de tamaño 2 ($3-1$) y 2 conjuntos de multiplicaciones y sumas, donde la salida es intercalada a tasa de sobremuestreo. Para el caso de este trabajo, el shift register es de 5 bits y la cantidad de estructuras de multiplicaciones y sumas es de 4.
 
 \begin{figure}[H]
     \centering
@@ -147,7 +147,14 @@ La curva de la SER según el número de bits se muestra en la figura \ref{fig:se
     \label{fig:ser_vs_nbits}
 \end{figure}
 
-Se realizó entonces una simulación de 40.000 símbolos, utilizando una frecuencia de símbolo de 25\,MBd y variando la fase de muestreo. El filtro transmisor fue normalizado en potencia para poder abarcar los valores altos del lóbulo principal dentro del rango de representación del punto fijo.
+Se realizó entonces una simulación de 40.000 símbolos, utilizando una frecuencia de símbolo de 25\,MBd y variando la fase de muestreo. El filtro transmisor fue normalizado en potencia para poder abarcar los valores altos del lóbulo principal dentro del rango de representación del punto fijo, y para realizar las sumas sucesivas se aumentó el número de bits para evitar el overflow. El número de bits que hay que adicionar en un arbol de sumas es
+
+\begin{equation}
+    N_{bits} \geq \log_2 N_{sumandos}
+\end{equation}
+
+\noindent
+por lo que, al tener 6 sumandos, la salida del filtro se estableció en 11 bits.
 
 La respuesta del filtro obtenido, siguiendo las especificaciones del enunciado, se muestra en las figuras \ref{fig:fix_imp} y \ref{fig:fix_freq}.
 
@@ -261,7 +268,7 @@ Para apreciar mejor los errores debido a la fase, se graficaron las señales del
 
 \subsection{Desarrollo en Verilog}
 
-% FALTA PONER EL NRO DE BITS DE LA SUMA EN PUNTO FIJO
+
 
 \subsection{Implementación en FPGA}
 
