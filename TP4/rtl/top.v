@@ -16,7 +16,7 @@ module top
     parameter NB_COEFF   = 8         ,
     parameter NBF_COEFF  = 7         ,
     // BER
-    parameter SYNC_PHASES = 1024,
+    parameter SYNC_PHASES = 512,
     parameter NB_ERRORS   = 64
 )
 (
@@ -26,20 +26,30 @@ module top
     input  wire        [NB_SWITCH-1 : 0] i_switch
 );
 
-// wire                     connect_reset ;
-// wire [NB_SWITCH - 1 : 0] connect_switch;
+// Module Connections
+wire                           prbs_tx_i;
+wire                           prbs_tx_q;
+wire                           bits_rx_i;
+wire                           bits_rx_q;
+wire signed [NB_DATA-1    : 0] data_i   ;
+wire signed [NB_DATA-1    : 0] data_q   ;
+wire        [NB_ERRORS-1  : 0] errors_i ;
+wire        [NB_ERRORS-1  : 0] errors_q ;
+wire                           led_i    ;
+wire                           led_q    ;
+wire                           valid    ;
+wire        [NB_COUNTER-1 : 0] count    ;
 
-// // Reverse Reset
-// assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
-// assign connect_reset  = (select_VIO) ? ~reset_from_VIO : ~i_rst_n;
+// VIO Connections
+wire                     connect_reset ;
+wire [NB_SWITCH - 1 : 0] connect_switch;
+wire [NB_SWITCH - 1 : 0] switch_from_VIO;
+wire                     reset_from_VIO;
+wire                     select_VIO;
 
-wire                           prbs_tx;
-wire                           bits_rx;
-wire signed [NB_DATA-1    : 0] data ;
-wire                           valid;
-wire        [NB_COUNTER-1 : 0] count;
-wire        [NB_ERRORS-1  : 0] errors;
-wire                           led;
+// Reverse Reset
+assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
+assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n;
 
 // Control: Contador
 counter
@@ -49,13 +59,13 @@ counter
 )
 u_counter
 (
-    .o_valid(valid  ),
-    .o_count(count  ),
-    .clk    (clk    ),
-    .i_rst_n(i_rst_n)
+    .o_valid(valid        ),
+    .o_count(count        ),
+    .clk    (clk          ),
+    .i_rst_n(connect_reset)
 );
 
-// Transmisor: PRBS + Filtro
+// Transmisor: PRBS + Filtro (Canal I)
 tx
 #(
     .NB_PRBS   (NB_PRBS    ),
@@ -68,18 +78,18 @@ tx
     .NB_COEFF  (NB_COEFF   ),
     .NBF_COEFF (NBF_COEFF  )
 )
-u_tx
+u_tx_i
 (
-    .o_prbs_tx(prbs_tx    ),
-    .o_data   (data       ),
-    .clk      (clk        ),
-    .i_rst_n  (i_rst_n    ),
-    .i_enable (i_switch[0]),
-    .i_valid  (valid      ),
-    .i_count  (count      )
+    .o_prbs_tx(prbs_tx_i        ),
+    .o_data   (data_i           ),
+    .clk      (clk              ),
+    .i_rst_n  (connect_reset    ),
+    .i_enable (connect_switch[0]),
+    .i_valid  (valid            ),
+    .i_count  (count            )
 );
 
-// Receptor: Decimador + BER
+// Receptor: Decimador + BER (Canal I)
 rx
 #(
     .NB_PRBS    (NB_PRBS    ),
@@ -90,43 +100,94 @@ rx
     .SYNC_PHASES(SYNC_PHASES),
     .NB_ERRORS  (NB_ERRORS  )
 )
-u_rx
+u_rx_i
 (
-    .o_led    (led          ),
-    .o_errors (errors       ),
-    .o_bits_rx(bits_rx      ),
-    .clk      (clk          ),
-    .i_rst_n  (i_rst_n      ),
-    .i_enable (i_switch[1]  ),
-    .i_valid  (valid        ),
-    .i_phase  (i_switch[3:2]),
-    .i_data   (data         )
+    .o_led    (led_i              ),
+    .o_errors (errors_i           ),
+    .o_bits_rx(bits_rx_i          ),
+    .clk      (clk                ),
+    .i_rst_n  (connect_reset      ),
+    .i_enable (connect_switch[1]  ),
+    .i_valid  (valid              ),
+    .i_phase  (connect_switch[3:2]),
+    .i_data   (data_i             )
 );
 
-// // VIO instance
-// vio
-//     u_vio
-//     (
-//         .clk_0       (clk),
-//         .probe_in0_0 (o_led),
-//         .probe_in1_0 (o_led_blue),
-//         .probe_in2_0 (o_led_green),
-//         .probe_out0_0(select_VIO),
-//         .probe_out1_0(reset_from_VIO),
-//         .probe_out2_0(switch_from_VIO)
-//     );
+// Transmisor: PRBS + Filtro (Canal Q)
+tx
+#(
+    .NB_PRBS   (NB_PRBS    ),
+    .SEED_PRBS (SEED_PRBS_Q),
+    .OS        (OS         ),
+    .NB_COUNTER(NB_COUNTER ),
+    .N_BAUD    (N_BAUD     ),
+    .NB_DATA   (NB_DATA    ),
+    .NBF_DATA  (NBF_DATA   ),
+    .NB_COEFF  (NB_COEFF   ),
+    .NBF_COEFF (NBF_COEFF  )
+)
+u_tx_q
+(
+    .o_prbs_tx(prbs_tx_q        ),
+    .o_data   (data_q           ),
+    .clk      (clk              ),
+    .i_rst_n  (connect_reset    ),
+    .i_enable (connect_switch[0]),
+    .i_valid  (valid            ),
+    .i_count  (count            )
+);
 
-// // ILA Instance
-// ila
-//     u_ila
-//     (
-//         .clk_0    (clk),
-//         .probe0_0 (o_led)
-//     );
+// Receptor: Decimador + BER (Canal Q)
+rx
+#(
+    .NB_PRBS    (NB_PRBS    ),
+    .SEED_PRBS  (SEED_PRBS_Q),
+    .OS         (OS         ),
+    .NB_COUNTER (NB_COUNTER ),
+    .NB_DATA    (NB_DATA    ),
+    .SYNC_PHASES(SYNC_PHASES),
+    .NB_ERRORS  (NB_ERRORS  )
+)
+u_rx_q
+(
+    .o_led    (led_q              ),
+    .o_errors (errors_q           ),
+    .o_bits_rx(bits_rx_q          ),
+    .clk      (clk                ),
+    .i_rst_n  (connect_reset      ),
+    .i_enable (connect_switch[1]  ),
+    .i_valid  (valid              ),
+    .i_phase  (connect_switch[3:2]),
+    .i_data   (data_q             )
+);
 
-assign o_led[0] = i_rst_n    ;
-assign o_led[1] = i_switch[0];
-assign o_led[2] = i_switch[1];
-assign o_led[3] = led        ;
+// VIO instance
+vio
+    u_vio
+    (
+        .clk_0       (clk            ),
+        .probe_in0_0 (o_led          ),
+        .probe_in1_0 (prbs_tx_i      ),
+        .probe_in2_0 (bits_rx_i      ),
+        .probe_out0_0(select_VIO     ),
+        .probe_out1_0(reset_from_VIO ),
+        .probe_out2_0(switch_from_VIO)
+    );
+
+// ILA Instance
+ila
+    u_ila
+    (
+        .clk_0   (clk      ),
+        .probe0_0(data_i),
+        .probe1_0(data_q),
+        .probe2_0(led_i),
+        .probe3_0(led_q)
+    );
+
+assign o_led[0] = connect_reset    ;
+assign o_led[1] = connect_switch[0];
+assign o_led[2] = connect_switch[1];
+assign o_led[3] = led_i & led_q    ;
     
 endmodule

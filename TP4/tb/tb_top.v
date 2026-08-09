@@ -43,9 +43,9 @@ reg [NB_DATA-1 : 0] bits_rx_log [N_LOG/OS - 1 : 0];
 always #5 clk = ~clk;
 
 // Señales internas
-assign prbs_tx = dut.prbs_tx;
-assign bits_rx = dut.bits_rx;
-assign data = dut.data;
+assign prbs_tx = dut.prbs_tx_i;
+assign bits_rx = dut.bits_rx_i;
+assign data = dut.data_i;
 
 initial begin
     clk = 1'b0;
