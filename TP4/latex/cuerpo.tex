@@ -268,21 +268,215 @@ Para apreciar mejor los errores debido a la fase, se graficaron las señales del
 
 \subsection{Desarrollo en Verilog}
 
+\subsubsection{RTL}
 
+El diseño en Verilog se basó en agrupar por jerarquías los distintos bloques modelados anteriormente en punto fijo. La PRBS y el filtro transmisor se agruparon en un bloque transmisor, luego el decimador y el contador de BER se agruparon en un bloque receptor, como se muestra en la figura \ref{fig:esq_jerarq}. Esto se hizo para reducir la cantidad de archivos RTL a sintetizar.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/esq_jerarq.png}
+    \caption{Forma de agrupar los módulos en TX y RX.}
+    \label{fig:esq_jerarq}
+\end{figure}
+
+Completando el esquema, se usó un bloque TX y uno RX para cada canal (I y Q). Obteniéndose así cuatro submódulos más el módulo de control, instanciados en un módulo \emph{top} (figura \ref{fig:esq_top}). Se deseó extraer como puerto de salida algunas señales de interés además de las salidas a los leds (marcadas como línea punteada en la figura), pero no se pudo completar la implementación en Vivado de esta forma, por lo que solo se dejaron como señales internas para instanciar únicamente con el ILA más adelante.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_top.pdf}
+    \caption{Jerarquía del diseño en RTL.}
+    \label{fig:esq_top}
+\end{figure}
+
+La arquitectura del correlador para contar BER es la máquina de estados mostrada en la figura \ref{fig:esq_estados}, donde las variables involucradas son:
+
+\begin{itemize}
+    \item \texttt{i\_phase}: la fase de muestreo a controlar con el switch.
+    \item \texttt{count\_seq}: el contador de la secuencia de la PRBS. Va de 0 a 511.
+    \item \texttt{count\_err}: el contador de errores de 64 bits.
+    \item \texttt{count\_phase}: el contador de la fase actual del correlador. Va de 0 a 1024.
+    \item \texttt{min\_err\_phase}: el registro que contiene la fase con el mínimo error.
+    \item \texttt{bit\_rx}: el bit recibido actual.
+    \item \texttt{prbs}: el bit de la PRBS actual.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_estados.pdf}
+    \caption{Diagrama de estados del correlador.}
+    \label{fig:esq_estados}
+\end{figure}
+
+Todos los códigos en rtl se encuentran en el anexo \ref{appx:archivos} del trabajo.
+
+\subsubsection{Testbench}
+
+Se desarrolló un testbench del top que ejecuta el diguiente flujo:
+
+\begin{enumerate}
+    \item Reset
+    \item TX y RX activados, seleccionando las 4 fases y esperando a que se sincronice el sistema.
+    \item RX desactivado
+    \item TX desactivado
+    \item RX activado
+    \item Reset
+\end{enumerate}
+
+Para evitar tiempos largos de simulación, se acortó la cantidad de registros de desfasaje del correlador, de 1024 a 16.
+
+Dentro del paso 2, el testbench realiza una comparación de vectores: toma los bits generados, la señal filtrada y los bits recibidos por el RTL y los compara junto a los archivos generados por el script en python de punto fijo, mostrando al final de la simulación los errores contados.
+
+El resultado general de la simulación se muestra en la figura \ref{fig:sim_completo}. El led indicador de BER 0 (\texttt{o\_led[3]}) se levanta en 3 fases y en 1 no se levanta, por ser la fase donde las señales cruzan por cero. Se ve que en ese caso el led tiene un pico que es cuando se terminó de sincronizar el receptor.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/sim_completo.png}
+    \caption{sim completo.}
+    \label{fig:sim_completo}
+\end{figure}
+
+El vector matching se realizó en la etapa de fase correcta, arrojando el resultado en la figura \ref{fig:sim_log}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\linewidth]{img/sim_log.png}
+    \caption{sim log.}
+    \label{fig:sim_log}
+\end{figure}
+
+En la figura \ref{fig:sim_top_bits} está el comportamiento de los bits transmitidos (\texttt{o\_prbs\_tx}), los recibidos (\texttt{o\_bits\_rx}) y la señal filtrada (\texttt{data}). Nótese que no se encuentran en la misma fase debido a los retardos del sistema y al desfasaje que aplica el correlador.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/sim_top_bits.png}
+    \caption{sim top bits.}
+    \label{fig:sim_top_bits}
+\end{figure}
+
+Cuando se controla la habilitación del TX y RX, se observa el comportamiento de la figura \ref{fig:sim_switches}. Al apagar el receptor, los bits recibidos ya no cambian, se detectan más errores y el led de BER 0 se apaga. Cuando se apaga el transmisor, la salida del filtro se mantiene constante en un valor, ya que el generador de PRBS también se apaga, y cuando se resetea el sistema, la salida del filtro vuelve a 0.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/sim_switches.png}
+    \caption{sim switches.}
+    \label{fig:sim_switches}
+\end{figure}
+
+Un paso intermedio fue simular el TX y el RX sin un módulo top. De este testbench, se pueden observar algunas señales en la figura \ref{fig:sim_bits}, donde \texttt{decimated} es la señal muestreada, \texttt{data\_bit} es el bit recibido, \texttt{prbs\_shifted} es la salida del PBRS del RX desfasada y \texttt{prbs\_bit(rx)} es el generador PRBS del RX. Aquí, se cuenta el BER comparando \texttt{data\_bit} y \texttt{prbs\_shifted}. Como las dos señales son iguales, el led se levanta en 1 y el contador de errores de abajo es 0.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/sim_bits.png}
+    \caption{sim bits.}
+    \label{fig:sim_bits}
+\end{figure}
 
 \subsection{Implementación en FPGA}
 
+Para poder controlar la FPGA de forma remota, se instanció VIO en el top, con las siguientes interfaces:
 
+\begin{itemize}
+    \item Selector de control con VIO (salida)
+    \item Reset (salida)
+    \item Switches (salida)
+    \item Leds (entrada)
+    \item PRBS del TX (entrada)
+    \item Bits recibidos del RX (entrada)
+\end{itemize}
+
+Además, se instanció el ILA para capturar la onda de salida del filtro y jugar con el trigger en el momento donde el sistema se sincronice. Sus entradas fueron en principio:
+
+\begin{itemize}
+    \item Salida del filtro (ambos canales)
+    \item Led de sincronismo (ambos canales)
+    \item PRBS del TX (ambos canales)
+    \item Bits recibidos por RX (ambos canales)
+\end{itemize}
+
+El diseño sin VIO e ILA pudo ser implementado sin problemas, pero cuando se los instanció, aparecieron errores de timing. En primer lugar se redujo la cantidad de interfaces del ILA para solo mostrar la salida de los filtros y las salidas de sincronismo, sin embargo, los errores de timing persistieron aunque con tiempos más bajos. Entonces, se decidió reducir la cantidad de registros del correlador, de 1024 a 512. Así se pudo reducir el camino crítico que causaba el problema de timing y se completó la implementación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/imp_timing.png}
+    \caption{imp timing.}
+    \label{fig:imp_timing}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{img/imp_power.png}
+    \caption{imp power.}
+    \label{fig:imp_power}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/imp_esq.png}
+    \caption{imp esq.}
+    \label{fig:imp_esq}
+\end{figure}
+
+Finalmente, se realizaron pruebas de forma remota en la FPGA, observando la respuesta ante un reset y obteniendo el resultado en el VIO mostrado en la figura \ref{fig:vio}. De arriba hacia abajo se indica cada variable en esta ventana:
+
+\begin{itemize}
+    \item Los 4 leds
+    \item El PRBS del TX
+    \item Los bits recibidos del RX
+    \item El selector de VIO
+    \item El reset
+    \item Los 4 switches
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/vio_reset.png}
+        \subcaption{cap.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/vio_lock.png}
+        \subcaption{cap.}
+    \end{minipage}
+
+    \caption{cap.}
+    \label{fig:vio}
+\end{figure}
+
+Se puede ver que el comportamiento es el esperado, el led indicador de reset y de BER 0 se encienden y los bits generados y recibidos comienzan a variar.
+
+Un problema que se encontró fue cuando se deshabilita el TX con el switch, ya que al habilitarlo nuevamente no se vuelve a sincronizar el sistema (el led 3 no se enciende); para sincronizarlo se debe resetear, cambiar de fase o deshabilitar y habilitar el RX. Esto podría deberse a que se está utilizando un correlador mas pequeño que el planteado en un principio.
+
+La salida del ILA se observa en la figura \ref{fig:ila_lock_trigger}, con un trigger configurado para que se capture cuando las dos banderas de sincronismo se levantan.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/ila_lock_trigger.png}
+    \caption{ila lock trigger.}
+    \label{fig:ila_lock_trigger}
+\end{figure}
+
+En la figura \ref{fig:ila_trigled0_txoff} se observa el momento cuando se desactiva el TX, con el trigger configurado para capturar cuando las banderas se bajen.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/ila_trigled0_txoff.png}
+    \caption{ila trigled0 txoff.}
+    \label{fig:ila_trigled0_txoff}
+\end{figure}
 
 \section{Conclusión}
 
-
+En este trabajo se realizó el flujo completo de diseño de un transceptor básico. La implementación en hardware incluye generadores PRBS9, un filtro transmisor de 6 baudios, un decimador, un contador de errores de 64 bits y una máquina de estados con un correlador para sincronizar la recepción, desfasando entre 512 fases. Los gráficos obtenidos de la salida del filtro y la PRBS fueron coincidentes, desde la simulación en punto fijo hasta la forma de onda del ILA. Como único inconveniente cabe resaltar la falla de sincronización cuando el transmisor se deshabilita y se vuelve a habilitar, la cual se estima que se debe a la poca cantidad de fases del correlador.
 
 \appendix
 
-\section{Scripts de Python} \label{appx:scripts}
+\section{Archivos y Códigos} \label{appx:archivos}
 
-Los scripts y RTL del trabajo se encuentran en el siguiente link: 
+Los scripts, RTL y testbenches del trabajo se encuentran en el siguiente link:
 
 \noindent
 \url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP4}
