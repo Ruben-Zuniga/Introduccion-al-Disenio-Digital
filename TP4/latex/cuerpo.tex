@@ -5,7 +5,7 @@ En este trabajo se diseñó un sistema de comunicaciones digitales básico, apli
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\linewidth]{img/esq_consigna.png}
-    \caption{cap.}
+    \caption{Esquemático propuesto del sistema.}
     \label{fig:esq_consigna}
 \end{figure}
 
@@ -331,7 +331,7 @@ El resultado general de la simulación se muestra en la figura \ref{fig:sim_comp
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/sim_completo.png}
-    \caption{sim completo.}
+    \caption{Forma de onda completa de simulación.}
     \label{fig:sim_completo}
 \end{figure}
 
@@ -340,7 +340,7 @@ El vector matching se realizó en la etapa de fase correcta, arrojando el result
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\linewidth]{img/sim_log.png}
-    \caption{sim log.}
+    \caption{Loggeo de errores en las señales.}
     \label{fig:sim_log}
 \end{figure}
 
@@ -349,7 +349,7 @@ En la figura \ref{fig:sim_top_bits} está el comportamiento de los bits transmit
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/sim_top_bits.png}
-    \caption{sim top bits.}
+    \caption{Formas de onda de los bits transmitidos, recibidos y la señal filtrada en el testbench.}
     \label{fig:sim_top_bits}
 \end{figure}
 
@@ -358,7 +358,7 @@ Cuando se controla la habilitación del TX y RX, se observa el comportamiento de
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/sim_switches.png}
-    \caption{sim switches.}
+    \caption{Respuesta de los leds y otras señales al cambio en los switches.}
     \label{fig:sim_switches}
 \end{figure}
 
@@ -367,7 +367,7 @@ Un paso intermedio fue simular el TX y el RX sin un módulo top. De este testben
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/sim_bits.png}
-    \caption{sim bits.}
+    \caption{Formas de onda de otras señales internas.}
     \label{fig:sim_bits}
 \end{figure}
 
@@ -398,21 +398,21 @@ El diseño sin VIO e ILA pudo ser implementado sin problemas, pero cuando se los
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/imp_timing.png}
-    \caption{imp timing.}
+    \caption{Reporte de timing final.}
     \label{fig:imp_timing}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\linewidth]{img/imp_power.png}
-    \caption{imp power.}
+    \caption{Reporte de potencia.}
     \label{fig:imp_power}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\linewidth]{img/imp_esq.png}
-    \caption{imp esq.}
+    \caption{Esquemático de la implementación en la FPGA.}
     \label{fig:imp_esq}
 \end{figure}
 
@@ -433,16 +433,16 @@ Finalmente, se realizaron pruebas de forma remota en la FPGA, observando la resp
     \begin{minipage}{0.48\linewidth}
         \centering
         \includegraphics[width=1\linewidth]{img/vio_reset.png}
-        \subcaption{cap.}
+        \subcaption{Con reset en bajo.}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\linewidth}
         \centering
         \includegraphics[width=1\linewidth]{img/vio_lock.png}
-        \subcaption{cap.}
+        \subcaption{Con reset en alto.}
     \end{minipage}
 
-    \caption{cap.}
+    \caption{Respuesta del sistema al pulsar el reset a través del VIO.}
     \label{fig:vio}
 \end{figure}
 
@@ -455,7 +455,7 @@ La salida del ILA se observa en la figura \ref{fig:ila_lock_trigger}, con un tri
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/ila_lock_trigger.png}
-    \caption{ila lock trigger.}
+    \caption{Formas de onda en el ILA cuando el sistema se sincroniza.}
     \label{fig:ila_lock_trigger}
 \end{figure}
 
@@ -464,7 +464,7 @@ En la figura \ref{fig:ila_trigled0_txoff} se observa el momento cuando se desact
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/ila_trigled0_txoff.png}
-    \caption{ila trigled0 txoff.}
+    \caption{Formas de onda en el ILA cuando se deshabilita el TX.}
     \label{fig:ila_trigled0_txoff}
 \end{figure}
 
