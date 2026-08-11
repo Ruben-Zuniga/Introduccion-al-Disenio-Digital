@@ -3,33 +3,36 @@
 module tb_rx();
 
 // General
-parameter NB_PRBS = 9;
-parameter SEED_PRBS = 9'h1AA;
-parameter OS = 4;
+parameter NB_PRBS    = 9         ;
+parameter SEED_PRBS  = 9'h1AA    ;
+parameter OS         = 4         ;
 parameter NB_COUNTER = $clog2(OS); // 2
-parameter NB_DATA  = 8;
-parameter NBF_DATA = 7;
+parameter NB_DATA    = 8         ;
+parameter NBF_DATA   = 7         ;
 // TX
-parameter N_BAUD     = 6;
-parameter NB_COEFF   = 8;
-parameter NBF_COEFF  = 7;
+parameter N_BAUD    = 6;
+parameter NB_COEFF  = 8;
+parameter NBF_COEFF = 7;
 // RX
 parameter SYNC_PHASES = 16;
-parameter NB_ERRORS = 64;
+parameter NB_ERRORS   = 64;
 
-wire o_led;
-reg clk     ;
-reg i_rst_n ;
-reg i_enable;
-wire valid ;
-reg [NB_COUNTER-1 : 0] i_phase;
-reg [NB_COUNTER-1 : 0] count;
-wire signed [NB_INPUT-1 : 0] data;
+wire                           o_prbs_tx;
+wire signed [NB_DATA-1   : 0] data     ;
+wire        [NB_ERRORS-1  : 0] o_errors ;
+wire                           o_bits_rx;
+wire                           o_led    ;
+reg                            clk      ;
+reg                            i_rst_n  ;
+reg                            i_enable ;
+wire                           valid    ;
+reg         [NB_COUNTER-1 : 0] i_phase  ;
+reg         [NB_COUNTER-1 : 0] count    ;
 
 // Vector Matching
-integer errors;
+integer vm_errors;
 integer i;
-reg [NB_INPUT-1 : 0] o_data_log [39997-1 : 0];
+reg [NB_DATA-1 : 0] o_data_log [39997-1 : 0];
 
 always #5 clk = ~clk;
 
@@ -51,7 +54,7 @@ initial begin
     i_enable = 1'b0;
     i_phase = 2'd1;
 
-    errors = 0;
+    vm_errors = 0;
     $readmemh("out_tx_log.mem", o_data_log);
 
     #1000;
@@ -67,7 +70,7 @@ initial begin
         // $display("o_data: %d, o_data_log: %d", o_data, o_data_log[i]);
 
         // if(o_data != o_data_log[i]) begin
-        //     errors = errors + 1;
+        //     vm_errors = vm_errors + 1;
         // end
 
         // data = o_data_log[i % (511*OS)];
@@ -78,27 +81,6 @@ initial begin
 
     #10000;
     @(posedge clk);
-    // i_enable = 1;
-
-    // #10000;
-    // @(posedge clk);
-    // i_enable = 0;
-
-    // #10000;
-    // @(posedge clk);
-    // i_rst_n = 1'b0;
-
-    // #10000;
-    // @(posedge clk);
-    // i_rst_n = 1'b1;
-    // i_enable = 1;
-
-    // #10000;
-    // @(posedge clk);
-    // i_rst_n = 1'b0;
-
-    // #10000;
-    // $display("Errores: %d", errors);
     $finish;
 end
 
@@ -130,7 +112,7 @@ rx
     .SEED_PRBS(SEED_PRBS),
     .OS(OS),
     .NB_COUNTER(NB_COUNTER),
-    .NB_INPUT(NB_INPUT),
+    .NB_DATA(NB_DATA),
     .SYNC_PHASES(SYNC_PHASES),
     .NB_ERRORS(NB_ERRORS)
 )
