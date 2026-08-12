@@ -1,6 +1,6 @@
 \section{Introducción}
 
-En este trabajo se diseñó un sistema de comunicaciones digitales básico, aplicando un flujo de trabajo completo, desde la simulación en punto flotante hasta la implementación física en una FPGA. El sistema propuesto se muestra en la figura \ref{fig:esq_consigna}, que consiste en bloques generadores de PRBS, filtros transmisores, diezmador y contador de BER.
+En este trabajo se diseñó un sistema de comunicaciones digitales básico, aplicando un flujo de trabajo completo desde la simulación en punto flotante hasta la implementación física en una FPGA. El sistema propuesto se muestra en la figura \ref{fig:esq_consigna}, que consiste en un transceptor con bloques generadores de PRBS, filtros transmisores, diezmadores y contadores de BER.
 
 \begin{figure}[H]
     \centering
@@ -49,6 +49,8 @@ Se graficó la respuesta al impulso y en frecuencia del filtro (figuras \ref{fig
     \label{fig:float_freq}
 \end{figure}
 
+La decimación se realizó para cada una de las cuatro fases posibles, descartando los primeros 100 símbolos para contar BER, ya que son parte del transitorio de la convolución con el filtro y no se llegó al estado estacionario. El resultado de BER se muestra en el cuadro \ref{tab:float_ber}, donde el único caso de errores en la decisión del símbolo es cuando la fase es igual a 3. Esto es de esperarse, ya que en la figura \ref{fig:float_const} se observa que las muestras caen dentro de la zona correcta de decisión en las fases 0, 1, y 2.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/float_conv.pdf}
@@ -62,15 +64,6 @@ Se graficó la respuesta al impulso y en frecuencia del filtro (figuras \ref{fig
     \caption{Diagrama de ojo de la salida.}
     \label{fig:float_eye}
 \end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{img/float_const.pdf}
-    \caption{Diagrama de constelación de la salida para cada fase.}
-    \label{fig:float_const}
-\end{figure}
-
-La decimación se realizó para cada una de las cuatro fases posibles, descartando los primeros 100 símbolos para contar BER, ya que son parte del transitorio de la convolución con el filtro y no se llegó al estado estacionario. El resultado de BER se muestra en el cuadro \ref{tab:float_ber}, donde el único caso de errores en la decisión del símbolo es cuando la fase es igual a 3. Esto es de esperarse, ya que en la figura \ref{fig:float_const} se observa que las muestras caen dentro de la zona correcta de decisión en las fases 0, 1, y 2.
 
 Luego de realizada la simulación, se concluyó que la cantidad de símbolos necesarios para una buena estimación de la BER es de aproximadamente 10 mil.
 
@@ -90,15 +83,22 @@ Luego de realizada la simulación, se concluyó que la cantidad de símbolos nec
     \label{tab:float_ber}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/float_const.pdf}
+    \caption{Diagrama de constelación de la salida para cada fase.}
+    \label{fig:float_const}
+\end{figure}
+
 \subsection{Arquitectura del Hardware}
 
 Para poder modelar el comportamiento del diseño en Python con punto fijo, primero se propuso una arquitectura posible del sistema de comunicaciones.
 
-El bloque PRBS9 se muestra en la figura \ref{fig:esq_prbs}. Consiste en un registro de desplazamiento de 9 bits, realimentado utilizando una compuerta XOR y funcionando a tasa de baudio. A esta arquitectura tambien se la conoce como \emph{LFSR} (Linear Feedback Shift Register).
+El bloque PRBS9 se muestra en la figura \ref{fig:esq_prbs}. Consiste en un registro de desplazamiento de 9 bits, realimentado por una compuerta XOR y funcionando a tasa de baudio. A esta arquitectura tambien se la conoce como \emph{LFSR} (Linear Feedback Shift Register).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{img/esq_prbs.pdf}
+    \includegraphics[width=0.7\linewidth]{img/esq_prbs.pdf}
     \caption{Arquitectura del PRBS9, a tasa de baudio.}
     \label{fig:esq_prbs}
 \end{figure}
@@ -107,7 +107,7 @@ Para realizar el filtrado, se utilizó una arquitectura de filtro polifásico pa
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{img/esq_filtro.pdf}
+    \includegraphics[width=1\linewidth]{img/esq_filtro.pdf}
     \caption{Arquitectura del filtro polifásico.}
     \label{fig:esq_filtro}
 \end{figure}
@@ -118,7 +118,7 @@ Cabe aclarar que, como en la FPGA es complejo realizar divisiones, solo se cuent
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{img/esq_ber.pdf}
+    \includegraphics[width=1\linewidth]{img/esq_ber.pdf}
     \caption{Arquitectura para el decimador y el monitor de BER.}
     \label{fig:esq_ber}
 \end{figure}
@@ -181,6 +181,26 @@ El diagrama de ojo, mostrado en la figura \ref{fig:fix_eye}, indica que el model
     \label{fig:fix_eye}
 \end{figure}
 
+Finalmente, el contador de BER mostró los resultados del cuadro \ref{tab:fix_ber}, donde el valor en la fase más alejada de la óptima es mayor al valor mostrado en el cuadro \ref{tab:float_ber}, nuevamente debido a la reducción de la precisión.
+
+\begin{table}[H]
+    \centering
+
+    \begin{tabular}{lcc}
+        \textbf{Fase} & \textbf{BER (I)} & \textbf{BER (Q)} \\
+        \hline\hline
+        0 & 0 & 0 \\
+        1 & 0 & 0 \\
+        2 & $0.25004$ & $0.24987$ \\
+        3 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{BER obtenidas de la simulación en punto fijo.}
+    \label{tab:fix_ber}
+\end{table}
+
+Para apreciar mejor los errores debido a la fase, se graficaron las señales del modelo del transmisor y el receptor en las figuras \ref{fig:symb_0} y \ref{fig:symb_2}.
+
 \begin{figure}[H]
     \centering
 
@@ -207,26 +227,6 @@ El diagrama de ojo, mostrado en la figura \ref{fig:fix_eye}, indica que el model
     \caption{Diagrama de constelación de la salida en punto fijo, por cada fase.}
     \label{fig:fix_const}
 \end{figure}
-
-Finalmente, el contador de BER mostró los resultados del cuadro \ref{tab:fix_ber}, donde el valor en la fase más alejada de la óptima es mayor al valor mostrado en el cuadro \ref{tab:float_ber}, nuevamente debido a la reducción de la precisión.
-
-\begin{table}[H]
-    \centering
-
-    \begin{tabular}{lcc}
-        \textbf{Fase} & \textbf{BER (I)} & \textbf{BER (Q)} \\
-        \hline\hline
-        0 & 0 & 0 \\
-        1 & 0 & 0 \\
-        2 & $0.25004$ & $0.24987$ \\
-        3 & 0 & 0 \\
-        \hline
-    \end{tabular}
-    \caption{BER obtenidas de la simulación en punto fijo.}
-    \label{tab:fix_ber}
-\end{table}
-
-Para apreciar mejor los errores debido a la fase, se graficaron las señales del modelo del transmisor y el receptor en las figuras \ref{fig:symb_0} y \ref{fig:symb_2}.
 
 \begin{figure}[H]
     \centering
@@ -262,7 +262,7 @@ Para apreciar mejor los errores debido a la fase, se graficaron las señales del
         \subcaption{Canal Q, fase 2.}
     \end{minipage}
 
-    \caption{Señales obtenidas en la simulación con fase 2.}
+    \caption{Señales obtenidas en la simulación con fase 2. Nótese que algunos símbolos recibidos son distintos a los transmitidos.}
     \label{fig:symb_2}
 \end{figure}
 
@@ -270,7 +270,7 @@ Para apreciar mejor los errores debido a la fase, se graficaron las señales del
 
 \subsubsection{RTL}
 
-El diseño en Verilog se basó en agrupar por jerarquías los distintos bloques modelados anteriormente en punto fijo. La PRBS y el filtro transmisor se agruparon en un bloque transmisor, luego el decimador y el contador de BER se agruparon en un bloque receptor, como se muestra en la figura \ref{fig:esq_jerarq}. Esto se hizo para reducir la cantidad de archivos RTL a sintetizar.
+El diseño en Verilog se realizó utilizando las herramientas \emph{Visual Studio Code} (versión 1.132.1) y \emph{Vivado} (versión 2024.2), basándose en agrupar por jerarquías los distintos bloques modelados anteriormente en punto fijo. La PRBS y el filtro se agruparon en un bloque transmisor, luego el decimador y el contador de BER se agruparon en un bloque receptor, como se muestra en la figura \ref{fig:esq_jerarq}. Esto se hizo para reducir la cantidad de archivos RTL a sintetizar.
 
 \begin{figure}[H]
     \centering
@@ -307,7 +307,7 @@ La arquitectura del correlador para contar BER es la máquina de estados mostrad
     \label{fig:esq_estados}
 \end{figure}
 
-Todos los códigos en rtl se encuentran en el anexo \ref{appx:archivos} del trabajo.
+Todos los códigos en RTL se encuentran en el anexo \ref{appx:archivos} del trabajo.
 
 \subsubsection{Testbench}
 
@@ -346,14 +346,14 @@ El vector matching se realizó en la etapa de fase correcta, arrojando el result
 
 En la figura \ref{fig:sim_top_bits} está el comportamiento de los bits transmitidos (\texttt{o\_prbs\_tx}), los recibidos (\texttt{o\_bits\_rx}) y la señal filtrada (\texttt{data}). Nótese que no se encuentran en la misma fase debido a los retardos del sistema y al desfasaje que aplica el correlador.
 
+Cuando se controla la habilitación del TX y RX, se observa el comportamiento de la figura \ref{fig:sim_switches}. Al apagar el receptor, los bits recibidos ya no cambian, se detectan más errores y el led de BER 0 se apaga. Cuando se apaga el transmisor, la salida del filtro se mantiene constante en un valor, ya que todos los registros dejan de actualizarse, y cuando se resetea el sistema, la salida del filtro vuelve a 0.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/sim_top_bits.png}
     \caption{Formas de onda de los bits transmitidos, recibidos y la señal filtrada en el testbench.}
     \label{fig:sim_top_bits}
 \end{figure}
-
-Cuando se controla la habilitación del TX y RX, se observa el comportamiento de la figura \ref{fig:sim_switches}. Al apagar el receptor, los bits recibidos ya no cambian, se detectan más errores y el led de BER 0 se apaga. Cuando se apaga el transmisor, la salida del filtro se mantiene constante en un valor, ya que el generador de PRBS también se apaga, y cuando se resetea el sistema, la salida del filtro vuelve a 0.
 
 \begin{figure}[H]
     \centering
@@ -362,7 +362,7 @@ Cuando se controla la habilitación del TX y RX, se observa el comportamiento de
     \label{fig:sim_switches}
 \end{figure}
 
-Un paso intermedio fue simular el TX y el RX sin un módulo top. De este testbench, se pueden observar algunas señales en la figura \ref{fig:sim_bits}, donde \texttt{decimated} es la señal muestreada, \texttt{data\_bit} es el bit recibido, \texttt{prbs\_shifted} es la salida del PBRS del RX desfasada y \texttt{prbs\_bit(rx)} es el generador PRBS del RX. Aquí, se cuenta el BER comparando \texttt{data\_bit} y \texttt{prbs\_shifted}. Como las dos señales son iguales, el led se levanta en 1 y el contador de errores de abajo es 0.
+Un paso intermedio fue simular el TX y el RX sin un módulo top. De este testbench, se pueden observar algunas señales en la figura \ref{fig:sim_bits}, donde \texttt{decimated} es la señal muestreada, \texttt{data\_bit} es el bit recibido, \texttt{prbs\_shifted} es la salida de la PBRS del RX desfasada y \texttt{prbs\_bit(rx)} es el generador PRBS del RX. Aquí, se cuenta el BER comparando \texttt{data\_bit} y \texttt{prbs\_shifted}. Como las dos señales son iguales, el led se levanta en 1 y el contador de errores de abajo es 0.
 
 \begin{figure}[H]
     \centering
@@ -373,7 +373,7 @@ Un paso intermedio fue simular el TX y el RX sin un módulo top. De este testben
 
 \subsection{Implementación en FPGA}
 
-Para poder controlar la FPGA de forma remota, se instanció VIO en el top, con las siguientes interfaces:
+Para poder controlar la FPGA de forma remota, se instanció el VIO en el top, con las siguientes interfaces:
 
 \begin{itemize}
     \item Selector de control con VIO (salida)
@@ -442,7 +442,7 @@ Finalmente, se realizaron pruebas de forma remota en la FPGA, observando la resp
         \subcaption{Con reset en alto.}
     \end{minipage}
 
-    \caption{Respuesta del sistema al pulsar el reset a través del VIO.}
+    \caption{Respuesta del sistema al pulsar el reset a través del VIO, con la fase óptima.}
     \label{fig:vio}
 \end{figure}
 
@@ -450,7 +450,13 @@ Se puede ver que el comportamiento es el esperado, el led indicador de reset y d
 
 Un problema que se encontró fue cuando se deshabilita el TX con el switch, ya que al habilitarlo nuevamente no se vuelve a sincronizar el sistema (el led 3 no se enciende); para sincronizarlo se debe resetear, cambiar de fase o deshabilitar y habilitar el RX. Esto podría deberse a que se está utilizando un correlador mas pequeño que el planteado en un principio.
 
-La salida del ILA se observa en la figura \ref{fig:ila_lock_trigger}, con un trigger configurado para que se capture cuando las dos banderas de sincronismo se levantan.
+La salida del ILA se observa en la figura \ref{fig:ila_lock_trigger}, con un trigger configurado para que se capture cuando las dos banderas de sincronismo se levanten.
+
+En la figura \ref{fig:ila_trigled0_txoff} se observa el momento cuando se desactiva el TX, con el trigger configurado para capturar cuando las banderas se bajen.
+
+Con la función \emph{Bus Plot} de Vivado se generó una gráfica de la salida del filtro, mostrada en la figura \ref{fig:ila_plot}, donde la señal roja corresponde al canal I y la señal verde al canal Q.
+
+Con esta función también se pueden graficar las constelaciones de cada fase seleccionada. Estas se muestran en la figura \ref{fig:ila_const} y en ellas se observa el mismo patrón que lo simulado en Python, concluyendo que el diseño en hardware cumple con el comportamiento esperado.
 
 \begin{figure}[H]
     \centering
@@ -459,8 +465,6 @@ La salida del ILA se observa en la figura \ref{fig:ila_lock_trigger}, con un tri
     \label{fig:ila_lock_trigger}
 \end{figure}
 
-En la figura \ref{fig:ila_trigled0_txoff} se observa el momento cuando se desactiva el TX, con el trigger configurado para capturar cuando las banderas se bajen.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/ila_trigled0_txoff.png}
@@ -468,9 +472,47 @@ En la figura \ref{fig:ila_trigled0_txoff} se observa el momento cuando se desact
     \label{fig:ila_trigled0_txoff}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/ila_plot.png}
+    \caption{Gráfico obtenido de las señales almacenadas en el ILA.}
+    \label{fig:ila_plot}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/ila_const0.png}
+        \subcaption{Fase 0.}
+    \end{minipage}
+    \hfil
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/ila_const1.png}
+        \subcaption{Fase 1.}
+    \end{minipage}
+
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/ila_const2.png}
+        \subcaption{Fase 2.}
+    \end{minipage}
+    \hfil
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/ila_const3.png}
+        \subcaption{Fase 3.}
+    \end{minipage}
+
+    \caption{Constelación para cada fase de la implementación en FPGA.}
+    \label{fig:ila_const}
+\end{figure}
+
 \section{Conclusión}
 
-En este trabajo se realizó el flujo completo de diseño de un transceptor básico. La implementación en hardware incluye generadores PRBS9, un filtro transmisor de 6 baudios, un decimador, un contador de errores de 64 bits y una máquina de estados con un correlador para sincronizar la recepción, desfasando entre 512 fases. Los gráficos obtenidos de la salida del filtro y la PRBS fueron coincidentes, desde la simulación en punto fijo hasta la forma de onda del ILA. Como único inconveniente cabe resaltar la falla de sincronización cuando el transmisor se deshabilita y se vuelve a habilitar, la cual se estima que se debe a la poca cantidad de fases del correlador.
+En este trabajo se realizó el flujo completo de diseño de un transceptor básico. La implementación en hardware incluye generadores PRBS9, un filtro transmisor de 6 baudios, un decimador, un contador de errores de 64 bits y una máquina de estados con un correlador para sincronizar la recepción, desfasando entre 512 fases. Los gráficos generados en todos los pasos del diseño muestran los símbolos generados, la salida del filtro transmisor y la constelación; todos estos fueron coincidentes, desde la simulación en punto fijo hasta la forma de onda del ILA. Como único inconveniente cabe resaltar la falla de sincronización cuando el transmisor se deshabilita y se vuelve a habilitar, la cual se estima que se debe a la poca cantidad de fases del correlador.
 
 \appendix
 
