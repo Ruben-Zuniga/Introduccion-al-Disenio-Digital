@@ -41,7 +41,6 @@ def rcosine(beta, Tbaud, oversampling, N_bauds, Norm):
 
     if(Norm):
         return (t_vect, y_vect/np.sqrt(np.sum(y_vect**2)))
-        # return (t_vect, y_vect/y_vect.sum())
     else:
         return (t_vect,y_vect)
 
@@ -104,12 +103,7 @@ prbs_rx_log = []
 coeffs = [[0]*N_bauds]*os
 coeffs = [0]*os
 for i in range(os):
-    # print(np.arange(i, N_bauds*os + i, os))
-
     coeffs[i] = rc[i:i-(os):os]
-
-# print(rc)
-# print(np.array(coeffs))
 
 ## Producto
 # Valor -1 en punto fijo para multiplicar por los demas valores
@@ -145,8 +139,6 @@ def top_model(sample_phase, prbs_seed ,N_corr):
 
     for n in range(N_symb):
         if os_count == 0:
-            # print(prbs_tx, '  ', register_rc, '  ', out_sum)
-
             ### PRBS9 TX
             symb_tx = prbs_tx[8]
             feedback = symb_tx ^ prbs_tx[4]
@@ -155,33 +147,28 @@ def top_model(sample_phase, prbs_seed ,N_corr):
 
             register_rc = np.concatenate(([symb_tx], register_rc[0 : N_bauds-1]))
 
-        ### Filtro RC
-        # Estructura combinacional del filtro. "os" estructuras FIR con "N_bauds" multiplicaciones c/u
-        for i in range(os):
-            out_sum[i].value = 0
-            for j in range(N_bauds):
-                out_sum[i].assign(out_sum[i] + prod(register_rc[j], coeffs[i][j]))
-                # print(n, j, out_sum)
-
-        # out_sum[os_count] =  prod(register_rc[0], coeffs[os_count][0]) \
-        #             + prod(register_rc[1], coeffs[os_count][1]) \
-        #             + prod(register_rc[2], coeffs[os_count][2]) \
-        #             + prod(register_rc[3], coeffs[os_count][3]) \
-        #             + prod(register_rc[4], coeffs[os_count][4]) \
-        #             + prod(register_rc[5], coeffs[os_count][5])
-        # print(out_sum[os_count])
+            ### Filtro RC
+            # Estructura combinacional del filtro. "os" estructuras FIR con "N_bauds" multiplicaciones c/u
+            for i in range(os):
+                out_sum[i].value = 0
+                for j in range(N_bauds):
+                    out_sum[i].assign(out_sum[i] + prod(register_rc[j], coeffs[i][j]))
 
         out_rc.assign(out_sum[os_count])
         out_tx_int_log.append(out_rc.intvalue)
         out_tx_log.append(out_rc.fValue)
 
         ### Decimador
-        register_dec = np.concatenate(([out_rc], register_dec[0:os]))
+        # Estructura combinacional del shift reg
+        for i in range(os-1, 0, -1):
+            register_dec[i].assign(register_dec[i-1])
+
+        register_dec[0].assign(out_rc)
+
         if os_count == 0:
             dec_rx.assign(register_dec[sample_phase])
+
             dec_rx_log.append(dec_rx.fValue)
-                
-            # print(dec_rx)
 
             ### Decimador (cont.)
             if dec_rx.fValue >= 0:
@@ -196,8 +183,6 @@ def top_model(sample_phase, prbs_seed ,N_corr):
             prbs_rx = np.concatenate(([feedback], prbs_rx[0:8]))
             register_prbs_rx = np.concatenate(([prbs_rx[8]], register_prbs_rx[0:1023]))
             prbs_rx_log.append(prbs_rx[8])
-
-            # print(n, symb_rx, register_prbs_rx[sync_phase])
             
             error_count = error_count + (register_prbs_rx[sync_phase] ^ symb_rx)
 
@@ -226,9 +211,6 @@ def top_model(sample_phase, prbs_seed ,N_corr):
             else:
                 # Comenzar a contar los simbolos totales para contar BER
                 total_count = total_count + 1
-            
-            # total_count = total_count + 1
-            # idx_count = 0
 
         os_count = (os_count + 1) % os
 
@@ -374,7 +356,7 @@ plt.subplots_adjust(left=0.142, bottom=0.085, right=0.903, top=0.922, wspace=0.3
 symb_rx_trimm_I = dec_rx_log_I[idx_count_I:-1]
 symb_rx_trimm_Q = dec_rx_log_Q[idx_count_Q:-1]
 
-plt.plot(symb_rx_trimm_I, symb_rx_trimm_Q, '.',linewidth=2.0, alpha=0.5)
+plt.plot(symb_rx_trimm_I, symb_rx_trimm_Q, '.',linewidth=2.0)
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
 plt.grid(True)

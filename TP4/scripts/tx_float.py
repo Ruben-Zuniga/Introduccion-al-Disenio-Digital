@@ -179,7 +179,7 @@ for offset in offset_v:
     print(f'BER (Q): {ber_Q}')
 
     plt.subplot(int(os/2), int(os/2), offset+1)
-    plt.plot(symb_out0I_trim, symb_out0Q_trim, '.',linewidth=2.0, alpha=0.5)
+    plt.plot(symb_out0I_trim, symb_out0Q_trim, '.',linewidth=2.0)
     plt.xlim((-2, 2))
     plt.ylim((-2, 2))
     plt.grid(True)
