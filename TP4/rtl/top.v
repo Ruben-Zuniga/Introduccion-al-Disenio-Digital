@@ -33,6 +33,8 @@ wire                           bits_rx_i;
 wire                           bits_rx_q;
 wire signed [NB_DATA-1    : 0] data_i   ;
 wire signed [NB_DATA-1    : 0] data_q   ;
+wire signed [NB_DATA-1    : 0] decimated_i;
+wire signed [NB_DATA-1    : 0] decimated_q;
 wire        [NB_ERRORS-1  : 0] errors_i ;
 wire        [NB_ERRORS-1  : 0] errors_q ;
 wire                           led_i    ;
@@ -105,6 +107,7 @@ u_rx_i
     .o_led    (led_i              ),
     .o_errors (errors_i           ),
     .o_bits_rx(bits_rx_i          ),
+    .o_decimated(decimated_i      ),
     .clk      (clk                ),
     .i_rst_n  (connect_reset      ),
     .i_enable (connect_switch[1]  ),
@@ -153,6 +156,7 @@ u_rx_q
     .o_led    (led_q              ),
     .o_errors (errors_q           ),
     .o_bits_rx(bits_rx_q          ),
+    .o_decimated(decimated_q      ),
     .clk      (clk                ),
     .i_rst_n  (connect_reset      ),
     .i_enable (connect_switch[1]  ),
@@ -179,8 +183,8 @@ ila
     u_ila
     (
         .clk_0   (clk      ),
-        .probe0_0(data_i),
-        .probe1_0(data_q),
+        .probe0_0(decimated_i), // Se puede intercambiar por data_i
+        .probe1_0(decimated_q), // Se puede intercambiar por data_q
         .probe2_0(led_i),
         .probe3_0(led_q)
     );

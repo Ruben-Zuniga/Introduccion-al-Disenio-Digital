@@ -12,6 +12,7 @@ module rx
     output wire                           o_led    ,
     output wire        [NB_ERRORS-1  : 0] o_errors ,
     output wire                           o_bits_rx,
+    output wire        [NB_DATA-1    : 0] o_decimated,
     input  wire                           clk      ,
     input  wire                           i_rst_n  ,
     input  wire                           i_enable ,
@@ -202,75 +203,6 @@ assign prbs_shifted = (corr_count == 0) ? prbs_bit : sync_register[corr_count - 
 assign o_bits_rx = data_bit;
 assign o_errors = errors;
 assign o_led = ((state == SYNCED) & ~|errors) ? 1'b1 : 1'b0;
-
-// // Correlador (Arreglar que se ve muy feo)
-// localparam NB_CORR_COUNTER = $clog2(SYNC_PHASES); // 10
-// localparam PRBS_SEQUENCES = 2**NB_PRBS - 1; // 511
-// localparam NB_SEQUENCE_COUNTER = $clog2(PRBS_SEQUENCES + 1); // 9
-
-// reg [SYNC_PHASES-2 : 0] sync_register;
-// reg [NB_CORR_COUNTER-1 : 0] corr_count;
-// reg [NB_CORR_COUNTER-1 : 0] min_error_phase;
-// reg [NB_ERRORS-1 : 0] min_error;
-// reg [NB_SEQUENCE_COUNTER-1 : 0] sequence_count;
-// reg synced;
-// wire prbs_shifted;
-
-// // reg [NB_ERRORS-1 : 0] errors [SYNC_PHASES-1 : 0]; // Registro de errores por fase
-// reg [NB_ERRORS-1 : 0] errors; // Nro de errores cuando No esta sincronizado
-// reg [NB_ERRORS-1 : 0] errors_synced; // Nro de errores cuando esta sincronizado
-
-// always @(posedge clk or negedge i_rst_n) begin
-//     if (!i_rst_n) begin
-//         synced <= 1'b0;
-
-//         sync_register <= {SYNC_PHASES{1'b0}};
-//         corr_count <= {NB_CORR_COUNTER{1'b0}};
-//         sequence_count <= {NB_SEQUENCE_COUNTER{1'b0}};
-
-//         min_error <= {NB_ERRORS{1'b1}};
-//         min_error_phase <= {NB_CORR_COUNTER{1'b0}};
-        
-//         // for (i = 0; i < SYNC_PHASES; i = i + 1) begin // probar
-//         //     errors[i] <= {NB_ERRORS{1'b0}};
-//         // end
-//         errors <= {NB_ERRORS{1'b0}};
-//         errors_synced <= {NB_ERRORS{1'b0}};
-//     end
-//     else if (i_enable & i_valid) begin
-
-//         if (!synced) begin
-//             // errors[corr_count] <= errors[corr_count] + (data_bit ^ prbs_shifted);
-//             errors <= errors + (data_bit ^ prbs_shifted);
-//             sequence_count <= sequence_count + 1'b1;
-
-//             if (&sequence_count) begin
-//                 // if(errors[corr_count] <= min_error) begin
-//                 //     min_error <= errors[corr_count];
-//                 //     min_error_phase <= corr_count;
-//                 // end
-//                 if(errors <= min_error) begin
-//                     min_error <= errors;
-//                     min_error_phase <= corr_count;
-//                 end
-
-//                 corr_count <= corr_count + 1'b1;
-//                 errors <= {NB_ERRORS{1'b0}};
-//                 sync_register[SYNC_PHASES-1 : 1] <= sync_register[SYNC_PHASES-2 : 0];
-//                 sync_register[0] <= prbs_bit;
-
-//                 if (&corr_count) begin
-//                     synced <= 1'b1;
-//                 end
-//             end
-//         end
-//         else begin
-//             errors_synced <= errors_synced + (data_bit ^ prbs_shifted);
-//         end
-//     end
-// end
-
-// assign prbs_shifted = (min_error_phase == 0) ? prbs_bit : sync_register[min_error_phase - 1];
-// assign o_led = (~|errors_synced & synced) ? 1'b1 : 1'b0;
+assign o_decimated = decimated;
 
 endmodule
