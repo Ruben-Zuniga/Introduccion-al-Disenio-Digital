@@ -30,15 +30,15 @@ ser.flushOutput()
 print(ser.timeout)
 
 ## Armar trama
-# cabecera = 10100001 = 161
+# cabecera = 10100001 = 161 = 0xA1
 cabecera = chr(161)
-# dispositivo: elijo el valor
-dispositivo = chr(233)
-# fin_de_trama = 01000001 = 65
+# dispositivo: elijo el valor 233 = 0xfe
+dispositivo = chr(254)
+# fin_de_trama = 01000001 = 65 = 0x41
 fin_de_trama = chr(65)
 
 # Mensaje de inicio
-print ('--- Comunicación con FPGA:',ser.port,' ---\r\n')
+print ('--- Comunicación con FPGA:',ser.port,'---\r\n')
 
 # Bucle de envio y recepcion
 while 1 :
@@ -50,20 +50,18 @@ while 1 :
     data_write_str = str(data_write)
 
     if data_write_str == 'l':
-        print('Indique LED a controlar [0/1/2/3]')
-        data_write = input("<< ")
-        
-        # Dato de 1 byte
-        data_write_str = str(data_write)
-        # Armar y enviar trama
-        trama = cabecera + dispositivo + data_write_str[0] + fin_de_trama
-        ser.write(trama.encode())
-        time.sleep(1)
+        while data_write_str != 'back':
+            print('Indique LED a controlar [0/1/2/3] o escriba "back" para volver.')
+            data_write = input("<< ")
+            
+            # Dato de 1 byte
+            data_write_str = str(data_write)
 
-    elif data_write_str == 'exit':
-        if ser.isOpen():
-            ser.close()
-        break
+            if data_write_str != 'back':
+                # Armar y enviar trama
+                trama = cabecera + dispositivo + data_write_str[0] + fin_de_trama
+                ser.write(trama.encode())
+                time.sleep(1)
 
     elif data_write_str == 's':
         # Enviar dato
@@ -74,42 +72,16 @@ while 1 :
         # Esperar y mostrar respuesta del receptor
         time.sleep(2)
         data_read = ser.read(1)
+        # data_read = ser.read(ser.in_waiting)
         data_read_str = str(int.from_bytes(data_read,byteorder='big'))
         print(ser.inWaiting())
         if data_read_str != '':
             print (">>" + data_read_str)
 
+    elif data_write_str == 'exit':
+        if ser.isOpen():
+            ser.close()
+        break
+
     else:
-        # Data de 1 byte
-        # cabecera = 10100001 = 161
-        cabecera = chr(161)
-        # dispositivo: elijo el valor
-        dispositivo = chr(233)
-        # fin_de_trama = 01000001 = 65
-        fin_de_trama = chr(65)
-
-        trama = cabecera + dispositivo + data_write_str[0] + fin_de_trama
-        print(trama)
-        ser.write(trama.encode())
-        time.sleep(1)
-
-    # else:
-    #     # Armar el vector a transmitir
-    #     for ptr in range(len(data_write_str)):
-    #         char_v.append(data_write_str[ptr])
-    #     print(char_v)
-        
-    #     for ptr in range(len(char_v)):
-    #         ser.write(char_v[ptr].encode())
-
-    #     # Caracter de seguridad al final
-    #     ser.write('$'.encode())
-        
-    #     # Esperar y mostrar respuesta del receptor
-    #     time.sleep(1)
-    #     data_read_str = ''
-    #     while ser.in_waiting > 0:
-    #         data_read_str += ser.read(1).decode()
-
-    #     if data_read_str != '':
-    #         print(">> " + data_read_str)
+        print('Comando desconocido.')
