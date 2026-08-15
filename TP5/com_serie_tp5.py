@@ -32,11 +32,11 @@ sys.set_int_max_str_digits(10000)
 
 ## Armar trama
 # cabecera = 10100001 = 161 = 0xA1
-cabecera = 0xA1
+cabecera = b'\xA1'
 # dispositivo: elijo el valor 233 = 0xfe
-dispositivo = 0xFE
+dispositivo = b'\xFE'
 # fin_de_trama = 01000001 = 65 = 0x41
-fin_de_trama = 0x41
+fin_de_trama = b'\x41'
 
 # Mensaje de inicio
 print ('--- Comunicación con FPGA:',ser.port,'---\r\n')
@@ -60,37 +60,34 @@ while 1 :
 
             if data_write_str != 'back':
                 # Armar y enviar trama
-                trama = cabecera + dispositivo + data_write_str[0] + fin_de_trama
-                ser.write(trama.encode())
+                trama = [cabecera, dispositivo, data_write_str.encode(), fin_de_trama]
+                print(trama)
+                ser.write(cabecera)
+                ser.write(dispositivo)
+                ser.write(data_write_str.encode())
+                ser.write(fin_de_trama)
+
                 time.sleep(1)
 
     elif data_write_str == 's':
-        # Limpiar buffer
-        # ser.read(ser.in_waiting)
-        # Enviar dato
         print ("Wait Input Data")
-        trama = []
-        trama.append(cabecera)
-        trama.append(dispositivo)
-        trama.append(data_write_str.encode())
-        trama.append(fin_de_trama)
-        # trama = cabecera + dispositivo + data_write_str + fin_de_trama
-        print(bytearray(trama))
-        ser.write(cabecera.encode())
-        ser.write(dispositivo.encode())
+        
+        # Armar y enviar trama
+        trama = [cabecera, dispositivo, data_write_str.encode(), fin_de_trama]
+        print(trama)
+        ser.write(cabecera)
+        ser.write(dispositivo)
         ser.write(data_write_str.encode())
-        ser.write(fin_de_trama.encode())
+        ser.write(fin_de_trama)
 
         # Esperar y mostrar respuesta del receptor
         time.sleep(2)
         while ser.in_waiting > 0:
             data_read = ser.read(1)
-            # data_read = ser.read(ser.in_waiting)
             data_read_str = str(int.from_bytes(data_read,byteorder='big'))
             print(ser.inWaiting())
             if data_read_str != '':
                 print (">>",data_read_str,"|",data_read)
-                print(len(data_read))
 
     elif data_write_str == 'exit':
         if ser.isOpen():
