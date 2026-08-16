@@ -34,7 +34,10 @@ int main()
 {
 	init_platform();
 	int Status;
-	XUartLite_Initialize(&uart_module, 0);
+	Status = XUartLite_Initialize(&uart_module, 0);
+	if(Status!=XST_SUCCESS){
+        return XST_FAILURE;
+    }
 
 	GPO_Value=0x00000000;
 	GPO_Param=0x00000000;
@@ -68,18 +71,70 @@ int main()
     datos[3] = fin_de_trama;
 
 	while(1){
-        // Sobreescribir el primer byte de la trama 'trama' por el byte recibido
-        XUartLite_Recv(&uart_module, &trama[0],  1);
     
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // ACA es donde se escribe toda la funcionalidad
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+        // Sobreescribir el primer byte de la trama 'trama' por el byte recibido
+        XUartLite_Recv(&uart_module, &trama[0],  1);
+        if(trama[0] == (unsigned char)161){
+            XUartLite_Recv(&uart_module, &trama[1],  1);
+            if(trama[1] == (unsigned char)254){
+                XUartLite_Recv(&uart_module, &trama[2],  1);
+
+                // Resetear el buffer del UART                
+                // XUartLite_ResetFifos(&uart_module);
+
+                switch(trama[2]){
+                case '0':
+                    XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000249);
+                    break;
+                case '1':
+                    XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000492);
+                    break;
+                case '2':
+                    XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000924);
+                    break;
+                case '3':
+                    XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000000);
+                    break;
+                case '4':
+                    // Leer los 4 switches
+                    value = XGpio_DiscreteRead(&GpioInput, 1);
+                    datos[2]=(char)(value & (0x0000000F));
+                    // Esperar que deje de transmitir
+                    while(XUartLite_IsSending(&uart_module)){}
+                    // Enviar por UART el valor leido
+                    XUartLite_Send(&uart_module, &datos[0],N_bytes);
+                    break;
+                }
+            }
+        }
+
         // Loopback
-        
-        // // Esperar que deje de transmitir
-        // while(XUartLite_IsSending(&uart_module)){}
-        // // Enviar por UART el valor leido
+        // XUartLite_Recv(&uart_module, &trama[0],  1);
+        // XUartLite_Recv(&uart_module, &trama[1],  1);
+        // XUartLite_Recv(&uart_module, &trama[2],  1);
+        // XUartLite_Recv(&uart_module, &trama[3],  1);
+        XUartLite_Recv(&uart_module, &trama[0],  N_bytes);
+
+        if(trama[0] == (unsigned char)161 || trama[1] == (unsigned char)254 || trama[3] == (unsigned char)65){
+            datos[0] = trama[0];
+            datos[1] = trama[1];
+            datos[2] = trama[2];
+            datos[3] = trama[3];
+
+            // Esperar que deje de transmitir
+            while(XUartLite_IsSending(&uart_module)){}
+            // Enviar por UART el valor leido
+            // XUartLite_Send(&uart_module, &datos[0],1);
+            // XUartLite_Send(&uart_module, &datos[1],1);
+            // XUartLite_Send(&uart_module, &datos[2],1);
+            // XUartLite_Send(&uart_module, &datos[3],1);
+            XUartLite_Send(&uart_module, &datos[0],N_bytes);
+        }
+
         // if (trama[0] == '4') {
         //     datos = (char)trama[0];
             
@@ -92,30 +147,6 @@ int main()
         //     XUartLite_Send(&uart_module, &datos,1);
         //     XUartLite_Send(&uart_module, &fin_de_trama,1);
         // }
-
-        switch(trama[0]){
-        case '0':
-            XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000249);
-            break;
-        case '1':
-            XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000492);
-            break;
-        case '2':
-            XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000924);
-            break;
-        case '3':
-            XGpio_DiscreteWrite(&GpioOutput,1, (u32) 0x00000000);
-            break;
-        case '4':
-            // Leer los 4 switches
-            value = XGpio_DiscreteRead(&GpioInput, 1);
-            datos[2]=(char)(value & (0x0000000F));
-            // Esperar que deje de transmitir
-            while(XUartLite_IsSending(&uart_module)){}
-            // Enviar por UART el valor leido
-            XUartLite_Send(&uart_module, &datos[0],N_bytes);
-            break;
-        }
         
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // FIN de toda la funcionalidad
