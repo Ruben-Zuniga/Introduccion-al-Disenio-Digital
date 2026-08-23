@@ -17,20 +17,29 @@ module top
     parameter NB_COEFF   = 8         ,
     parameter NBF_COEFF  = 7         ,
     // BER
-    parameter SYNC_PHASES = 512,
-    parameter NB_BER   = 64
+    parameter SYNC_PHASES   = 512 ,
+    parameter NB_BER        = 64  ,
+    // Memoria
+    parameter SIZE      = 1024          ,
+    parameter NB_SIZE   = $clog2(SIZE)  , // 10
+    parameter NB_LOG    = 32
 )
 (
-    output wire [NB_LED-1    : 0] o_led    ,
-    output wire [NB_RGB-1    : 0] o_led_rgb_0,
-    output wire [NB_RGB-1    : 0] o_led_rgb_1,
-    output wire [NB_BER-1    : 0] o_symb_count_i,
-    output wire [NB_BER-1    : 0] o_symb_count_q,
-    output wire [NB_BER-1    : 0] o_error_count_i,
-    output wire [NB_BER-1    : 0] o_error_count_q,
-    input  wire                   clk      ,
-    input  wire                   i_rst_n  ,
-    input  wire [NB_SWITCH-1 : 0] i_switch
+    output wire [NB_LED    -1 : 0]      o_led           ,
+    output wire [NB_RGB    -1 : 0]      o_led_rgb_0     ,
+    output wire [NB_RGB    -1 : 0]      o_led_rgb_1     ,
+    output wire [NB_BER    -1 : 0]      o_symb_count_i  ,
+    output wire [NB_BER    -1 : 0]      o_symb_count_q  ,
+    output wire [NB_BER    -1 : 0]      o_error_count_i ,
+    output wire [NB_BER    -1 : 0]      o_error_count_q ,
+    output wire [NB_LOG    -1 : 0]      o_data_log      ,
+    output wire                         o_full_mem      ,
+    input  wire                         clk             ,
+    input  wire                         i_rst_n         ,
+    input  wire [NB_SWITCH -1 : 0]      i_switch        ,
+    input  wire                         i_run_log       ,
+    input  wire                         i_read_log      ,
+    input  wire [NB_SIZE   -1 : 0]      i_address       
 );
 
 // Module Connections
@@ -67,8 +76,7 @@ assign reset_from_VIO = 1'b0;
 assign switch_from_VIO = 4'b0;
 
 // Control: Contador
-counter
-#(
+counter #(
     .OS        (OS        ),
     .NB_COUNTER(NB_COUNTER)
 )
@@ -81,8 +89,7 @@ u_counter
 );
 
 // Transmisor: PRBS + Filtro (Canal I)
-tx
-#(
+tx #(
     .NB_PRBS   (NB_PRBS    ),
     .SEED_PRBS (SEED_PRBS_I),
     .OS        (OS         ),
@@ -105,8 +112,7 @@ u_tx_i
 );
 
 // Receptor: Decimador + BER (Canal I)
-rx
-#(
+rx #(
     .NB_PRBS    (NB_PRBS    ),
     .SEED_PRBS  (SEED_PRBS_I),
     .OS         (OS         ),
@@ -131,8 +137,7 @@ u_rx_i
 );
 
 // Transmisor: PRBS + Filtro (Canal Q)
-tx
-#(
+tx #(
     .NB_PRBS   (NB_PRBS    ),
     .SEED_PRBS (SEED_PRBS_Q),
     .OS        (OS         ),
@@ -155,8 +160,7 @@ u_tx_q
 );
 
 // Receptor: Decimador + BER (Canal Q)
-rx
-#(
+rx #(
     .NB_PRBS    (NB_PRBS    ),
     .SEED_PRBS  (SEED_PRBS_Q),
     .OS         (OS         ),
@@ -178,6 +182,26 @@ u_rx_q
     .i_valid      (valid              ),
     .i_phase      (connect_switch[3:2]),
     .i_data       (data_q             )
+);
+
+// Memoria
+mem_log #(
+    .SIZE(SIZE),
+    .NB_SIZE(NB_SIZE),
+    .NB_LOG(NB_LOG),
+    .NB_DATA(NB_DATA)
+)
+u_mem_log
+(
+    .clk(clk),
+    .i_rst_n(i_rst_n),
+    .i_data_tx_i(data_i),
+    .i_data_tx_q(data_q),
+    .i_run_log(i_run_log),
+    .i_read_log(i_read_log),
+    .i_address(i_address),
+    .o_data_log(o_data_log),
+    .o_full_mem(o_full_mem)
 );
 
 // VIO instance
