@@ -63,6 +63,8 @@ initial begin
     @(posedge clk);
     i_rst_n = 1'b1;
 
+    // -- Simulacion corta (SYNC_PHASES = 16) --
+
     #10000;
     @(posedge clk);
     i_switch = 4'b1011;
@@ -101,17 +103,58 @@ initial begin
 
     repeat(511*SYNC_PHASES*OS + 40000)
         @(posedge clk);
+
+    // // -- Simulacion larga para probar el correlador de 1024 (SYNC_PHASES = 1024) --
     
-    @(posedge clk);
-    i_switch = 4'b1101;
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1011;
+
+    // repeat(511*SYNC_PHASES*OS + 40000)
+    //     @(posedge clk);
     
-    #10000;
-    @(posedge clk);
-    i_switch = 4'b1100;
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1001;
     
-    #10000;
-    @(posedge clk);
-    i_switch = 4'b1110;
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1011;
+
+    // repeat(511*SYNC_PHASES*OS + 40000)
+    //     @(posedge clk);
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1010;
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1011;
+
+    // repeat(511*SYNC_PHASES*OS + 40000)
+    //     @(posedge clk);
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1001;
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1000;
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1010;
+    
+    // #10000;
+    // @(posedge clk);
+    // i_switch = 4'b1011;
+
+    // repeat(511*SYNC_PHASES*OS + 40000)
+    //     @(posedge clk);
+
+    // // -- Termina la simulacion larga
     
     #10000;
     @(posedge clk);
