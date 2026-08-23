@@ -1,10 +1,9 @@
 module top 
 #(
     // Placa
-    parameter NB_ENABLE = 2,
+    parameter NB_SWITCH = 4,
     parameter NB_LED    = 4,
     parameter NB_RGB    = 3,
-    parameter N_RGB_LEDS = 2,
     // PRBS9
     parameter NB_PRBS     = 9     ,
     parameter SEED_PRBS_I = 9'h1AA,
@@ -23,15 +22,15 @@ module top
 )
 (
     output wire [NB_LED-1    : 0] o_led    ,
-    output wire [NB_RGB-1 : 0] o_led_rgb [N_RGB_LEDS-1 : 0],
-    output wire [NB_BER-1  : 0] o_sample_count_i,
-    output wire [NB_BER-1  : 0] o_sample_count_q,
-    output wire [NB_BER-1  : 0] o_error_count_i,
-    output wire [NB_BER-1  : 0] o_error_count_q,
+    output wire [NB_RGB-1    : 0] o_led_rgb_0,
+    output wire [NB_RGB-1    : 0] o_led_rgb_1,
+    output wire [NB_BER-1    : 0] o_symb_count_i,
+    output wire [NB_BER-1    : 0] o_symb_count_q,
+    output wire [NB_BER-1    : 0] o_error_count_i,
+    output wire [NB_BER-1    : 0] o_error_count_q,
     input  wire                   clk      ,
     input  wire                   i_rst_n  ,
-    input  wire [NB_ENABLE-1 : 0] i_enable,
-    input  wire [NB_COUNTER-1 : 0] i_phase_sel
+    input  wire [NB_SWITCH-1 : 0] i_switch
 );
 
 // Module Connections
@@ -43,8 +42,8 @@ wire signed [NB_DATA-1    : 0] data_i       ;
 wire signed [NB_DATA-1    : 0] data_q       ;
 wire signed [NB_DATA-1    : 0] decimated_i  ;
 wire signed [NB_DATA-1    : 0] decimated_q  ;
-wire        [NB_BER-1  : 0] sample_count_i ;
-wire        [NB_BER-1  : 0] sample_count_q ;
+wire        [NB_BER-1  : 0] symb_count_i ;
+wire        [NB_BER-1  : 0] symb_count_q ;
 wire        [NB_BER-1  : 0] error_count_i;
 wire        [NB_BER-1  : 0] error_count_q;
 wire                           led_i        ;
@@ -54,14 +53,18 @@ wire        [NB_COUNTER-1 : 0] count        ;
 
 // VIO Connections
 wire                     connect_reset  ;
-wire [NB_ENABLE - 1 : 0] connect_switch ;
-wire [NB_ENABLE + NB_COUNTER - 1 : 0] switch_from_VIO;
+wire [NB_SWITCH - 1 : 0] connect_switch ;
+wire [NB_SWITCH - 1 : 0] switch_from_VIO;
 wire                     reset_from_VIO ;
 wire                     select_VIO     ;
 
 // Reverse Reset
-assign connect_switch = (select_VIO) ? switch_from_VIO : {i_phase_sel, i_enable};
+assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
 assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
+
+assign select_VIO = 1'b0;
+assign reset_from_VIO = 1'b0;
+assign switch_from_VIO = 4'b0;
 
 // Control: Contador
 counter
@@ -115,7 +118,7 @@ rx
 u_rx_i
 (
     .o_led        (led_i              ),
-    .o_sample_count (sample_count_i       ),
+    .o_symb_count (symb_count_i       ),
     .o_error_count(error_count_i      ),
     .o_bits_rx    (bits_rx_i          ),
     .o_decimated  (decimated_i        ),
@@ -165,7 +168,7 @@ rx
 u_rx_q
 (
     .o_led        (led_q              ),
-    .o_sample_count (sample_count_q       ),
+    .o_symb_count (symb_count_q       ),
     .o_error_count(error_count_q      ),
     .o_bits_rx    (bits_rx_q          ),
     .o_decimated  (decimated_q        ),
@@ -178,17 +181,17 @@ u_rx_q
 );
 
 // VIO instance
-vio
-    u_vio
-    (
-        .clk_0       (clk            ),
-        .probe_in0_0 (o_led          ),
-        .probe_in1_0 (prbs_tx_i      ),
-        .probe_in2_0 (bits_rx_i      ),
-        .probe_out0_0(select_VIO     ),
-        .probe_out1_0(reset_from_VIO ),
-        .probe_out2_0(switch_from_VIO)
-    );
+// vio
+//     u_vio
+//     (
+//         .clk_0       (clk            ),
+//         .probe_in0_0 (o_led          ),
+//         .probe_in1_0 (prbs_tx_i      ),
+//         .probe_in2_0 (bits_rx_i      ),
+//         .probe_out0_0(select_VIO     ),
+//         .probe_out1_0(reset_from_VIO ),
+//         .probe_out2_0(switch_from_VIO)
+//     );
 
 // ILA Instance
 // ila
@@ -200,23 +203,25 @@ vio
 //         .probe2_0(led_i),
 //         .probe3_0(led_q)
 //     );
-ila
-    u_ila
-    (
-        .clk_0   (clk),
-        .probe0_0(o_led),
-        .probe1_0(error_count_i),
-        .probe2_0(sample_count_i)
-    );
+// ila
+//     u_ila
+//     (
+//         .clk_0   (clk),
+//         .probe0_0(o_led),
+//         .probe1_0(error_count_i),
+//         .probe2_0(symb_count_i)
+//     );
 
-assign o_led[0] = led_i & led_q;
-assign o_led[1] = connect_reset;
+assign o_led[0] = led_i & led_q    ;
+assign o_led[1] = connect_reset    ;
 assign o_led[2] = connect_switch[0];
 assign o_led[3] = connect_switch[1];
-assign o_led_rgb[0] = 3'b0;
-assign o_led_rgb[1] = i_phase_sel + 1'b1;
-assign o_sample_count_i = sample_count_i;
-assign o_sample_count_q = sample_count_q;
+
+assign o_led_rgb_0 = 3'b0;
+assign o_led_rgb_1 = i_switch[3:2] + 1'b1;
+
+assign o_symb_count_i = symb_count_i;
+assign o_symb_count_q = symb_count_q;
 assign o_error_count_i = error_count_i;
 assign o_error_count_q = error_count_q;
     

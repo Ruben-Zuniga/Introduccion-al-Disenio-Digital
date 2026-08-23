@@ -10,7 +10,7 @@ module rx
 )
 (
     output wire                           o_led        ,
-    output wire        [NB_BER-1  : 0] o_sample_count ,
+    output wire        [NB_BER-1  : 0] o_symb_count ,
     output wire        [NB_BER-1  : 0] o_error_count,
     output wire                           o_bits_rx    ,
     output wire        [NB_DATA-1    : 0] o_decimated  ,
@@ -86,7 +86,7 @@ localparam RESET_ERRORS_TO_SEQUENCEE = 3'd4;
     
 reg [2:0] state;
 reg [2:0] state_next;
-reg [NB_BER-1 : 0]  sample_count      ; // Nro de simbolos contados
+reg [NB_BER-1 : 0]  symb_count      ; // Nro de simbolos contados
 reg [NB_BER-1 : 0]  error_count     ; // Nro de errores contados
 reg [NB_COUNTER-1 : 0] phase_prev [1:0];
 
@@ -100,7 +100,7 @@ always @(posedge clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
         state           <= SEQUENCEE                  ;
         sync_register   <= {SYNC_PHASES-1      {1'b0}};
-        sample_count      <= {NB_BER          {1'b0}};
+        symb_count      <= {NB_BER          {1'b0}};
         error_count     <= {NB_BER          {1'b0}};
         min_error       <= {NB_BER          {1'b1}};
         min_error_phase <= {NB_CORR_COUNTER    {1'b0}};
@@ -143,13 +143,13 @@ always @(posedge clk or negedge i_rst_n) begin
                 RESET_ERRORS_TO_SYNCED: begin
                     // Resetear errores cuando se logra la sincronizacion
                     error_count <= {NB_BER{1'b0}};
-                    sample_count <= {NB_BER{1'b0}};
+                    symb_count <= {NB_BER{1'b0}};
                     // Fijar fase sincronizada
                     corr_count <= min_error_phase;
                 end
                 SYNCED: begin
                     error_count <= error_count + (data_bit ^ prbs_shifted);
-                    sample_count <= sample_count + 1'b1;
+                    symb_count <= symb_count + 1'b1;
                 end
                 RESET_ERRORS_TO_SEQUENCEE: begin
                     // Resetear errores y correlador cuando se cambia de fase
@@ -208,7 +208,7 @@ end
 assign prbs_shifted  = (corr_count == 0) ? prbs_bit : sync_register[corr_count - 1];
 assign o_bits_rx     = data_bit                                                    ;
 assign o_error_count = error_count                                                 ;
-assign o_sample_count  = sample_count                                                  ;
+assign o_symb_count  = symb_count                                                  ;
 assign o_led         = ((state == SYNCED) & ~|error_count) ? 1'b1 : 1'b0           ;
 assign o_decimated   = decimated                                                   ;
 

@@ -1,12 +1,14 @@
+// BER I = 0,25048
+// BER Q = 0,25050
+
 `timescale 1ns/100ps
 
 module tb_top ();
 
 // Placa
-parameter NB_ENABLE = 2;
-parameter NB_LED    = 4;
-parameter NB_RGB    = 3;
-parameter N_RGB_LEDS = 2;
+parameter NB_SWITCH = 4;
+parameter NB_LED = 4;
+parameter NB_RGB = 3;
 // PRBS9
 parameter NB_PRBS   = 9;
 parameter SEED_PRBS_I = 9'h1AA;
@@ -27,18 +29,15 @@ wire prbs_tx;
 wire bits_rx;
 wire signed [NB_DATA-1 : 0] data;
 wire [NB_LED-1 : 0] o_led;
-wire [NB_RGB-1 : 0] o_led_rgb [N_RGB_LEDS-1 : 0];
-wire [NB_BER-1  : 0] o_sample_count_i;
-wire [NB_BER-1  : 0] o_sample_count_q;
-wire [NB_BER-1  : 0] o_error_count_i;
-wire [NB_BER-1  : 0] o_error_count_q;
-wire [NB_ENABLE-1 : 0] i_enable;
-wire [NB_COUNTER-1 : 0] i_phase_sel;
+wire [NB_RGB-1 : 0] o_led_rgb_0;
+wire [NB_RGB-1 : 0] o_led_rgb_1;
+wire [NB_BER-1 : 0] o_symb_count_i;
+wire [NB_BER-1 : 0] o_symb_count_q;
+wire [NB_BER-1 : 0] o_error_count_i;
+wire [NB_BER-1 : 0] o_error_count_q;
 reg  clk;
 reg  i_rst_n;
-
-wire [NB_ENABLE + NB_COUNTER - 1 : 0] switch;
-assign switch = {i_phase_sel, i_enable};
+reg  [NB_SWITCH-1 : 0] i_switch;
 
 // Vector Matching
 integer vm_data_errors;
@@ -61,7 +60,7 @@ assign data = dut.data_i;
 initial begin
     clk = 1'b0;
     i_rst_n = 1'b0;
-    switch = {NB_SWITCH{1'b0}};
+    i_switch = {NB_SWITCH{1'b0}};
 
     vm_data_errors = 0;
     vm_prbs_tx_errors = 0;
@@ -78,7 +77,7 @@ initial begin
 
     #10000;
     @(posedge clk);
-    switch = 4'b1011;
+    i_switch = 4'b1011;
 
     for (i = 0; i < N_LOG; i = i + 1) begin
         @(posedge clk);
@@ -98,115 +97,128 @@ initial begin
         @(posedge clk);
     
     @(posedge clk);
-    switch = 4'b0111;
+    i_switch = 4'b0111;
 
     repeat(511*SYNC_PHASES*OS + 40000)
         @(posedge clk);
     
     @(posedge clk);
-    switch = 4'b0011;
+    i_switch = 4'b0011;
 
     repeat(511*SYNC_PHASES*OS + 40000)
         @(posedge clk);
     
     @(posedge clk);
-    switch = 4'b1111;
+    i_switch = 4'b1111;
 
     repeat(511*SYNC_PHASES*OS + 40000)
         @(posedge clk);
 
-    // // -- Simulacion larga para probar el correlador de 1024 (SYNC_PHASES = 1024) --
+    // -- Simulacion larga para probar el correlador de 1024 (SYNC_PHASES = 1024) --
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1011;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1011;
 
-    // repeat(511*SYNC_PHASES*OS + 40000)
-    //     @(posedge clk);
+    repeat(511*SYNC_PHASES*OS + 40000)
+        @(posedge clk);
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1001;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1001;
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1011;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1011;
 
-    // repeat(511*SYNC_PHASES*OS + 40000)
-    //     @(posedge clk);
+    repeat(511*SYNC_PHASES*OS + 40000)
+        @(posedge clk);
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1010;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1010;
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1011;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1011;
 
-    // repeat(511*SYNC_PHASES*OS + 40000)
-    //     @(posedge clk);
+    repeat(511*SYNC_PHASES*OS + 40000)
+        @(posedge clk);
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1001;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1001;
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1000;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1000;
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1010;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1010;
     
-    // #10000;
-    // @(posedge clk);
-    // switch = 4'b1011;
+    #10000;
+    @(posedge clk);
+    i_switch = 4'b1011;
 
-    // repeat(511*SYNC_PHASES*OS + 40000)
-    //     @(posedge clk);
+    repeat(511*SYNC_PHASES*OS + 40000)
+        @(posedge clk);
 
-    // // -- Termina la simulacion larga
+    // -- Termina la simulacion larga
     
     #10000;
     @(posedge clk);
     i_rst_n = 1'b0;
+    
+    // -- Contar BER --
+
+    // #10000;
+    // @(posedge clk);
+    // i_rst_n = 1'b1;
+    // i_switch = 4'b0011;
+
+    // repeat(511*SYNC_PHASES*OS + 40000 + 200000)
+    //     @(posedge clk);
+
+    // --
 
     #10000;
+    $display("---------------------------------------");
     $display("Errores en los bits del TX:  %d" , vm_prbs_tx_errors);
     $display("Errores en la salida del TX: %d", vm_data_errors);
     $display("Errores en los bits del RX:  %d" , vm_bits_rx_errors);
     $finish;
 end
 
-top #(
-    .NB_ENABLE  (NB_ENABLE),
-    .NB_LED     (NB_LED),
-    .NB_RGB     (NB_RGB),
-    .N_RGB_LEDS (N_RGB_LEDS),
-    .NB_PRBS    (NB_PRBS),
+top
+#(
+    .NB_SWITCH(NB_SWITCH),
+    .NB_LED(NB_LED),
+    .NB_PRBS(NB_PRBS),
     .SEED_PRBS_I(SEED_PRBS_I),
     .SEED_PRBS_Q(SEED_PRBS_Q),
-    .OS         (OS),
-    .NB_COUNTER (NB_COUNTER),
-    .N_BAUD     (N_BAUD),
-    .NB_DATA    (NB_DATA),
-    .NBF_DATA   (NBF_DATA),
-    .NB_COEFF   (NB_COEFF),
-    .NBF_COEFF  (NBF_COEFF),
+    .OS(OS),
+    .NB_COUNTER(NB_COUNTER),
+    .N_BAUD(N_BAUD),
+    .NB_DATA(NB_DATA),
+    .NBF_DATA(NBF_DATA),
+    .NB_COEFF(NB_COEFF),
+    .NBF_COEFF(NBF_COEFF),
     .SYNC_PHASES(SYNC_PHASES),
-    .NB_BER     (NB_BER)
+    .NB_BER(NB_BER)
 )
-dut (
-    .o_led              (o_led),
-    .o_led_rgb          (o_led_rgb),
-    .o_sample_count_i   (o_sample_count_i),
-    .o_sample_count_q   (o_sample_count_q),
-    .o_error_count_i    (o_error_count_i),
-    .o_error_count_q    (o_error_count_q),
-    .clk                (clk),
-    .i_rst_n            (i_rst_n),
-    .i_enable           (i_enable),
-    .i_phase_sel        (i_phase_sel)
+dut
+(
+    .o_led(o_led),
+    .o_led_rgb_0(o_led_rgb_0),
+    .o_led_rgb_1(o_led_rgb_1),
+    .o_symb_count_i(o_symb_count_i),
+    .o_symb_count_q(o_symb_count_q),
+    .o_error_count_i(o_error_count_i),
+    .o_error_count_q(o_error_count_q),
+    .clk(clk),
+    .i_rst_n(i_rst_n),
+    .i_switch(i_switch)
 );
 
 endmodule
