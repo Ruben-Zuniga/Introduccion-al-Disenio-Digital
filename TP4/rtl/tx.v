@@ -34,13 +34,6 @@ initial begin
     $readmemh("coeff.mem", coeff);
 end
 
-// localparam signed [NB_COEFF-1 : 0] coeff_matrix [OS-1 : 0] [N_BAUD-1 : 0] = '{
-//     '{coeff[23], coeff[19], coeff[15], coeff[11], coeff[7], coeff[3]}  // Fase 3
-//     '{coeff[22], coeff[18], coeff[14], coeff[10], coeff[6], coeff[2]}, // Fase 2
-//     '{coeff[21], coeff[17], coeff[13], coeff[9] , coeff[5], coeff[1]}, // Fase 1
-//     '{coeff[20], coeff[16], coeff[12], coeff[8] , coeff[4], coeff[0]}, // Fase 0
-// };
-
 // PRBS
 wire                 prbs_bit;
 reg  [NB_PRBS-1 : 0] lfsr    ;
@@ -102,22 +95,5 @@ end
 // Salida saturada
 assign o_data = ( ~|data[NB_SUM-1 -: NB_SAT+1] || &data[NB_SUM-1 -: NB_SAT+1]) ? data[NB_SUM-(NBI_SUM-NBI_OUTPUT) - 1 -: NB_DATA] :
                     (data[NB_SUM-1]) ? {{1'b1},{NB_DATA-1{1'b0}}} : {{1'b0},{NB_DATA-1{1'b1}}};
-// Salida del PRBS
-
-// // Productos parciales
-// generate
-//     genvar baud;
-//     genvar phase;
-
-//     for(baud = 0; baud < N_BAUD; baud = baud + 1) begin
-//         if (baud == 0)
-//             for(phase = 0; phase < OS; phase = phase + 1)
-//                 // Niego con "-" porque no puede haber overflow si el filtro esta normalizado
-//                 assign prod[baud*OS + phase] = (prbs_bit) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
-//         else
-//             for(phase = 0; phase < OS; phase = phase + 1)
-//                 assign prod[baud*OS + phase] = (input_filter[baud]) ? -coeff[baud*OS + phase] : coeff[baud*OS + phase];
-//     end
-// endgenerate
     
 endmodule

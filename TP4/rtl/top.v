@@ -27,31 +27,33 @@ module top
 );
 
 // Module Connections
-wire                           prbs_tx_i;
-wire                           prbs_tx_q;
-wire                           bits_rx_i;
-wire                           bits_rx_q;
-wire signed [NB_DATA-1    : 0] data_i   ;
-wire signed [NB_DATA-1    : 0] data_q   ;
-wire signed [NB_DATA-1    : 0] decimated_i;
-wire signed [NB_DATA-1    : 0] decimated_q;
-wire        [NB_ERRORS-1  : 0] errors_i ;
-wire        [NB_ERRORS-1  : 0] errors_q ;
-wire                           led_i    ;
-wire                           led_q    ;
-wire                           valid    ;
-wire        [NB_COUNTER-1 : 0] count    ;
+wire                           prbs_tx_i    ;
+wire                           prbs_tx_q    ;
+wire                           bits_rx_i    ;
+wire                           bits_rx_q    ;
+wire signed [NB_DATA-1    : 0] data_i       ;
+wire signed [NB_DATA-1    : 0] data_q       ;
+wire signed [NB_DATA-1    : 0] decimated_i  ;
+wire signed [NB_DATA-1    : 0] decimated_q  ;
+wire        [NB_ERRORS-1  : 0] symb_count_i ;
+wire        [NB_ERRORS-1  : 0] symb_count_q ;
+wire        [NB_ERRORS-1  : 0] error_count_i;
+wire        [NB_ERRORS-1  : 0] error_count_q;
+wire                           led_i        ;
+wire                           led_q        ;
+wire                           valid        ;
+wire        [NB_COUNTER-1 : 0] count        ;
 
 // VIO Connections
-wire                     connect_reset ;
-wire [NB_SWITCH - 1 : 0] connect_switch;
+wire                     connect_reset  ;
+wire [NB_SWITCH - 1 : 0] connect_switch ;
 wire [NB_SWITCH - 1 : 0] switch_from_VIO;
-wire                     reset_from_VIO;
-wire                     select_VIO;
+wire                     reset_from_VIO ;
+wire                     select_VIO     ;
 
 // Reverse Reset
 assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
-assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n;
+assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
 
 // Control: Contador
 counter
@@ -104,16 +106,17 @@ rx
 )
 u_rx_i
 (
-    .o_led    (led_i              ),
-    .o_errors (errors_i           ),
-    .o_bits_rx(bits_rx_i          ),
-    .o_decimated(decimated_i      ),
-    .clk      (clk                ),
-    .i_rst_n  (connect_reset      ),
-    .i_enable (connect_switch[1]  ),
-    .i_valid  (valid              ),
-    .i_phase  (connect_switch[3:2]),
-    .i_data   (data_i             )
+    .o_led        (led_i              ),
+    .o_symb_count (symb_count_i       ),
+    .o_error_count(error_count_i      ),
+    .o_bits_rx    (bits_rx_i          ),
+    .o_decimated  (decimated_i        ),
+    .clk          (clk                ),
+    .i_rst_n      (connect_reset      ),
+    .i_enable     (connect_switch[1]  ),
+    .i_valid      (valid              ),
+    .i_phase      (connect_switch[3:2]),
+    .i_data       (data_i             )
 );
 
 // Transmisor: PRBS + Filtro (Canal Q)
@@ -153,16 +156,17 @@ rx
 )
 u_rx_q
 (
-    .o_led    (led_q              ),
-    .o_errors (errors_q           ),
-    .o_bits_rx(bits_rx_q          ),
-    .o_decimated(decimated_q      ),
-    .clk      (clk                ),
-    .i_rst_n  (connect_reset      ),
-    .i_enable (connect_switch[1]  ),
-    .i_valid  (valid              ),
-    .i_phase  (connect_switch[3:2]),
-    .i_data   (data_q             )
+    .o_led        (led_q              ),
+    .o_symb_count (symb_count_q       ),
+    .o_error_count(error_count_q      ),
+    .o_bits_rx    (bits_rx_q          ),
+    .o_decimated  (decimated_q        ),
+    .clk          (clk                ),
+    .i_rst_n      (connect_reset      ),
+    .i_enable     (connect_switch[1]  ),
+    .i_valid      (valid              ),
+    .i_phase      (connect_switch[3:2]),
+    .i_data       (data_q             )
 );
 
 // VIO instance
@@ -188,6 +192,14 @@ ila
         .probe2_0(led_i),
         .probe3_0(led_q)
     );
+// ila
+//     u_ila
+//     (
+//         .clk_0   (clk),
+//         .probe0_0(o_led),
+//         .probe1_0(error_count_i),
+//         .probe2_0(symb_count_i)
+//     );
 
 assign o_led[0] = connect_reset    ;
 assign o_led[1] = connect_switch[0];
