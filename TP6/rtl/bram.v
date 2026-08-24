@@ -1,7 +1,7 @@
 module bram #(
     parameter SIZE      = 1024,
     parameter NB_SIZE   = $clog2(SIZE-1), // 10
-    parameter NB_LOG    = 32,
+    parameter NB_LOG    = 32
 ) (
     input  wire [NB_LOG  -1 : 0] i_data,
     input  wire [NB_SIZE -1 : 0] i_wr_address,
@@ -10,7 +10,7 @@ module bram #(
     input  wire                  i_rd_enable,
     input  wire                  i_rst_n,
     input  wire                  i_reg_enable,
-    input  wire                  i_clk,
+    input  wire                  clk,
     output wire [NB_LOG  -1 : 0] o_data
 );
 
