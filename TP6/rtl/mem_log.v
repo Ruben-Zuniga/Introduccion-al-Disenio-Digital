@@ -32,48 +32,48 @@ reg                      full_mem               ;
 
 integer i;
 
-// /* -- BRAM -- */
-// reg  [NB_LOG    - 1 : 0] data_mem   [SIZE-1 : 0];
-// integer ram_index;
-// initial
-//     for (ram_index = 0; ram_index < SIZE; ram_index = ram_index + 1)
-//         data_mem[ram_index] = {NB_LOG{1'b0}};
+/* -- BRAM -- */
+reg  [NB_LOG    - 1 : 0] data_mem   [SIZE-1 : 0];
+integer ram_index;
+initial
+    for (ram_index = 0; ram_index < SIZE; ram_index = ram_index + 1)
+        data_mem[ram_index] = {NB_LOG{1'b0}};
 
-// wire [NB_LOG-1 : 0] data_in;
+wire [NB_LOG-1 : 0] data_in;
 
-// assign data_in = {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_i,
-//                   {NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_q};
+assign data_in = {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_i,
+                  {NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_q};
 
-// reg write_en;
+reg write_en;
 
-// always @(posedge clk) begin
-//     if (write_en)
-//         data_mem[address_count] <= data_in;
-//     if (i_read_log)
-//         data_log <= data_mem[i_read_address];
-// end
+always @(posedge clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
+        for (ram_index = 0; ram_index < SIZE; ram_index = ram_index + 1)
+            data_mem[ram_index] = {NB_LOG{1'b0}};
+        data_log <= 'd0;
+    end
+    if (write_en)
+        data_mem[address_count] <= data_in;
+    if (i_read_log)
+        data_log <= data_mem[i_read_address];
+end
 
-// reg [NB_LOG-1:0] data_log_reg = {NB_LOG{1'b0}};
+reg [NB_LOG-1:0] data_log_reg = {NB_LOG{1'b0}};
 
-// always @(posedge clk)
-// if (!i_read_log)
-//     data_log_reg <= {NB_LOG{1'b0}};
-// else if (i_read_log)
-//     data_log_reg <= data_log;
+always @(posedge clk)
+if (!i_read_log)
+    data_log_reg <= {NB_LOG{1'b0}};
+else if (i_read_log)
+    data_log_reg <= data_log;
 
-// assign o_data_log = data_log_reg;
-// /* -- BRAM end -- */
+assign o_data_log = data_log_reg;
+/* -- BRAM end -- */
 
 always @(posedge clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
         state <= IDLE;
-        data_log <= 'd0;
         address_count <= 'd0;
         full_mem <= 1'b0;
-        for (i = 0; i < SIZE; i = i + 1) begin
-            data_mem_i[i] <= 'd0;
-            data_mem_q[i] <= 'd0;
-        end
     end
     else begin
         state <= state_next;
@@ -85,8 +85,6 @@ always @(posedge clk or negedge i_rst_n) begin
             end
             SAVING: begin
                 address_count <= address_count + 1'b1;
-                data_mem_i[address_count] <= {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_i};
-                data_mem_q[address_count] <= {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_q};
                 data_log <= 'd0;
                 full_mem <= 1'b0;
             end
