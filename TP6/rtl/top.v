@@ -242,7 +242,9 @@ assign o_led[1] = connect_reset    ;
 assign o_led[2] = connect_switch[0];
 assign o_led[3] = connect_switch[1];
 
-assign o_led_rgb_0 = 3'b0;
+assign o_led_rgb_0[0] = o_full_mem;
+assign o_led_rgb_0[1] = i_read_log;
+assign o_led_rgb_0[2] = i_run_log;
 assign o_led_rgb_1 = i_switch[3:2] + 1'b1;
 
 assign o_symb_count_i = symb_count_i;
