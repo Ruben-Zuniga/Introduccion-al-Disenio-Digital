@@ -249,6 +249,7 @@ initial begin
     end
     
     // Cambiar address sin leer
+    @(posedge clk);
     i_read_log = 1'b0;
 
     for (i = 0; i < 100; i = i + 1) begin
