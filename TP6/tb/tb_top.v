@@ -210,17 +210,21 @@ initial begin
 
     // Leer sin haber logeado antes
     i_read_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
 
     for (i = 0; i < 100; i = i + 1) begin
         i_address = i;
         @(posedge clk);
     end
 
-    // Comenzar logeo
+    // Comenzar logeo (i_run_log necesita estar levantado durante 2 flancos)
     #10000;
     @(posedge clk);
     i_read_log = 1'b0;
     i_run_log = 1'b1;
+    i_address = 'd0;
+    @(posedge clk);
     @(posedge clk);
     i_run_log = 1'b0;
 
@@ -230,10 +234,13 @@ initial begin
     // Leer memoria
     i_read_log = 1'b1;
     i_address = 10'h00F;
-    @(posedge clk);
+    repeat(4)
+        @(posedge clk);
     i_address = 10'h3FF;
     @(posedge clk);
-    i_address = 10'h000;
+    @(posedge clk);
+    i_address = 10'h00F;
+    @(posedge clk);
     @(posedge clk);
 
     for (i = 0; i < SIZE; i = i + 1) begin
@@ -251,6 +258,8 @@ initial begin
 
     // Leer y a la vez iniciar logeo (no debe iniciar)
     i_read_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
 
     for (i = 0; i < 100; i = i + 1) begin
         i_address = i;
@@ -258,6 +267,8 @@ initial begin
     end
 
     i_run_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
 
     repeat(3)
         @(posedge clk);
@@ -273,12 +284,15 @@ initial begin
     i_read_log = 1'b0;
     i_run_log = 1'b1;
     @(posedge clk);
+    @(posedge clk);
     i_run_log = 1'b0;
 
     repeat(2 * SIZE)
         @(posedge clk);
 
     i_read_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
 
     for (i = 0; i < 100; i = i + 1) begin
         i_address = i;
@@ -288,45 +302,45 @@ initial begin
     #10000;
     $display("---------------------------------------");
     $display("Errores en los bits del TX:  %d" , vm_prbs_tx_errors);
-    $display("Errores en la salida del TX: %d", vm_data_errors);
+    $display("Errores en la salida del TX: %d" , vm_data_errors   );
     $display("Errores en los bits del RX:  %d" , vm_bits_rx_errors);
     $finish;
 end
 
 top
 #(
-    .NB_SWITCH(NB_SWITCH),
-    .NB_LED(NB_LED),
-    .NB_PRBS(NB_PRBS),
+    .NB_SWITCH  (NB_SWITCH  ),
+    .NB_LED     (NB_LED     ),
+    .NB_PRBS    (NB_PRBS    ),
     .SEED_PRBS_I(SEED_PRBS_I),
     .SEED_PRBS_Q(SEED_PRBS_Q),
-    .OS(OS),
-    .NB_COUNTER(NB_COUNTER),
-    .N_BAUD(N_BAUD),
-    .NB_DATA(NB_DATA),
-    .NBF_DATA(NBF_DATA),
-    .NB_COEFF(NB_COEFF),
-    .NBF_COEFF(NBF_COEFF),
+    .OS         (OS         ),
+    .NB_COUNTER (NB_COUNTER ),
+    .N_BAUD     (N_BAUD     ),
+    .NB_DATA    (NB_DATA    ),
+    .NBF_DATA   (NBF_DATA   ),
+    .NB_COEFF   (NB_COEFF   ),
+    .NBF_COEFF  (NBF_COEFF  ),
     .SYNC_PHASES(SYNC_PHASES),
-    .NB_BER(NB_BER)
+    .NB_BER     (NB_BER     )
 )
 dut
 (
-    .o_led(o_led),
-    .o_led_rgb_0(o_led_rgb_0),
-    .o_led_rgb_1(o_led_rgb_1),
-    .o_symb_count_i(o_symb_count_i),
-    .o_symb_count_q(o_symb_count_q),
+    .o_led          (o_led          ),
+    .o_led_rgb_0    (o_led_rgb_0    ),
+    .o_led_rgb_1    (o_led_rgb_1    ),
+    .o_symb_count_i (o_symb_count_i ),
+    .o_symb_count_q (o_symb_count_q ),
     .o_error_count_i(o_error_count_i),
     .o_error_count_q(o_error_count_q),
-    .o_data_log(o_data_log),
-    .o_full_mem(o_full_mem),
-    .clk(clk),
-    .i_rst_n(i_rst_n),
-    .i_switch(i_switch),
-    .i_run_log(i_run_log),
-    .i_read_log(i_read_log),
-    .i_address(i_address)
+    .o_data_log     (o_data_log     ),
+    .o_full_mem     (o_full_mem     ),
+    .clk            (clk            ),
+    .i_rst_n        (i_rst_n        ),
+    .i_switch       (i_switch       ),
+    .i_run_log      (i_run_log      ),
+    .i_read_log     (i_read_log     ),
+    .i_address      (i_address      )
 );
 
 endmodule

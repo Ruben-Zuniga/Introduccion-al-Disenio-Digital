@@ -17,18 +17,18 @@ module mem_log
     output wire                           o_full_mem
 );
 
-localparam IDLE = 2'd0;
-localparam SAVING = 2'd1;
-localparam DONE = 2'd2;
+localparam IDLE    = 2'd0;
+localparam SAVING  = 2'd1;
+localparam DONE    = 2'd2;
 localparam READING = 2'd3;
 
-reg [1 : 0] state;
-reg [1 : 0] state_next;
-reg [NB_LOG/2 - 1 : 0] data_mem_i [SIZE-1 : 0];
-reg [NB_LOG/2 - 1 : 0] data_mem_q [SIZE-1 : 0];
-reg [NB_LOG-1 : 0] data_log;
-reg [NB_SIZE-1 : 0] address_count;
-reg                 full_mem;
+reg [            1 : 0] state                  ;
+reg [            1 : 0] state_next             ;
+reg [NB_LOG/2  - 1 : 0] data_mem_i [SIZE-1 : 0];
+reg [NB_LOG/2  - 1 : 0] data_mem_q [SIZE-1 : 0];
+reg [NB_LOG    - 1 : 0] data_log               ;
+reg [NB_SIZE   - 1 : 0] address_count          ;
+reg                     full_mem               ;
 
 integer i;
 
@@ -45,24 +45,25 @@ always @(posedge clk or negedge i_rst_n) begin
     end
     else begin
         state <= state_next;
-        data_log <= {data_mem_q[address_count], data_mem_i[address_count]};
 
         case (state)
             IDLE: begin
                 address_count <= 1'b0;
+                data_log <= 'd0;
             end
             SAVING: begin
                 address_count <= address_count + 1'b1;
                 data_mem_i[address_count] <= {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_i};
                 data_mem_q[address_count] <= {{NB_LOG/2 - NB_DATA {1'b0}}, i_data_tx_q};
+                data_log <= 'd0;
                 full_mem <= 1'b0;
             end
             DONE: begin
+                data_log <= 'd0;
                 full_mem <= 1'b1;
-                address_count <= 1'b0;
             end
             READING: begin
-                address_count <= i_address;
+                data_log <= {data_mem_q[i_address], data_mem_i[i_address]};
             end
         endcase
     end

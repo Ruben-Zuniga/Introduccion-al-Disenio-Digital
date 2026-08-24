@@ -205,16 +205,17 @@ u_mem_log
 );
 
 // VIO instance
-// vio
+// vio #()
 //     u_vio
 //     (
 //         .clk_0       (clk            ),
 //         .probe_in0_0 (o_led          ),
-//         .probe_in1_0 (prbs_tx_i      ),
-//         .probe_in2_0 (bits_rx_i      ),
+//         .probe_in1_0 (o_full_mem),
 //         .probe_out0_0(select_VIO     ),
 //         .probe_out1_0(reset_from_VIO ),
-//         .probe_out2_0(switch_from_VIO)
+//         .probe_out2_0(switch_from_VIO),
+//         .probe_out3_0(i_run_log),
+//         .probe_out4_0(i_read_log)
 //     );
 
 // ILA Instance
@@ -227,13 +228,13 @@ u_mem_log
 //         .probe2_0(led_i),
 //         .probe3_0(led_q)
 //     );
-// ila
+// ila #()
 //     u_ila
 //     (
 //         .clk_0   (clk),
-//         .probe0_0(o_led),
-//         .probe1_0(error_count_i),
-//         .probe2_0(symb_count_i)
+//         .probe0_0(o_full_mem),
+//         .probe1_0(o_data_log[7:0]),
+//         .probe2_0(o_data_log[23:16])
 //     );
 
 assign o_led[0] = led_i & led_q    ;
