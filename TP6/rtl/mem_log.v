@@ -14,7 +14,7 @@ module mem_log
     input  wire                           i_read_log    ,
     input  wire        [NB_SIZE-1  : 0]   i_address     ,
     output wire        [NB_LOG -1  : 0]   o_data_log    ,
-    output wire                           o_full_mem        // ESTA FLAG NO SE BAJA CUANDO HAY RESET
+    output wire                           o_full_mem    
 );
 
 localparam IDLE    = 2'd0;

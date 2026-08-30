@@ -6,7 +6,7 @@ Al DSP se le debió colocar una memoria \emph{RAM} para guardar un log de la se�
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{img/esq_consigna_dsp.png}
+    \includegraphics[width=0.9\linewidth]{img/esq_consigna_dsp.png}
     \caption{cap.}
     \label{fig:esq_consigna_dsp}
 \end{figure}
@@ -15,7 +15,7 @@ Todas las señales de control salen de una interfaz denominada \emph{Register Fi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{img/esq_consigna_rf.png}
+    \includegraphics[width=0.5\linewidth]{img/esq_consigna_rf.png}
     \caption{cap.}
     \label{fig:esq_consigna_rf}
 \end{figure}
@@ -24,7 +24,7 @@ Por otro lado, los comandos que envía el microprocesador pasan por un GPIO de 3
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{img/esq_consigna_comando.png}
+    \includegraphics[width=0.5\linewidth]{img/esq_consigna_comando.png}
     \caption{cap.}
     \label{fig:esq_consigna_comando}
 \end{figure}
@@ -33,11 +33,15 @@ Con esto se espera que una PC pueda obtener un gráfico de los datos de la seña
 
 \section{Objetivos}
 
-Integrar el bloque de DSP y de microprocesador ya armados anteriormente en un solo módulo, y con esto integrar además los conocimientos básicos del diseño digital.
+Integrar el bloque de DSP y de microprocesador, ya armados anteriormente en un solo módulo, y con esto integrar además los conocimientos básicos del diseño digital.
 
 \section{Desarrollo}
 
 \subsection{Memoria de Logueo}
+
+La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se contruyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{}.
+
+A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego ir subiendo la capcidad, debido a los limitados recursos de esta FPGA.
 
 \subsection{Register File}
 
