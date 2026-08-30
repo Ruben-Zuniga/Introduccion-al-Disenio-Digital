@@ -1,0 +1,81 @@
+<mxfile host="Electron">
+  <diagram name="Página-1" id="UCaEb0Bw80HxErGH1YbW">
+    <mxGraphModel dx="955" dy="626" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-7" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="561" y="235" />
+              <mxPoint x="561" y="120.03" />
+              <mxPoint x="361" y="120.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-12" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;verticalAlign=top;" value="Address count = 0" vertex="1">
+          <mxGeometry height="90" width="160" x="241" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" value="IDLE" vertex="1">
+          <mxGeometry height="30" width="160" x="241" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-3" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-4" style="endArrow=classic;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="321" y="80" as="sourcePoint" />
+            <mxPoint x="371" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="Reset" vertex="1">
+          <mxGeometry height="30" width="60" x="251" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="! Run log" vertex="1">
+          <mxGeometry height="35" width="70" x="411" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-14" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-11">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="641" y="435" />
+              <mxPoint x="641" y="320.03" />
+              <mxPoint x="361" y="320.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-19" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;verticalAlign=top;" value="Address count ++&lt;div&gt;Write enable = 1&lt;/div&gt;&lt;div&gt;Full mem = 0&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="160" x="241" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" value="SAVING" vertex="1">
+          <mxGeometry height="30" width="160" x="241" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="Run log" vertex="1">
+          <mxGeometry height="35" width="70" x="211" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="Address count != Mem size" vertex="1">
+          <mxGeometry height="35" width="220" x="411" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-21" edge="1" parent="1" source="lFYeKjYsmnLvI0AE2lDZ-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="lFYeKjYsmnLvI0AE2lDZ-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="161.06" y="635.06" />
+              <mxPoint x="161.06" y="235.06" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;verticalAlign=top;" value="&lt;div&gt;Run enable = 0&lt;/div&gt;&lt;div&gt;Full mem = 1&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="160" x="241" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" value="DONE" vertex="1">
+          <mxGeometry height="30" width="160" x="241" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="lFYeKjYsmnLvI0AE2lDZ-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="Address count = Mem size" vertex="1">
+          <mxGeometry height="35" width="210" x="321" y="500" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

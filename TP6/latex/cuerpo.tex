@@ -1,22 +1,22 @@
 \section{Introducción}
 
-En la industria de la microelectrónica, los DSP están controlados por microprocesadores con firmware embebido, lo que permite al operario gestionarlos a través de estos últimos. Por esta razón, se propuso integrar el filtro transmisor del Laboratorio N°4 y el microprocesador del Laboratorio N°5 en un solo diseño. De esta forma, todo el control externo se puede realiza a través de UART con un script de Python.
+En la industria de la microelectrónica, los DSP están controlados por microprocesadores con firmware embebido, lo que permite al operario gestionarlos a través de estos últimos. Por esta razón, se propuso integrar el filtro transmisor del Laboratorio N°4 y el microprocesador del Laboratorio N°5 en un solo diseño. De esta forma, todo el control externo se puede realizar a través de UART con un script de Python.
 
 Al DSP se le debió colocar una memoria \emph{RAM} para guardar un log de la señal filtrada, como se muestra en la \autoref{fig:esq_consigna_dsp}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{img/esq_consigna_dsp.png}
-    \caption{cap.}
+    \caption{Esquema de conexión propuesto para la memoria RAM.}
     \label{fig:esq_consigna_dsp}
 \end{figure}
 
-Todas las señales de control salen de una interfaz denominada \emph{Register File}, la cual es un banco de registros que almacena los comandos que provienen del microprocesador. La propuesta fue conectar este banco como se muestra en la \autoref{fig:esq_consigna_rf}.
+Todas las señales de control salen de una interfaz denominada \emph{Register File} o mapa de registros, la cual es un banco de registros que almacena los comandos que provienen del microprocesador. La propuesta fue conectar este banco como se muestra en la \autoref{fig:esq_consigna_rf}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\linewidth]{img/esq_consigna_rf.png}
-    \caption{cap.}
+    \caption{Interfaz del mapa de registros.}
     \label{fig:esq_consigna_rf}
 \end{figure}
 
@@ -25,7 +25,7 @@ Por otro lado, los comandos que envía el microprocesador pasan por un GPIO de 3
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\linewidth]{img/esq_consigna_comando.png}
-    \caption{cap.}
+    \caption{Campos de la palabra a enviar por el microprocesador.}
     \label{fig:esq_consigna_comando}
 \end{figure}
 
@@ -39,9 +39,25 @@ Integrar el bloque de DSP y de microprocesador, ya armados anteriormente en un s
 
 \subsection{Memoria de Logueo}
 
-La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se contruyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{}.
+La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se construyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{fig:esq_mem}.
 
-A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego ir subiendo la capcidad, debido a los limitados recursos de esta FPGA.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/esq_mem.pdf}
+    \caption{Arquitectura de la máquina de estados con la BRAM.}
+    \label{fig:esq_mem}
+\end{figure}
+
+El diagrama de estados se puede observar en la \autoref{fig:esq_fsm}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/esq_fsm.pdf}
+    \caption{Diagrama de estados de la memoria.}
+    \label{fig:esq_fsm}
+\end{figure}
+
+A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
 
 \subsection{Register File}
 
