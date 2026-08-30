@@ -249,6 +249,7 @@ initial begin
     end
     
     // Cambiar address sin leer
+    @(posedge clk);
     i_read_log = 1'b0;
 
     for (i = 0; i < 100; i = i + 1) begin
@@ -281,6 +282,29 @@ initial begin
     end
 
     // Volver a leer desde 0
+    i_read_log = 1'b0;
+    i_run_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
+    i_run_log = 1'b0;
+
+    repeat(2 * SIZE)
+        @(posedge clk);
+
+    i_read_log = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
+
+    for (i = 0; i < 100; i = i + 1) begin
+        i_address = i;
+        @(posedge clk);
+    end
+
+    // Resetear y volver a leer
+    i_rst_n = 1'b0;
+    
+    #1000
+    i_rst_n = 1'b1;
     i_read_log = 1'b0;
     i_run_log = 1'b1;
     @(posedge clk);

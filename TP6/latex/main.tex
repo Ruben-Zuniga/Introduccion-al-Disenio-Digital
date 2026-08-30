@@ -1,0 +1,90 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{csquotes}
+\usepackage{tcolorbox}
+\usepackage{color}
+\usepackage{tabularray}
+
+\definecolor{Titulo}{rgb}{0.9,0.9,0.9}
+
+\usepackage[style=apa]{biblatex}
+\addbibresource{bibliografia.bib}
+
+\Urlmuskip=0mu plus 1mu
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2.5cm}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+\definecolor{codered}{rgb}{0.7,0,0}
+
+\lstdefinestyle{mystyle}{
+    frame=single,
+    rulecolor=\color{gray},
+    backgroundcolor=\color{white},   
+    commentstyle=\color{codegreen},
+    %keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codered},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+}
+\lstdefinestyle{python_session_style}{
+    language=Python,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red!70!black},
+    showstringspaces=false,
+    frame=single,
+    rulecolor=\color{gray},
+    backgroundcolor=\color{gray!10},
+    emph={>>>,...},
+    emphstyle=\color{codegreen},
+}
+\lstset{style=mystyle}
+
+\urlstyle{same}
+\renewcommand{\UrlFont}{\itshape}
+
+\begin{document}
+
+% Portada
+\input{portada}
+\newpage
+
+% Índice de contenidos
+\tableofcontents
+\newpage
+
+% Contenidos
+\input{cuerpo}
+
+% Bibliografia
+\addcontentsline{toc}{section}{Bibliografía}
+\nocite{*}
+\printbibliography[title={Bibliografía}]
+
+\end{document}

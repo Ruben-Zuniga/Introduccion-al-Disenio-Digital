@@ -28,18 +28,18 @@ module top
     output wire [NB_LED    -1 : 0]      o_led           ,
     output wire [NB_RGB    -1 : 0]      o_led_rgb_0     ,
     output wire [NB_RGB    -1 : 0]      o_led_rgb_1     ,
-    output wire [NB_BER    -1 : 0]      o_symb_count_i  ,
-    output wire [NB_BER    -1 : 0]      o_symb_count_q  ,
-    output wire [NB_BER    -1 : 0]      o_error_count_i ,
-    output wire [NB_BER    -1 : 0]      o_error_count_q ,
-    output wire [NB_LOG    -1 : 0]      o_data_log      ,
-    output wire                         o_full_mem      ,
+    // output wire [NB_BER    -1 : 0]      o_symb_count_i  , // Comentar al sintetizar
+    // output wire [NB_BER    -1 : 0]      o_symb_count_q  , // Comentar al sintetizar
+    // output wire [NB_BER    -1 : 0]      o_error_count_i , // Comentar al sintetizar
+    // output wire [NB_BER    -1 : 0]      o_error_count_q , // Comentar al sintetizar
+    // output wire [NB_LOG    -1 : 0]      o_data_log      , // Comentar al sintetizar
+    // output wire                         o_full_mem      , // Comentar al sintetizar
     input  wire                         clk             ,
     input  wire                         i_rst_n         ,
-    input  wire [NB_SWITCH -1 : 0]      i_switch        ,
-    input  wire                         i_run_log       ,
-    input  wire                         i_read_log      ,
-    input  wire [NB_SIZE   -1 : 0]      i_address       
+    input  wire [NB_SWITCH -1 : 0]      i_switch        
+    // input  wire                         i_run_log       , // Comentar al sintetizar
+    // input  wire                         i_read_log      , // Comentar al sintetizar
+    // input  wire [NB_SIZE   -1 : 0]      i_address         // Comentar al sintetizar
 );
 
 // Module Connections
@@ -67,13 +67,23 @@ wire [NB_SWITCH - 1 : 0] switch_from_VIO;
 wire                     reset_from_VIO ;
 wire                     select_VIO     ;
 
+wire                   i_run_log      ; // Descomentar al sintetizar
+wire                   i_read_log     ; // Descomentar al sintetizar
+wire [NB_SIZE - 1 : 0] i_address      ; // Descomentar al sintetizar
+wire [NB_BER  - 1 : 0] o_symb_count_i ; // Descomentar al sintetizar
+wire [NB_BER  - 1 : 0] o_symb_count_q ; // Descomentar al sintetizar
+wire [NB_BER  - 1 : 0] o_error_count_i; // Descomentar al sintetizar
+wire [NB_BER  - 1 : 0] o_error_count_q; // Descomentar al sintetizar
+wire [NB_LOG  - 1 : 0] o_data_log     ; // Descomentar al sintetizar
+wire                   o_full_mem     ; // Descomentar al sintetizar
+
 // Reverse Reset
 assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
 assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
 
-assign select_VIO = 1'b0;
-assign reset_from_VIO = 1'b0;
-assign switch_from_VIO = 4'b0;
+// assign select_VIO = 1'b0;        // Comentar al sintetizar
+// assign reset_from_VIO = 1'b0;    // Comentar al sintetizar
+// assign switch_from_VIO = 4'b0;   // Comentar al sintetizar
 
 // Control: Contador
 counter #(
@@ -119,7 +129,7 @@ rx #(
     .NB_COUNTER (NB_COUNTER ),
     .NB_DATA    (NB_DATA    ),
     .SYNC_PHASES(SYNC_PHASES),
-    .NB_BER  (NB_BER  )
+    .NB_BER     (NB_BER     )
 )
 u_rx_i
 (
@@ -167,7 +177,7 @@ rx #(
     .NB_COUNTER (NB_COUNTER ),
     .NB_DATA    (NB_DATA    ),
     .SYNC_PHASES(SYNC_PHASES),
-    .NB_BER  (NB_BER  )
+    .NB_BER     (NB_BER     )
 )
 u_rx_q
 (
@@ -186,56 +196,49 @@ u_rx_q
 
 // Memoria
 mem_log #(
-    .SIZE(SIZE),
+    .SIZE   (SIZE   ),
     .NB_SIZE(NB_SIZE),
-    .NB_LOG(NB_LOG),
+    .NB_LOG (NB_LOG ),
     .NB_DATA(NB_DATA)
 )
 u_mem_log
 (
-    .clk(clk),
-    .i_rst_n(i_rst_n),
-    .i_data_tx_i(data_i),
-    .i_data_tx_q(data_q),
-    .i_run_log(i_run_log),
-    .i_read_log(i_read_log),
-    .i_address(i_address),
-    .o_data_log(o_data_log),
-    .o_full_mem(o_full_mem)
+    .clk        (clk          ),
+    .i_rst_n    (connect_reset),
+    .i_data_tx_i(data_i       ),
+    .i_data_tx_q(data_q       ),
+    .i_run_log  (i_run_log    ),
+    .i_read_log (i_read_log   ),
+    .i_address  (i_address    ),
+    .o_data_log (o_data_log   ),
+    .o_full_mem (o_full_mem   )
 );
 
 // VIO instance
-// vio #()
-//     u_vio
-//     (
-//         .clk_0       (clk            ),
-//         .probe_in0_0 (o_led          ),
-//         .probe_in1_0 (o_full_mem),
-//         .probe_out0_0(select_VIO     ),
-//         .probe_out1_0(reset_from_VIO ),
-//         .probe_out2_0(switch_from_VIO),
-//         .probe_out3_0(i_run_log),
-//         .probe_out4_0(i_read_log)
-//     );
+vio #()                                  // Descomentar al sintetizar
+    u_vio
+    (
+        .clk_0       (clk            ),
+        .probe_in0_0 (o_led          ),
+        .probe_in1_0 (o_led_rgb_0    ),
+        .probe_in2_0 (o_led_rgb_1    ),
+        .probe_out0_0(select_VIO     ),
+        .probe_out1_0(reset_from_VIO ),
+        .probe_out2_0(switch_from_VIO),
+        .probe_out3_0(i_run_log      ),
+        .probe_out4_0(i_read_log     ),
+        .probe_out5_0(i_address      )
+    );
 
 // ILA Instance
-// ila
-//     u_ila
-//     (
-//         .clk_0   (clk      ),
-//         .probe0_0(decimated_i), // Se puede intercambiar por data_i
-//         .probe1_0(decimated_q), // Se puede intercambiar por data_q
-//         .probe2_0(led_i),
-//         .probe3_0(led_q)
-//     );
-// ila #()
-//     u_ila
-//     (
-//         .clk_0   (clk),
-//         .probe0_0(o_full_mem),
-//         .probe1_0(o_data_log[7:0]),
-//         .probe2_0(o_data_log[23:16])
-//     );
+ila #()
+    u_ila
+    (
+        .clk_0   (clk),
+        .probe0_0(o_full_mem),
+        .probe1_0(o_data_log[7:0]),
+        .probe2_0(o_data_log[23:16])
+    );
 
 assign o_led[0] = led_i & led_q    ;
 assign o_led[1] = connect_reset    ;

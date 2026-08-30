@@ -1,0 +1,156 @@
+\section{Introducción}
+
+En la industria de la microelectrónica, los DSP están controlados por microprocesadores con firmware embebido, lo que permite al operario gestionarlos a través de estos últimos. Por esta razón, se propuso integrar el filtro transmisor del Laboratorio N°4 y el microprocesador del Laboratorio N°5 en un solo diseño. De esta forma, todo el control externo se puede realiza a través de UART con un script de Python.
+
+Al DSP se le debió colocar una memoria \emph{RAM} para guardar un log de la señal filtrada, como se muestra en la \autoref{fig:esq_consigna_dsp}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_consigna_dsp.png}
+    \caption{cap.}
+    \label{fig:esq_consigna_dsp}
+\end{figure}
+
+Todas las señales de control salen de una interfaz denominada \emph{Register File}, la cual es un banco de registros que almacena los comandos que provienen del microprocesador. La propuesta fue conectar este banco como se muestra en la \autoref{fig:esq_consigna_rf}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/esq_consigna_rf.png}
+    \caption{cap.}
+    \label{fig:esq_consigna_rf}
+\end{figure}
+
+Por otro lado, los comandos que envía el microprocesador pasan por un GPIO de 32 bits, en el formato mostrado en la \autoref{fig:esq_consigna_comando}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/esq_consigna_comando.png}
+    \caption{cap.}
+    \label{fig:esq_consigna_comando}
+\end{figure}
+
+Con esto se espera que una PC pueda obtener un gráfico de los datos de la señal filtrada, almacenados en la memoria de logueo del DSP, además de controlar el encendido, apagado, reset, etc. del módulo.
+
+\section{Objetivos}
+
+Integrar el bloque de DSP y de microprocesador, ya armados anteriormente en un solo módulo, y con esto integrar además los conocimientos básicos del diseño digital.
+
+\section{Desarrollo}
+
+\subsection{Memoria de Logueo}
+
+La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se contruyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{}.
+
+A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego ir subiendo la capcidad, debido a los limitados recursos de esta FPGA.
+
+\subsection{Register File}
+
+\subsection{Microprocesador}
+
+\subsection{Firmware}
+
+\section{Resultados}
+
+\section{Conclusión}
+
+
+\appendix
+
+\section{Archivos y Códigos} \label{appx:archivos}
+
+Todos los códigos del trabajo se encuentran en el siguiente link:
+
+\noindent
+\url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP6}
+
+% \begin{equation}
+%     \boxed{
+%         1 = 2
+%     }
+% \end{equation}
+
+% \begin{table}[H]
+%     \centering
+%
+%     \begin{tabular}{lcc}
+%         \textbf{A} & \textbf{B} & \textbf{C} \\
+%         \hline\hline
+%         A & B & C \\
+%         A & B & C \\
+%         \hline
+%     \end{tabular}
+%
+%     \caption{cap.}
+%     \label{tab:tab}
+% \end{table}
+
+% \begin{table}[H]
+%     \centering
+%     \begin{tblr}{
+%         row{1} = {Titulo},
+%         column{1} = {Titulo},
+%         colspec = {Q[l] Q[c] Q[c]},
+%         vlines,
+%         hlines,
+%         width=\linewidth
+%     }
+%         A & B & C \\
+%         A & B & C \\
+%         A & B & C \\
+
+%     \end{tblr}
+%     \caption{cap.}
+%     \label{tab:tab}
+% \end{table}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.85\linewidth]{img/sim.png}
+%     \caption{cap.}
+%     \label{fig:fig}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=1\linewidth]{img/ondas_completo1.png}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=1\linewidth]{img/ondas_completo2.png}
+%     \end{minipage}
+
+%     \caption{cap.}
+%     \label{fig:fig}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+
+%     \begin{minipage}{\linewidth}
+%         \centering
+%         \includegraphics[width=1\linewidth]{img/fulgor_logo.jpg}
+%         \subcaption{cap.}
+%         \label{fig:fig}
+%     \end{minipage}
+    
+%     \begin{minipage}{\linewidth}
+%         \centering
+%         \includegraphics[width=1\linewidth]{img/fulgor_logo.jpg}
+%         \subcaption{cap.}
+%         \label{fig:fig}
+%     \end{minipage}
+    
+%     \begin{minipage}{\linewidth}
+%         \centering
+%         \includegraphics[width=1\linewidth]{img/fulgor_logo.jpg}
+%         \subcaption{cap.}
+%         \label{fig:fig}
+%     \end{minipage}
+
+%     \caption{cap.}
+%     \label{fig:fig}
+% \end{figure}
