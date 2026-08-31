@@ -47,45 +47,19 @@ wire [NB_LED    -1 : 0]      o_led           ;
 wire [NB_RGB    -1 : 0]      o_led_rgb_0     ;
 wire [NB_RGB    -1 : 0]      o_led_rgb_1     ;
 wire [NB_GPIO   -1 : 0]      o_gpio          ;
-reg                         clk             ;
-reg                         i_rst_n         ;
-reg [NB_GPIO   -1 : 0]      i_gpio          ;
+reg                          clk             ;
+reg                          i_rst_n         ;
+reg  [NB_GPIO   -1 : 0]      i_gpio          ;
 
-// Señales internas
-wire                           prbs_tx        ;
-wire                           bits_rx        ;
-wire signed [NB_DATA   -1 : 0] data           ;
-wire        [NB_BER    -1 : 0] o_symb_count_i ;
-wire        [NB_BER    -1 : 0] o_symb_count_q ;
-wire        [NB_BER    -1 : 0] o_error_count_i;
-wire        [NB_BER    -1 : 0] o_error_count_q;
-wire        [NB_LOG    -1 : 0] o_data_log     ;
-wire                           o_full_mem     ;
-reg         [NB_SWITCH -1 : 0] i_switch       ;
-reg                            i_run_log      ;
-reg                            i_read_log     ;
-reg         [NB_SIZE   -1 : 0] i_address      ;
+wire [NB_DATA   -1 : 0]      data_log_i_8bit   ;
+wire [NB_DATA   -1 : 0]      data_log_q_8bit   ;
+assign data_log_i_8bit = o_gpio[7:0];
+assign data_log_q_8bit = o_gpio[23:16];
 
-wire        [NB_DATA   -1 : 0] data_log_8bit  ;
-assign data_log_8bit = o_data_log[7:0];
-
-// Vector Matching
-integer vm_data_errors;
-integer vm_prbs_tx_errors;
-integer vm_bits_rx_errors;
 integer i;
-localparam N_LOG = 40000;
-reg [NB_DATA-1 : 0] data_log [N_LOG-1 : 0];
-reg [NB_DATA-1 : 0] prbs_tx_log [N_LOG/OS - 1 : 0];
-reg [NB_DATA-1 : 0] bits_rx_log [N_LOG/OS - 1 : 0];
 
 // Reloj 100 MHz
 always #5 clk = ~clk;
-
-// Señales internas
-assign prbs_tx = dut.prbs_tx_i;
-assign bits_rx = dut.bits_rx_i;
-assign data = dut.data_i;
 
 initial begin
     clk = 1'b0;
@@ -117,6 +91,7 @@ initial begin
     repeat(511*SYNC_PHASES*OS + 40000)
         @(posedge clk);
 
+    // ---- Leer BER ----
     // // Leer BER (parte baja)
     // @(posedge clk);
     // i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
@@ -166,7 +141,21 @@ initial begin
 
     // // Leer BER
     // @(posedge clk);
+    // i_gpio = 1'b1 << READ_BER_BIT | 3'h0;
+    // @(posedge clk);
+    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    // @(posedge clk);
+    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+
+    // @(posedge clk);
     // i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
+    // @(posedge clk);
+    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    // @(posedge clk);
+    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+
+    // @(posedge clk);
+    // i_gpio = 1'b1 << READ_BER_BIT | 3'h2;
     // @(posedge clk);
     // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
     // @(posedge clk);
@@ -180,7 +169,21 @@ initial begin
     // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
     // @(posedge clk);
+    // i_gpio = 1'b1 << READ_BER_BIT | 3'h4;
+    // @(posedge clk);
+    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    // @(posedge clk);
+    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+
+    // @(posedge clk);
     // i_gpio = 1'b1 << READ_BER_BIT | 3'h5;
+    // @(posedge clk);
+    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    // @(posedge clk);
+    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+
+    // @(posedge clk);
+    // i_gpio = 1'b1 << READ_BER_BIT | 3'h6;
     // @(posedge clk);
     // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
     // @(posedge clk);
@@ -193,7 +196,7 @@ initial begin
     // @(posedge clk);
     // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // Leer memoria
+    // ---- Leer memoria ----
     i_gpio = {8'h10, 1'b0, 23'h0};
     @(posedge clk);
     i_gpio = {8'h10, 1'b1, 23'h0};
@@ -220,10 +223,6 @@ initial begin
     end
 
     #10000;
-    $display("---------------------------------------");
-    $display("Errores en los bits del TX:  %d" , vm_prbs_tx_errors);
-    $display("Errores en la salida del TX: %d" , vm_data_errors   );
-    $display("Errores en los bits del RX:  %d" , vm_bits_rx_errors);
     $finish;
 end
 
