@@ -41,7 +41,7 @@ localparam TX_BIT           = 2 + (NB_DATA_RF + 1);
 localparam RX_BIT           = 3 + (NB_DATA_RF + 1);
 localparam RUN_LOG_BIT      = 4 + (NB_DATA_RF + 1);
 localparam READ_ADDRESS_BIT = 5 + (NB_DATA_RF + 1);
-localparam READ_BER         = 6 + (NB_DATA_RF + 1);
+localparam READ_BER_BIT     = 6 + (NB_DATA_RF + 1);
 
 // Para indicar qué leer para la BER
 localparam READ_ERROR_I = 'd0;
@@ -78,6 +78,15 @@ always @(posedge clk or negedge i_rst_n) begin
         address <= 'd0;
         data_log <= 'd0;
         control <= 'd0;
+
+        error_count_i_high <= 'd0;
+        error_count_i_low  <= 'd0;
+        symb_count_i_high  <= 'd0;
+        symb_count_i_low   <= 'd0;
+        error_count_q_high <= 'd0;
+        error_count_q_low  <= 'd0;
+        symb_count_q_high  <= 'd0;
+        symb_count_q_low   <= 'd0;
     end
     else begin
         // Leer el GPIO
@@ -127,24 +136,20 @@ always @(posedge clk or negedge i_rst_n) begin
 end
 
 always @(*) begin
-    if (control[ENABLE_BIT]) begin
-        case (control)
-            1'b1 << READ_ADDRESS_BIT: 
-                o_gpio = data_log;
-            (1'b1 << READ_BER) & (READ_ERROR_I):
-                o_gpio = error_count_i_high;
-            (1'b1 << READ_BER) & (READ_SYMB_I):
-                o_gpio = symb_count_i_high;
-            (1'b1 << READ_BER) & (READ_ERROR_Q):
-                o_gpio = error_count_q_high;
-            (1'b1 << READ_BER) & (READ_SYMB_Q):
-                o_gpio = symb_count_q_high;
-            default: 
-                o_gpio = 'd0;
-        endcase
-    end
-    else
-        o_gpio = 'd0;
+    case (control)
+        (1'b1 << READ_ADDRESS_BIT):
+            to_gpio = data_log;
+        ((1'b1 << READ_BER_BIT) & (READ_ERROR_I)):
+            to_gpio = error_count_i_high;
+        ((1'b1 << READ_BER_BIT) & (READ_SYMB_I)):
+            to_gpio = symb_count_i_high;
+        ((1'b1 << READ_BER_BIT) & (READ_ERROR_Q)):
+            to_gpio = error_count_q_high;
+        ((1'b1 << READ_BER_BIT) & (READ_SYMB_Q)):
+            to_gpio = symb_count_q_high;
+        default: 
+            to_gpio = 'd0;
+    endcase
 end
 
 assign o_rst_dsp_n = rst_dsp_n;
@@ -152,5 +157,6 @@ assign o_switch = switch;
 assign o_run_log = run_log;
 assign o_read_log = read_log;
 assign o_address = address;
+assign o_gpio = to_gpio;
     
 endmodule
