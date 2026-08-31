@@ -218,7 +218,6 @@ initial begin
         i_gpio[ENABLE_BIT] = 1'b0;
         @(posedge clk);
     end
-    
 
     #10000;
     $display("---------------------------------------");

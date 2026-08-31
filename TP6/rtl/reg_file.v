@@ -43,11 +43,27 @@ localparam RUN_LOG_BIT      = 4 + (NB_DATA_RF + 1);
 localparam READ_ADDRESS_BIT = 5 + (NB_DATA_RF + 1);
 localparam READ_BER_BIT     = 6 + (NB_DATA_RF + 1);
 
+// Comandos desde el GPIO
+localparam READ_ADDRESS = 8'h20;
+localparam READ_BER = 8'h40;
+
+localparam ERROR_I_HIGH = 23'h0;
+localparam ERROR_I_LOW  = 23'h1;
+localparam SYMB_I_HIGH  = 23'h2;
+localparam SYMB_I_LOW   = 23'h3;
+localparam ERROR_Q_HIGH = 23'h4;
+localparam ERROR_Q_LOW  = 23'h5;
+localparam SYMB_Q_HIGH  = 23'h6;
+localparam SYMB_Q_LOW   = 23'h7;
+
+// Comandos hacia el DSP
 reg                    rst_dsp_n_r;
 reg [NB_SWITCH -1 : 0] switch   ;
 reg                    run_log_r  ;
 reg                    read_log ;
 reg [NB_SIZE   -1 : 0] address_r  ;
+
+// Datos desde el DSP
 reg [NB_GPIO   -1 : 0] data_log ;
 reg [NB_GPIO   -1 : 0] symb_count_i_low ;
 reg [NB_GPIO   -1 : 0] symb_count_i_high ;
@@ -57,7 +73,8 @@ reg [NB_GPIO   -1 : 0] error_count_i_low;
 reg [NB_GPIO   -1 : 0] error_count_i_high;
 reg [NB_GPIO   -1 : 0] error_count_q_low;
 reg [NB_GPIO   -1 : 0] error_count_q_high;
-reg [NB_GPIO   -1 : 0] control;
+
+// Registro hacia el GPIO
 reg [NB_GPIO   -1 : 0] to_gpio;
 
 // Comandos desde el GPIO - registro de cada comando
@@ -95,17 +112,17 @@ always @(*) begin
 
     to_gpio      = 'd0;
     case (command_rf)
-        8'h20: to_gpio = data_log;
-        8'h40:
+        READ_ADDRESS: to_gpio = data_log;
+        READ_BER:
             case (data_rf)
-                23'h0: to_gpio = error_count_i_high;
-                23'h1: to_gpio = error_count_i_low;
-                23'h2: to_gpio = symb_count_i_high;
-                23'h3: to_gpio = symb_count_i_low;
-                23'h4: to_gpio = error_count_q_high;
-                23'h5: to_gpio = error_count_q_low;
-                23'h6: to_gpio = symb_count_q_high;
-                23'h7: to_gpio = symb_count_q_low;
+                ERROR_I_HIGH: to_gpio = error_count_i_high;
+                ERROR_I_LOW: to_gpio = error_count_i_low;
+                SYMB_I_HIGH: to_gpio = symb_count_i_high;
+                SYMB_I_LOW: to_gpio = symb_count_i_low;
+                ERROR_Q_HIGH: to_gpio = error_count_q_high;
+                ERROR_Q_LOW: to_gpio = error_count_q_low;
+                SYMB_Q_HIGH: to_gpio = symb_count_q_high;
+                SYMB_Q_LOW: to_gpio = symb_count_q_low;
             endcase
     endcase
 end
@@ -118,7 +135,6 @@ always @(posedge clk or negedge i_rst_n) begin
         read_log <= 'd0;
         address_r <= 'd0;
         data_log <= 'd0;
-        control <= 'd0;
 
         error_count_i_high <= 'd0;
         error_count_i_low  <= 'd0;
@@ -156,14 +172,16 @@ always @(posedge clk or negedge i_rst_n) begin
                 read_log <= 1'b0;
 
             // Read BER
-            error_count_i_high <= i_error_count_i[NB_BER   - 1 : NB_BER/2];
-            error_count_i_low  <= i_error_count_i[NB_BER/2 - 1 :        0];
-            symb_count_i_high  <= i_symb_count_i [NB_BER   - 1 : NB_BER/2];
-            symb_count_i_low   <= i_symb_count_i [NB_BER/2 - 1 :        0];
-            error_count_q_high <= i_error_count_q[NB_BER   - 1 : NB_BER/2];
-            error_count_q_low  <= i_error_count_q[NB_BER/2 - 1 :        0];
-            symb_count_q_high  <= i_symb_count_q [NB_BER   - 1 : NB_BER/2];
-            symb_count_q_low   <= i_symb_count_q [NB_BER/2 - 1 :        0];
+            if (read_ber) begin
+                error_count_i_high <= i_error_count_i[NB_BER   - 1 : NB_BER/2];
+                error_count_i_low  <= i_error_count_i[NB_BER/2 - 1 :        0];
+                symb_count_i_high  <= i_symb_count_i [NB_BER   - 1 : NB_BER/2];
+                symb_count_i_low   <= i_symb_count_i [NB_BER/2 - 1 :        0];
+                error_count_q_high <= i_error_count_q[NB_BER   - 1 : NB_BER/2];
+                error_count_q_low  <= i_error_count_q[NB_BER/2 - 1 :        0];
+                symb_count_q_high  <= i_symb_count_q [NB_BER   - 1 : NB_BER/2];
+                symb_count_q_low   <= i_symb_count_q [NB_BER/2 - 1 :        0];
+            end
         end
     end
 end
