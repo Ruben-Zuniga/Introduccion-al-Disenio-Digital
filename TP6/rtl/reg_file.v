@@ -43,20 +43,11 @@ localparam RUN_LOG_BIT      = 4 + (NB_DATA_RF + 1);
 localparam READ_ADDRESS_BIT = 5 + (NB_DATA_RF + 1);
 localparam READ_BER_BIT     = 6 + (NB_DATA_RF + 1);
 
-// Para indicar qué leer para la BER
-localparam READ_ERROR_I = 'd0;
-localparam READ_SYMB_I  = 'd1;
-localparam READ_ERROR_Q = 'd2;
-localparam READ_SYMB_Q  = 'd3;
-
-// Comandos hacia el GPIO
-localparam MEM_FULL_BIT     = 'h1;
-
-reg                    rst_dsp_n;
+reg                    rst_dsp_n_r;
 reg [NB_SWITCH -1 : 0] switch   ;
-reg                    run_log  ;
+reg                    run_log_r  ;
 reg                    read_log ;
-reg [NB_SIZE   -1 : 0] address  ;
+reg [NB_SIZE   -1 : 0] address_r  ;
 reg [NB_GPIO   -1 : 0] data_log ;
 reg [NB_GPIO   -1 : 0] symb_count_i_low ;
 reg [NB_GPIO   -1 : 0] symb_count_i_high ;
@@ -69,13 +60,63 @@ reg [NB_GPIO   -1 : 0] error_count_q_high;
 reg [NB_GPIO   -1 : 0] control;
 reg [NB_GPIO   -1 : 0] to_gpio;
 
+// Comandos desde el GPIO - registro de cada comando
+// Campo de comando
+reg [NB_COMMAND-1 : 0] command_rf;
+reg enable;
+reg rst_dsp_n;
+reg toggle_tx_rx;
+reg tx;
+reg rx;
+reg run_log;
+reg read_address;
+reg read_ber;
+// Campo de datos
+reg [NB_DATA_RF-1 : 0] data_rf;
+reg [NB_COUNTER-1 : 0] phase;
+reg [NB_SIZE-1 : 0] address;
+reg [2 : 0] ber_type;
+
+always @(*) begin
+    enable       = i_gpio[ENABLE_BIT];
+    rst_dsp_n    = !i_gpio[RST_BIT];
+    toggle_tx_rx = i_gpio[TOGGLE_TX_RX_BIT];
+    tx           = i_gpio[TX_BIT];
+    rx           = i_gpio[RX_BIT];
+    run_log      = i_gpio[RUN_LOG_BIT];
+    read_address = i_gpio[READ_ADDRESS_BIT];
+    read_ber     = i_gpio[READ_BER_BIT];
+    phase        = i_gpio[NB_COUNTER-1 : 0];
+    address      = i_gpio[NB_SIZE-1 : 0];
+    ber_type     = i_gpio[2 : 0];
+
+    command_rf = i_gpio[NB_GPIO-1 -: NB_COMMAND]; // ultimos 8 bits
+    data_rf = i_gpio[0 +: NB_DATA_RF]; // primeros 23 bits
+
+    to_gpio      = 'd0;
+    case (command_rf)
+        8'h20: to_gpio = data_log;
+        8'h40:
+            case (data_rf)
+                23'h0: to_gpio = error_count_i_high;
+                23'h1: to_gpio = error_count_i_low;
+                23'h2: to_gpio = symb_count_i_high;
+                23'h3: to_gpio = symb_count_i_low;
+                23'h4: to_gpio = error_count_q_high;
+                23'h5: to_gpio = error_count_q_low;
+                23'h6: to_gpio = symb_count_q_high;
+                23'h7: to_gpio = symb_count_q_low;
+            endcase
+    endcase
+end
+
 always @(posedge clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
-        rst_dsp_n <= 1'b0;
+        rst_dsp_n_r <= 1'b0;
         switch <= 'd0;
-        run_log <= 'd0;
+        run_log_r <= 'd0;
         read_log <= 'd0;
-        address <= 'd0;
+        address_r <= 'd0;
         data_log <= 'd0;
         control <= 'd0;
 
@@ -89,35 +130,27 @@ always @(posedge clk or negedge i_rst_n) begin
         symb_count_q_low   <= 'd0;
     end
     else begin
-        // Leer el GPIO
-        control <= i_gpio;
         // Leer bit de enable del GPIO
-        if (control[ENABLE_BIT]) begin
+        if (enable) begin
             // Reset del DSP
-            rst_dsp_n <= (control[RST_BIT]) ? 1'b0 : 1'b1;
+            rst_dsp_n_r <= rst_dsp_n;
 
-            // TX ON/OFF
-            if (control[TX_BIT])
-                switch[0] <= (control[TOGGLE_TX_RX_BIT]) ? 1'b1 : 1'b0;
-
-            // RX ON/OFF - Ver bien donde poner la asignacion de fase
-            if (control[RX_BIT]) begin
-                if (control[TOGGLE_TX_RX_BIT]) begin
-                    switch[1] <= 1'b1;
-                    switch[3:2] <= control[NB_COUNTER-1 : 0];
-                end
-                else
-                    switch[1] <= 1'b0;
+            // TX y RX ON/OFF + fase
+            if (toggle_tx_rx) begin
+                switch[0] <= tx;
+                switch[1] <= rx;
+                if (rx)
+                    switch[3:2] <= phase;
             end
 
             // Run log
-            run_log <= (control[RUN_LOG_BIT]) ? 1'b1 : 1'b0;
+            run_log_r <= run_log;
 
-            // Read 1 address
-            if (control[READ_ADDRESS_BIT]) begin
+            // Read 1 address - Aca la memoria va a tardar en dar el dato
+            if (read_address) begin
                 read_log <= 1'b1;
-                address <= control[NB_SIZE-1 : 0];
-                data_log <= i_data_log;
+                address_r <= address;
+                data_log <= {i_full_mem, i_data_log[NB_LOG - 2 : 0]};
             end
             else
                 read_log <= 1'b0;
@@ -135,28 +168,11 @@ always @(posedge clk or negedge i_rst_n) begin
     end
 end
 
-always @(*) begin
-    case (control)
-        (1'b1 << READ_ADDRESS_BIT):
-            to_gpio = data_log;
-        ((1'b1 << READ_BER_BIT) & (READ_ERROR_I)):
-            to_gpio = error_count_i_high;
-        ((1'b1 << READ_BER_BIT) & (READ_SYMB_I)):
-            to_gpio = symb_count_i_high;
-        ((1'b1 << READ_BER_BIT) & (READ_ERROR_Q)):
-            to_gpio = error_count_q_high;
-        ((1'b1 << READ_BER_BIT) & (READ_SYMB_Q)):
-            to_gpio = symb_count_q_high;
-        default: 
-            to_gpio = 'd0;
-    endcase
-end
-
-assign o_rst_dsp_n = rst_dsp_n;
+assign o_rst_dsp_n = rst_dsp_n_r;
 assign o_switch = switch;
-assign o_run_log = run_log;
+assign o_run_log = run_log_r;
 assign o_read_log = read_log;
-assign o_address = address;
+assign o_address = address_r;
 assign o_gpio = to_gpio;
     
 endmodule
