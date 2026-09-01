@@ -57,9 +57,80 @@ El diagrama de estados se puede observar en la \autoref{fig:esq_fsm}.
     \label{fig:esq_fsm}
 \end{figure}
 
-A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
+A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego de terminar el diseño ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
+
+Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados en la \autoref{fig:vio_mem}. Al presionar el boton \emph{probe\_out3}, se habilitó el logueo, donde el led \emph{probe\_in1[0]} indicó que la memoria se llenó y el led \emph{probe\_in1[2]} se encendió y apagó para indicar que se había iniciado el proceso.
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/vio_mem_run.png}
+        \subcaption{Habilitación del logueo.}
+        \label{fig:vio_mem_run}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{img/vio_mem_read.png}
+        \subcaption{Memoria llena.}
+        \label{fig:vio_mem_read}
+    \end{minipage}
+
+    \caption{Proceso de guardado con el VIO.}
+    \label{fig:vio_mem}
+\end{figure}
+
+En la \autoref{fig:ila_mem_read} se puede ver cómo la señal del canal I y Q (\emph{probe\_1} y \emph{probe\_2} respectivamente) cambiar al usar el trigger del ILA mientras se cambia la dirección de lectura.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/ila_mem_read.png}
+    \caption{Cambio del dato obtenido al leer otra dirección.}
+    \label{fig:ila_mem_read}
+\end{figure}
 
 \subsection{Register File}
+
+El banco de registros se modeló según la arquitectura de la \autoref{fig:esq_rf}. En este esquema, el dato de 32 bits proveniente del GPIO es desarmado en grupos de bits para almacenarlos en registros o comandar multiplexores según corresponda. También almacena cada dato que se recibe del DSP y lo envía al GPIO dependiendo el comando que se reciba.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_rf.pdf}
+    \caption{Arquitectura del register file, entre el periférico del GPIO y el DSP.}
+    \label{fig:esq_rf}
+\end{figure}
+
+La salida del GPIO se divide según la \autoref{fig:dato_gpio}, donde cada campo se explica a continuación:
+
+\begin{itemize}
+    \item \textbf{GPIO Data}: en este campo se colocan valores auxiliares que acompañan a los valores del campo GPIO Command, en el caso de que corresponda.
+    \item \textbf{Enable Command}: hay que levantar esta bandera para que se haga efectivo el envío del comando al register file, ya que este controla todos los registros.
+    \item \textbf{GPIO Command}: contiene todos los bits de control que se desean enviar al DSP.
+        \subitem \textbf{Reset DSP}: envía una señal de reset al DSP. Cuando se resetea con el botón de la placa, es el register file el que resetea al DSP con esta señal.
+        \subitem \textbf{TX/RX Mask}: se levanta esta bandera para habilitar la actualización del estado del TX y el RX.
+        \subitem \textbf{Enable TX}: actualiza el estado (encendido o apagado) del transmisor. Necesita que el bit TX/RX Mask esté levantado.
+        \subitem \textbf{Enable RX}: actualiza el estado (encendido o apagado) del receptor. Necesita que el bit TX/RX Mask esté levantado.
+        \subitem \textbf{Run Log}: el DSP comienza a almacenar datos en toda la memoria hasta que llene.
+        \subitem \textbf{Read address}: lee un dato de la memoria del DSP y lo envía al GPIO junto con la bandera de memoria llena en el bit más significativo. La dirección se especifica en el campo GPIO Data.
+        \subitem \textbf{Read BER}: permite almacenar, en el GPIO de entrada, uno de los valores correspondientes al BER. Estos se deben especificar en el campo GPIO Data y pueden ser:
+            \subsubitem \emph{Error del canal I (parte alta)}
+            \subsubitem \emph{Error del canal I (parte baja)}
+            \subsubitem \emph{Símbolos totales del canal I (parte alta)}
+            \subsubitem \emph{Símbolos totales del canal I (parte baja)}
+            \subsubitem \emph{Error del canal Q (parte alta)}
+            \subsubitem \emph{Error del canal Q (parte baja)}
+            \subsubitem \emph{Símbolos totales del canal Q (parte alta)}
+            \subsubitem \emph{Símbolos totales del canal Q (parte baja)}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/dato_gpio.png}
+    \caption{Campos de la salida del GPIO al register file.}
+    \label{fig:dato_gpio}
+\end{figure}
 
 \subsection{Microprocesador}
 

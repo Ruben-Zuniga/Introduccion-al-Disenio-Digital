@@ -29,47 +29,53 @@ module top
     parameter NB_LOG    = 32
 )
 (
+    // output wire [NB_GPIO   -1 : 0]      o_gpio          , // Comentar al sintetizar
+    // input  wire [NB_GPIO   -1 : 0]      i_gpio          , // Comentar al sintetizar
     output wire [NB_LED    -1 : 0]      o_led           ,
     output wire [NB_RGB    -1 : 0]      o_led_rgb_0     ,
     output wire [NB_RGB    -1 : 0]      o_led_rgb_1     ,
-    output wire [NB_GPIO   -1 : 0]      o_gpio          ,
+    output wire                         o_tx_uart       ,
     input  wire                         clk             ,
     input  wire                         i_rst_n         ,
-    input  wire [NB_GPIO   -1 : 0]      i_gpio          
+    input  wire                         i_rx_uart       
 );
 
 // Module Connections
-wire                           prbs_tx_i    ;
-wire                           prbs_tx_q    ;
-wire                           bits_rx_i    ;
-wire                           bits_rx_q    ;
-wire signed [NB_DATA-1    : 0] data_i       ;
-wire signed [NB_DATA-1    : 0] data_q       ;
-wire signed [NB_DATA-1    : 0] decimated_i  ;
-wire signed [NB_DATA-1    : 0] decimated_q  ;
-wire        [NB_BER-1  : 0] symb_count_i ;
-wire        [NB_BER-1  : 0] symb_count_q ;
-wire        [NB_BER-1  : 0] error_count_i;
-wire        [NB_BER-1  : 0] error_count_q;
-wire                           led_i        ;
-wire                           led_q        ;
-wire                           valid        ;
-wire        [NB_COUNTER-1 : 0] count        ;
-wire                           ber_0        ;
-wire                   run_log      ;
-wire                   read_log     ;
-wire [NB_SIZE - 1 : 0] address      ;
-wire [NB_LOG  - 1 : 0] data_log     ;
-wire                   full_mem     ;
-wire                   rst_dsp_n      ;
-wire [NB_SWITCH -1 : 0] switch        ;
+wire                            prbs_tx_i    ;
+wire                            prbs_tx_q    ;
+wire                            bits_rx_i    ;
+wire                            bits_rx_q    ;
+wire signed [NB_DATA    -1 : 0] data_i       ;
+wire signed [NB_DATA    -1 : 0] data_q       ;
+wire signed [NB_DATA    -1 : 0] decimated_i  ;
+wire signed [NB_DATA    -1 : 0] decimated_q  ;
+wire        [NB_BER     -1 : 0] symb_count_i ;
+wire        [NB_BER     -1 : 0] symb_count_q ;
+wire        [NB_BER     -1 : 0] error_count_i;
+wire        [NB_BER     -1 : 0] error_count_q;
+wire                            led_i        ;
+wire                            led_q        ;
+wire                            valid        ;
+wire        [NB_COUNTER -1 : 0] count        ;
+wire                            ber_0        ;
+wire                            run_log      ;
+wire                            read_log     ;
+wire        [NB_SIZE    -1 : 0] address      ;
+wire        [NB_LOG     -1 : 0] data_log     ;
+wire                            full_mem     ;
+wire                            rst_dsp_n    ;
+wire        [NB_SWITCH  -1 : 0] switch       ;
+wire        [NB_GPIO    -1 : 0] from_gpio    ;
+wire        [NB_GPIO    -1 : 0] to_gpio      ;
+wire                            clk_micro    ;
+wire                            lock_clk     ;
 
-// VIO Connections
-wire                     connect_reset  ;
-wire [NB_SWITCH - 1 : 0] connect_switch ;
-wire [NB_SWITCH - 1 : 0] switch_from_VIO;
-wire                     reset_from_VIO ;
-wire                     select_VIO     ;
+// // VIO Connections
+// wire                     connect_reset  ;
+// wire [NB_SWITCH - 1 : 0] connect_switch ;
+// wire [NB_SWITCH - 1 : 0] switch_from_VIO;
+// wire                     reset_from_VIO ;
+// wire                     select_VIO     ;
 
 // // Reverse Reset
 // assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
@@ -101,6 +107,8 @@ dsp #(
     .NB_LOG         (NB_LOG     )
 )
 u_dsp (
+    .clk            (clk_micro            ), // Descomentar al sintetizar
+    // .clk            (clk            ), // Comentar al sintetizar
     .o_led          (ber_0          ),
     .o_symb_count_i (symb_count_i   ),
     .o_symb_count_q (symb_count_q   ),
@@ -108,7 +116,6 @@ u_dsp (
     .o_error_count_q(error_count_q  ),
     .o_data_log     (data_log       ),
     .o_full_mem     (full_mem       ),
-    .clk            (clk            ),
     .i_rst_n        (rst_dsp_n      ),
     .i_switch       (switch       ),
     .i_run_log      (run_log        ),
@@ -130,28 +137,43 @@ reg_file #(
     .NB_LOG     (NB_LOG     )
 )
 u_reg_file (
-    .o_rst_dsp_n    (rst_dsp_n      ),
-    .o_switch       (switch         ),
+    .o_gpio         (to_gpio      ), // Descomentar al sintetizar
+    .i_gpio         (from_gpio    ), // Descomentar al sintetizar
+    .clk            (clk_micro          ), // Descomentar al sintetizar
+    // .o_gpio         (o_gpio      ), // Comentar al sintetizar
+    // .i_gpio         (i_gpio    ), // Comentar al sintetizar
+    // .clk            (clk          ), // Comentar al sintetizar
+    .o_rst_dsp_n    (rst_dsp_n    ),
+    .o_switch       (switch       ),
     .o_run_log      (run_log      ),
     .o_read_log     (read_log     ),
     .o_address      (address      ),
-    .o_gpio         (o_gpio         ),
     .i_symb_count_i (symb_count_i ),
     .i_symb_count_q (symb_count_q ),
     .i_error_count_i(error_count_i),
     .i_error_count_q(error_count_q),
     .i_data_log     (data_log     ),
     .i_full_mem     (full_mem     ),
-    .i_gpio         (i_gpio         ),
-    .clk            (clk            ),
-    .i_rst_n        (i_rst_n        )
+    .i_rst_n        (i_rst_n      )
+);
+
+micro_gpio #()                   // Descomentar al sintetizar
+u_micro_gpio(
+    .clk              (clk_micro),  // Clock aplicacion
+    .gpio_rtl_tri_o   (from_gpio),  // GPIO
+    .gpio_rtl_tri_i   (to_gpio  ),  // GPIO
+    .reset            (i_rst_n  ),  // Hard Reset
+    .sys_clock        (clk      ),  // Clock de FPGA
+    .o_lock_clk       (lock_clk ),  // Senal Lock Clock
+    .usb_uart_rxd     (i_rx_uart),  // UART
+    .usb_uart_txd     (o_tx_uart)   // UART
 );
 
 // // VIO instance
 // vio #()                                  // Descomentar al sintetizar
 //     u_vio
 //     (
-//         .clk_0       (clk            ),
+//         .clk_0       (clk_micro            ),
 //         .probe_in0_0 (o_led          ),
 //         .probe_in1_0 (o_led_rgb_0    ),
 //         .probe_in2_0 (o_led_rgb_1    ),
@@ -167,7 +189,7 @@ u_reg_file (
 // ila #()
 //     u_ila
 //     (
-//         .clk_0   (clk),
+//         .clk_0   (clk_micro),
 //         .probe0_0(full_mem),
 //         .probe1_0(data_log[7:0]),
 //         .probe2_0(data_log[23:16])
