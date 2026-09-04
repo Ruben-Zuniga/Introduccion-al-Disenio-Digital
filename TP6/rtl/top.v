@@ -71,15 +71,15 @@ wire                            clk_micro    ;
 wire                            lock_clk     ;
 
 // // VIO Connections
-// wire                     connect_reset  ;
+wire                     connect_reset  ;
 // wire [NB_SWITCH - 1 : 0] connect_switch ;
 // wire [NB_SWITCH - 1 : 0] switch_from_VIO;
-// wire                     reset_from_VIO ;
-// wire                     select_VIO     ;
+wire                     reset_from_VIO ;
+wire                     select_VIO     ;
 
 // // Reverse Reset
 // assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
-// assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
+assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
 
 // assign select_VIO = 1'b0;        // Comentar al sintetizar
 // assign reset_from_VIO = 1'b0;    // Comentar al sintetizar
@@ -154,7 +154,7 @@ u_reg_file (
     .i_error_count_q(error_count_q),
     .i_data_log     (data_log     ),
     .i_full_mem     (full_mem     ),
-    .i_rst_n        (i_rst_n      )
+    .i_rst_n        (connect_reset      )
 );
 
 micro_gpio #()                   // Descomentar al sintetizar
@@ -162,28 +162,24 @@ u_micro_gpio(
     .clk              (clk_micro),  // Clock aplicacion
     .gpio_rtl_tri_o   (from_gpio),  // GPIO
     .gpio_rtl_tri_i   (to_gpio  ),  // GPIO
-    .reset            (i_rst_n  ),  // Hard Reset
+    .reset            (connect_reset  ),  // Hard Reset
     .sys_clock        (clk      ),  // Clock de FPGA
     .o_lock_clk       (lock_clk ),  // Senal Lock Clock
     .usb_uart_rxd     (i_rx_uart),  // UART
     .usb_uart_txd     (o_tx_uart)   // UART
 );
 
-// // VIO instance
-// vio #()                                  // Descomentar al sintetizar
-//     u_vio
-//     (
-//         .clk_0       (clk_micro            ),
-//         .probe_in0_0 (o_led          ),
-//         .probe_in1_0 (o_led_rgb_0    ),
-//         .probe_in2_0 (o_led_rgb_1    ),
-//         .probe_out0_0(select_VIO     ),
-//         .probe_out1_0(reset_from_VIO ),
-//         .probe_out2_0(switch_from_VIO),
-//         .probe_out3_0(run_log        ),
-//         .probe_out4_0(read_log       ),
-//         .probe_out5_0(address        )
-//     );
+// VIO instance
+vio #()                                  // Descomentar al sintetizar
+    u_vio
+    (
+        .clk_0       (clk_micro      ),
+        .probe_in0_0 (o_led          ),
+        .probe_in1_0 (o_led_rgb_0    ),
+        .probe_in2_0 (o_led_rgb_1    ),
+        .probe_out0_0(select_VIO     ),
+        .probe_out1_0(reset_from_VIO )
+    );
 
 // // ILA Instance
 // ila #()
@@ -195,8 +191,8 @@ u_micro_gpio(
 //         .probe2_0(data_log[23:16])
 //     );
 
-assign o_led[0] = ber_0;
-assign o_led[1] = i_rst_n    ;
+assign o_led[0] = lock_clk;
+assign o_led[1] = connect_reset    ;
 assign o_led[2] = switch[0];
 assign o_led[3] = switch[1];
 
