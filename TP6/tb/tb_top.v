@@ -92,111 +92,113 @@ initial begin
         @(posedge clk);
 
     // ---- Leer BER ----
-    // // Leer BER (parte baja)
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    // Leer BER (parte baja)
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h3;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h3;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h5;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h5;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h7;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h7;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
     
-    // // Reiniciar RX con fase 0
-    // #10000;
-    // @(posedge clk);
-    // i_gpio = 1'b1 << TOGGLE_TX_RX_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
-    // @(posedge clk);
-    // i_gpio = (i_gpio | 1'b1 << RX_BIT | 1'b1 << TX_BIT) & ~2'h0;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    // Reiniciar RX con fase 0
+    #1000;
+    @(posedge clk);
+    i_gpio = 1'b1 << TOGGLE_TX_RX_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = (i_gpio | 1'b1 << RX_BIT | 1'b1 << TX_BIT) & ~2'h0;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // repeat(511*SYNC_PHASES*OS + 120000)
-    //     @(posedge clk);
+    repeat(511*SYNC_PHASES*OS + 120000)
+        @(posedge clk);
 
-    // // Leer BER
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h0;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    // Leer BER
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h0;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h1;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h2;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h2;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h3;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h3;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h4;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h4;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h5;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h5;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h6;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h6;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
-    // @(posedge clk);
-    // i_gpio = 1'b1 << READ_BER_BIT | 3'h7;
-    // @(posedge clk);
-    // i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
-    // @(posedge clk);
-    // i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
+    @(posedge clk);
+    i_gpio = 1'b1 << READ_BER_BIT | 3'h7;
+    @(posedge clk);
+    i_gpio = i_gpio | 1'b1 << ENABLE_BIT;
+    @(posedge clk);
+    i_gpio = i_gpio & ~(1'b1 << ENABLE_BIT);
 
     // ---- Leer memoria ----
+    #1000
+    @(posedge clk);
     i_gpio = {8'h10, 1'b0, 23'h0};
     @(posedge clk);
     i_gpio = {8'h10, 1'b1, 23'h0};

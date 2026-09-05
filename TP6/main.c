@@ -23,8 +23,32 @@ u32 GPO_Value;
 u32 GPO_Param;
 XUartLite uart_module;
 
+// Tramas del UART
+u8 frame_in[4] = {0};
+u8 frame_out[4] = {0};
+
 //Funcion para recibir 1 byte bloqueante
 //XUartLite_RecvByte((&uart_module)->RegBaseAddress)
+
+u32 get_gpio(u32 input)
+{
+    XGpio_DiscreteWrite(&GpioOutput, 1, input);
+    XGpio_DiscreteWrite(&GpioOutput, 1, input | (u32)(1 << 23));
+    XGpio_DiscreteWrite(&GpioOutput, 1, input);
+
+    return XGpio_DiscreteRead(&GpioOutput, 1);
+}
+
+void send_frame(u32 input)
+{
+    frame_out[0] = (input >> 24) & 0x000000FF;
+    frame_out[1] = (input >> 16) & 0x000000FF;
+    frame_out[2] = (input >>  8) & 0x000000FF;
+    frame_out[3] = (input >>  0) & 0x000000FF;
+
+    XUartLite_Send(&uart_module, &frame_out[0], 4);
+    while(XUartLite_IsSending(&uart_module)){}
+}
 
 int main()
 {
@@ -61,9 +85,7 @@ int main()
     u32 symb_q_low = 0;
 
     u32 recv_count = 0;
-    u8 frame_in[4] = {0};
-    u8 frame_out[4] = {0};
-    u8 i = 0;
+    
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
         while(recv_count != 4){
@@ -80,29 +102,28 @@ int main()
         // XUartLite_Send(&uart_module, &frame_out[0], 4);
         // while(XUartLite_IsSending(&uart_module)){}
 
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000000);
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40800000);
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000000);
-        error_i_high = XGpio_DiscreteRead(&GpioOutput, 1);
+        // Extraer BER - no se latchean los registros al mismo tiempo -> hay una diferencia de 207
+        //  simbolos entre Q e I
+        error_i_high = get_gpio(0x40000000);
+        error_i_low = get_gpio(0x40000001);
+        symb_i_high = get_gpio(0x40000002);
+        symb_i_low = get_gpio(0x40000003);
+        error_q_high = get_gpio(0x40000004);
+        error_q_low = get_gpio(0x40000005);
+        symb_q_high = get_gpio(0x40000006);
+        symb_q_low = get_gpio(0x40000007);
 
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000001);
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40800001);
-        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000001);
-        error_i_low = XGpio_DiscreteRead(&GpioOutput, 1);
+        // Enviar todas las tramas
+        send_frame(error_i_high);
+        send_frame(error_i_low);
+        send_frame(symb_i_high);
+        send_frame(symb_i_low);
+        send_frame(error_q_high);
+        send_frame(error_q_low);
+        send_frame(symb_q_high);
+        send_frame(symb_q_low);
 
-        frame_out[0] = (error_i_high >> 24) & 0x000000FF;
-        frame_out[1] = (error_i_high >> 16) & 0x000000FF;
-        frame_out[2] = (error_i_high >>  8) & 0x000000FF;
-        frame_out[3] = (error_i_high >>  0) & 0x000000FF;
-        XUartLite_Send(&uart_module, &frame_out[0], 4);
-        while(XUartLite_IsSending(&uart_module)){}
-
-        frame_out[0] = (error_i_low >> 24) & 0x000000FF;
-        frame_out[1] = (error_i_low >> 16) & 0x000000FF;
-        frame_out[2] = (error_i_low >>  8) & 0x000000FF;
-        frame_out[3] = (error_i_low >>  0) & 0x000000FF;
-        XUartLite_Send(&uart_module, &frame_out[0], 4);
-        while(XUartLite_IsSending(&uart_module)){}
+        
     }
 	
 	cleanup_platform();

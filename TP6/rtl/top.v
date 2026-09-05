@@ -81,9 +81,9 @@ wire                     select_VIO     ;
 // assign connect_switch = (select_VIO) ? switch_from_VIO : i_switch;
 assign connect_reset  = (select_VIO) ? reset_from_VIO  : i_rst_n ;
 
-// assign select_VIO = 1'b0;        // Comentar al sintetizar
-// assign reset_from_VIO = 1'b0;    // Comentar al sintetizar
-// assign switch_from_VIO = 4'b0;   // Comentar al sintetizar
+// assign select_VIO = 1'b0;     
+// assign reset_from_VIO = 1'b0; 
+// assign switch_from_VIO = 4'b0;
 
 // Modulo DSP
 dsp #(
@@ -154,15 +154,16 @@ u_reg_file (
     .i_error_count_q(error_count_q),
     .i_data_log     (data_log     ),
     .i_full_mem     (full_mem     ),
-    .i_rst_n        (connect_reset      )
+    .i_rst_n        (i_rst_n      )
 );
 
+// Microcontrolador
 micro_gpio #()                   // Descomentar al sintetizar
 u_micro_gpio(
-    .clk              (clk_micro),  // Clock aplicacion
+    .clk_micro        (clk_micro),  // Clock aplicacion
     .gpio_rtl_tri_o   (from_gpio),  // GPIO
     .gpio_rtl_tri_i   (to_gpio  ),  // GPIO
-    .reset            (connect_reset  ),  // Hard Reset
+    .reset            (i_rst_n  ),  // Hard Reset
     .sys_clock        (clk      ),  // Clock de FPGA
     .o_lock_clk       (lock_clk ),  // Senal Lock Clock
     .usb_uart_rxd     (i_rx_uart),  // UART
@@ -177,6 +178,10 @@ vio #()                                  // Descomentar al sintetizar
         .probe_in0_0 (o_led          ),
         .probe_in1_0 (o_led_rgb_0    ),
         .probe_in2_0 (o_led_rgb_1    ),
+        .probe_in3_0 (i_rx_uart),
+        .probe_in4_0 (o_tx_uart),
+        .probe_in5_0 (1'b0),
+        .probe_in6_0 (1'b0),
         .probe_out0_0(select_VIO     ),
         .probe_out1_0(reset_from_VIO )
     );
@@ -186,13 +191,15 @@ vio #()                                  // Descomentar al sintetizar
 //     u_ila
 //     (
 //         .clk_0   (clk_micro),
-//         .probe0_0(full_mem),
-//         .probe1_0(data_log[7:0]),
-//         .probe2_0(data_log[23:16])
+//         .probe0_0(1'b0),
+//         .probe1_0(1'b0),
+//         .probe2_0(i_rx_uart),
+//         .probe3_0(o_tx_uart)
 //     );
 
-assign o_led[0] = lock_clk;
-assign o_led[1] = connect_reset    ;
+assign o_led[0] = lock_clk; // Descomentar al sintetizar
+// assign o_led[0] = ber_0; // Comentar al sintetizar
+assign o_led[1] = i_rst_n    ;
 assign o_led[2] = switch[0];
 assign o_led[3] = switch[1];
 

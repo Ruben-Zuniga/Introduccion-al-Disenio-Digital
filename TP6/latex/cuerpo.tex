@@ -86,7 +86,7 @@ En la \autoref{fig:ila_mem_read} se puede ver cómo la señal del canal I y Q (\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{img/ila_mem_read.png}
+    \includegraphics[width=0.8\linewidth]{img/ila_mem_read.png}
     \caption{Cambio del dato obtenido al leer otra dirección.}
     \label{fig:ila_mem_read}
 \end{figure}
@@ -131,6 +131,26 @@ La salida del GPIO se divide según la \autoref{fig:dato_gpio}, donde cada campo
     \caption{Campos de la salida del GPIO al register file.}
     \label{fig:dato_gpio}
 \end{figure}
+
+Para verificar el register file, se realizó un testbench que estimula la entrada con los comandos antes mencionados, como si fuera el propio periférico GPIO. El flujo que realiza el testbench es:
+
+\begin{enumerate}
+    \item Resetear y luego encender el TX y el RX con la fase óptima.
+    \item Leer todos los campos de BER pero solo la parte baja.
+    \item Apagar y encender el RX con la peor fase.
+    \item Leer todos los campos de BER.
+    \item Habilitar el logueo en memoria.
+    \item Leer todas las direcciones de la memoria.
+\end{enumerate}
+
+El resultado de esta simulación se ve en la forma de onda de la \autoref{}.
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=\linewidth]{img/dato_gpio.png}
+%     \caption{Campos de la salida del GPIO al register file.}
+%     \label{fig:dato_gpio}
+% \end{figure}
 
 \subsection{Microprocesador}
 
