@@ -143,14 +143,14 @@ Para verificar el register file, se realizó un testbench que estimula la entrad
     \item Leer todas las direcciones de la memoria.
 \end{enumerate}
 
-El resultado de esta simulación se ve en la forma de onda de la \autoref{}.
+La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig:sim_rf}, donde el módulo entrega el dato de los errores y símbolos totales del canal I y los errores del canal Q. Se puede ver, cuando se solicitan los símbolos del canal I, que el dato llega 1 ciclo despues de levantar la bandera de habilitación, por lo que el dato luego tiene 1 ciclo para estabilizarse y así poder leerlo luego con el microprocesador.
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\linewidth]{img/dato_gpio.png}
-%     \caption{Campos de la salida del GPIO al register file.}
-%     \label{fig:dato_gpio}
-% \end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/sim_rf.png}
+    \caption{Forma de onda en la lectura de algunos campos de BER.}
+    \label{fig:sim_rf}
+\end{figure}
 
 \subsection{Microprocesador}
 
