@@ -10,10 +10,10 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports { c
 
 ##Switches
 
-set_property -dict { PACKAGE_PIN A8    IOSTANDARD LVCMOS33 } [get_ports { i_switch[0] }]; #IO_L12N_T1_MRCC_16 Sch=i_switch[0]
-set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { i_switch[1] }]; #IO_L13P_T2_MRCC_16 Sch=i_switch[1]
-set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { i_switch[2] }]; #IO_L13N_T2_MRCC_16 Sch=i_switch[2]
-set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVCMOS33 } [get_ports { i_switch[3] }]; #IO_L14P_T2_SRCC_16 Sch=i_switch[3]
+# set_property -dict { PACKAGE_PIN A8    IOSTANDARD LVCMOS33 } [get_ports { i_switch[0] }]; #IO_L12N_T1_MRCC_16 Sch=i_switch[0]
+# set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { i_switch[1] }]; #IO_L13P_T2_MRCC_16 Sch=i_switch[1]
+# set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { i_switch[2] }]; #IO_L13N_T2_MRCC_16 Sch=i_switch[2]
+# set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVCMOS33 } [get_ports { i_switch[3] }]; #IO_L14P_T2_SRCC_16 Sch=i_switch[3]
 
 ##RGB LEDs
 

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/_intsup.h>
@@ -8,8 +7,8 @@
 #include "platform.h"
 #include "xuartlite.h"
 
-#define PORT_IN	 		XPAR_AXI_GPIO_0_BASEADDR //XPAR_GPIO_0_DEVICE_ID
-#define PORT_OUT 		XPAR_AXI_GPIO_0_BASEADDR //XPAR_GPIO_0_DEVICE_ID
+#define PORT_IN	 		XPAR_AXI_GPIO_0_BASEADDR
+#define PORT_OUT 		XPAR_AXI_GPIO_0_BASEADDR
 
 //Device_ID Operaciones
 #define def_SOFT_RST            0
@@ -46,53 +45,64 @@ int main()
     }
     XGpio_SetDataDirection(&GpioOutput, 1, 0x00000000);
     XGpio_SetDataDirection(&GpioInput, 1, 0xFFFFFFFF);
+    
+    // Prender transceptor
+    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000000);
+    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E800000);
+    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000000);
 
-    u32 value;
+    u32 error_i_high = 0;
+    u32 error_i_low = 0;
+    u32 symb_i_high = 0;
+    u32 symb_i_low = 0;
+    u32 error_q_high = 0;
+    u32 error_q_low = 0;
+    u32 symb_q_high = 0;
+    u32 symb_q_low = 0;
+
     u32 recv_count = 0;
-
-    u8 trama[4] = {0};
-    u8 datos[4];
-    u8 led;
-    u8 color;
-    u8 cabecera = 0xA1;
-    u8 dispositivo = 0xEF;
-    u8 fin_de_trama = 0x41;
-
-    datos[0] = cabecera;
-    datos[1] = dispositivo;
-    datos[3] = fin_de_trama;
-
+    u8 frame_in[4] = {0};
+    u8 frame_out[4] = {0};
+    u8 i = 0;
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
         while(recv_count != 4){
             recv_count += XUartLite_Recv(&uart_module,
-                                         &trama[0] + recv_count,
+                                         &frame_in[0] + recv_count,
                                          4 - recv_count);
         }
         recv_count = 0;
 
-        // Comparar cabecera, dispositivo y fin de trama
-        if(trama[0] == 0xA1 && trama[1] == 0xFE && trama[3] == 0x41){
-            if(trama[2] == 32){
-                // Leer switches
-                value = XGpio_DiscreteRead(&GpioInput, 1);
-                datos[2] = (char)(value & 0x0000000F);
+        // // Loopback
+        // for (int i = 0; i < 4; i++) {
+        //     frame_out[i] = frame_in[i];
+        // }
+        // XUartLite_Send(&uart_module, &frame_out[0], 4);
+        // while(XUartLite_IsSending(&uart_module)){}
 
-                XUartLite_Send(&uart_module, &datos[0],4);
-                while(XUartLite_IsSending(&uart_module)){}
-            }
-            else{
-                // Cambiar LED
-                led = trama[2] >> 3;
-                color = trama[2] & 0x07;
-                XGpio_DiscreteWrite(&GpioOutput,1, (u32)color << (led * 3));
-            }
-        }
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000000);
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40800000);
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000000);
+        error_i_high = XGpio_DiscreteRead(&GpioOutput, 1);
 
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000001);
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40800001);
+        XGpio_DiscreteWrite(&GpioOutput, 1, 0x40000001);
+        error_i_low = XGpio_DiscreteRead(&GpioOutput, 1);
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-// FIN de toda la funcionalidad
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        frame_out[0] = (error_i_high >> 24) & 0x000000FF;
+        frame_out[1] = (error_i_high >> 16) & 0x000000FF;
+        frame_out[2] = (error_i_high >>  8) & 0x000000FF;
+        frame_out[3] = (error_i_high >>  0) & 0x000000FF;
+        XUartLite_Send(&uart_module, &frame_out[0], 4);
+        while(XUartLite_IsSending(&uart_module)){}
+
+        frame_out[0] = (error_i_low >> 24) & 0x000000FF;
+        frame_out[1] = (error_i_low >> 16) & 0x000000FF;
+        frame_out[2] = (error_i_low >>  8) & 0x000000FF;
+        frame_out[3] = (error_i_low >>  0) & 0x000000FF;
+        XUartLite_Send(&uart_module, &frame_out[0], 4);
+        while(XUartLite_IsSending(&uart_module)){}
     }
 	
 	cleanup_platform();
