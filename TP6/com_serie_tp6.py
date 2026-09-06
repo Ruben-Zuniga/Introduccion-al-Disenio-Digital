@@ -45,7 +45,7 @@ dispositivo_host = b'\xEF'
 dispositivo_host = int.from_bytes(dispositivo_host,byteorder='big')
 
 # Memoria del DSP
-LOG_SIZE = 200
+LOG_SIZE = 1024
 
 # Mensaje de inicio
 print ('--- Comunicación con FPGA:',ser.port,'---\r\n')
@@ -115,30 +115,29 @@ while 1 :
         # Esperar y mostrar respuesta del receptor
         # time.sleep(2)
 
-        print('Bytes entrantes:', ser.inWaiting())
+        print('Bytes entrantes:', ser.in_waiting)
 
         idx_read = 0
         log_i = []
         log_q = []
 
-        waiting_total = ser.inWaiting()
-
         while idx_read < 2 * LOG_SIZE:
-            print('idx:', idx_read, ' - Bytes entrantes:', ser.inWaiting())
 
             data_read = ser.read(1)
-            # Convertir a entero y guardar en arreglo
+            # Convertir a entero signado y guardar en arreglo
             data_read_int = int.from_bytes(data_read,byteorder='big',signed=True)
-            # print (">>", data_read_int)
+            
             if idx_read < LOG_SIZE:
                 log_i.append(data_read_int)
             else:
                 log_q.append(data_read_int)
 
+            print('idx:', idx_read, ' - Bytes entrantes:', ser.in_waiting, '- Dato:', data_read_int)
+            
             # time.sleep(0.5)
             idx_read = idx_read + 1
             
-        plt.figure(figsize=[14,7])
+        plt.figure(figsize=[14,6])
         plt.plot(log_i, 'ro-' , linewidth=1.5, label='Canal I')
         plt.plot(log_q, 'bo-' , linewidth=1.5, label='Canal Q')
 
@@ -147,7 +146,10 @@ while 1 :
         plt.title('Plot')
         plt.xlabel('Muestras')
         plt.ylabel('Amplitud')
-        plt.show()
+
+        # Guardar grafico como archivo. Para descargarla en mi PC:
+        #   pscp -P 2222 user@186.182.36.47:/home/user/work_dda/rzuniga/scripts/log.png ~/Documentos/Facultad/Disenio_Digital_Fulgor/Introduccion-al-Disenio-Digital/TP6
+        plt.savefig('log.png')
 
         # print(">> Datos I:")
         # for i in range(LOG_SIZE):
@@ -159,14 +161,3 @@ while 1 :
 
     else:
         print('Comando desconocido.')
-
-    # # Esperar y mostrar respuesta del receptor
-    # time.sleep(2)
-
-    # print('Esperando:', ser.inWaiting())
-
-    # while ser.in_waiting > 0:
-    #     data_read = ser.read(4)
-    #     # Convertir a entero e imprimir dato recibido
-    #     data_read_int = int.from_bytes(data_read,byteorder='big')
-    #     print (">>", data_read_int)

@@ -36,8 +36,18 @@ u32 log_mem_temp = 0;
 u8 log_mem_i[LOG_SIZE] = {0};
 u8 log_mem_q[LOG_SIZE] = {0};
 
-//Funcion para recibir 1 byte bloqueante
-//XUartLite_RecvByte((&uart_module)->RegBaseAddress)
+// BER
+u32 error_i_high = 0;
+u32 error_i_low = 0;
+u32 symb_i_high = 0;
+u32 symb_i_low = 0;
+u32 error_q_high = 0;
+u32 error_q_low = 0;
+u32 symb_q_high = 0;
+u32 symb_q_low = 0;
+
+// Contador de bytes recibidos
+u32 recv_count = 0;
 
 u32 write_and_read_gpio(u32 input)
 {
@@ -90,17 +100,6 @@ int main()
     XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000002);
     XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E800002);
     XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000002);
-
-    u32 error_i_high = 0;
-    u32 error_i_low = 0;
-    u32 symb_i_high = 0;
-    u32 symb_i_low = 0;
-    u32 error_q_high = 0;
-    u32 error_q_low = 0;
-    u32 symb_q_high = 0;
-    u32 symb_q_low = 0;
-
-    u32 recv_count = 0;
     
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
@@ -152,15 +151,17 @@ int main()
                 // Enviar datos
                 for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
                     frame_out_log[i] = log_mem_i[i];
+                    // frame_out_log[i] = i;
                 }
                 for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
                     frame_out_log[i + LOG_SIZE] = log_mem_q[i];
+                    // frame_out_log[i + LOG_SIZE] = i;
                 }
-                for (u32 i = 0; i < 2*LOG_SIZE / 32; i = i + 1) {
+                for (u32 i = 0; i < 2 * LOG_SIZE; i = i + 16) {
                     XUartLite_Send(&uart_module, &frame_out_log[i], 32);
                     while(XUartLite_IsSending(&uart_module)){}
-                    // Tiempo de espera para no sobrecargar el buffer
-                    for (u32 j = 0; j < 20000; j = j + 1) {}
+                    // // Tiempo de espera para no sobrecargar el buffer
+                    // for (u32 j = 0; j < 10000; j = j + 1) {}
                 }
             }
         }
