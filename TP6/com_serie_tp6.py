@@ -83,14 +83,17 @@ def read_frame():
 
             # Leer tamaño indicado por la trama
             idx_read = 0
-            payload = []
+            # payload = []
+            payload_int = []
             while idx_read < size_read:
                 data_read = ser.read(1)
+                # payload.append(data_read)
                 # Convertir a entero y guardar dato recibido en arreglo
-                payload.append(int.from_bytes(data_read,byteorder='big'))
-                print (">>", idx_read, payload[idx_read])
+                payload_int.append(int.from_bytes(data_read,byteorder='big'))
+                print (">>", idx_read, payload_int[idx_read])
                 idx_read = idx_read + 1
 
+            payload = bytearray(payload_int)
             # print (">>",data_read_int,"(",ser.inWaiting(),")")
 
             # Comprobar fin de trama
@@ -104,10 +107,14 @@ def read_frame():
             print('end_read',end_read)
             print('size_bit_check',size_bit_check)
 
-            if end_read != end or size_bit_check != size_bit_read or size_check != size_read:
+            if end_read != end or size_bit_check != size_bit_read:
+                print('Advertencia: es posible que la trama este corrupta.')
+            elif size_bit_check == 0 and size_check != size_read:
+                print('Advertencia: es posible que la trama este corrupta.')
+            elif size_bit_check == 1 and size_check != 0:
                 print('Advertencia: es posible que la trama este corrupta.')
 
-    return payload, size_read
+    return payload_int, payload
 
 # Mensaje de inicio
 print ('--- Comunicación con FPGA:',ser.port,'---\r\n')
@@ -128,13 +135,20 @@ while 1 :
 
     data_write = input("<< ")
     data_write_str = str(data_write)
-    data_write_int = int(data_write)
+    print(data_write_str)
+
+    # Convertir a entero si no es una entrada vacia
+    if data_write_str != '':
+        data_write_int = int(data_write)
+    else:
+        data_write_int = 0
 
     # Salir del script
     if data_write_str == 'exit':
         if ser.isOpen():
             ser.close()
         break
+    
     # Encender RX preguntando por la fase
     if data_write_int == 3:
         if rx_state:
@@ -144,10 +158,10 @@ while 1 :
             data_write = input("<< ")
             # enviar el valor "{3,fase}"
             data_write = '3' + str(data_write)
+        data_write_int = int(data_write)
         rx_state = not rx_state
 
     # Armar y enviar trama
-    data_write_int = int(data_write)
     data_write_byte = data_write_int.to_bytes(1, 'big')
 
     # Reiniciar buffer de recepcion
@@ -160,7 +174,7 @@ while 1 :
     if data_write_int == 1:
 
         # Leer dato
-        data_read_int, size_read = read_frame()
+        data_read_int, data_read = read_frame()
             
         if data_read_int[0] != 0:
             print('>> DSP reiniciado con exito.')
@@ -171,7 +185,7 @@ while 1 :
     elif data_write_int == 2:
 
         # Leer dato
-        data_read_int, size_read = read_frame()
+        data_read_int, data_read = read_frame()
 
         if data_read_int[0] != 0:
             print('>> TX encendido.')
@@ -182,7 +196,7 @@ while 1 :
     elif data_write_int // 10 == 3:
         
         # Leer dato
-        data_read_int, size_read = read_frame()
+        data_read_int, data_read = read_frame()
         
         if data_read_int[0] != 0:
             print('>> RX encendido con fase', data_write_int % 3)
@@ -194,7 +208,6 @@ while 1 :
         # Esperar y mostrar respuesta del receptor
         # time.sleep(2)
 
-        idx_read = 0
         # ber_values: valores de error y simbolos totales
         # ber_values[0]: errores I parte alta
         # ber_values[1]: errores I parte baja
@@ -206,15 +219,12 @@ while 1 :
         # ber_values[7]: simbolos Q parte baja
         ber_values = []
 
-        while idx_read < 8:
-            # Leer dato
-            data_read = ser.read(4)
-            # Convertir a entero e imprimir dato recibido
-            data_read_int = int.from_bytes(data_read,byteorder='big')
-            # print (">>", data_read)
-            ber_values.append(data_read_int)
+        # Leer dato
+        data_read_int, data_read = read_frame()
 
-            idx_read = idx_read + 1
+        for i in range(0,8):
+            ber_values.append(data_read[4*i : 4*i + 4])
+            ber_values[i] = int.from_bytes(ber_values[i],byteorder='big')
 
         # errores/simbolos = (parte_alta * 2**32 + parte_baja)
         errors_i = ber_values[0] * 2**32 + ber_values[1]

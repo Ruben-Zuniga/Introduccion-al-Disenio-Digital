@@ -28,8 +28,13 @@ XUartLite uart_module;
 
 // Tramas del UART
 u8 frame_in[4] = {0};
-u8 frame_out_ber[4] = {0};
+u8 frame_out_state[4] = {0};
+u8 frame_out_ber[37] = {0};
 u8 frame_out_log[2 * LOG_SIZE] = {0};
+u8 cabecera = 0xA0; // Se cargan los primeros 3 bits por ahora
+u8 dispositivo = 0xEF;
+u8 fin_de_trama = 0x40; // Se cargan los primeros 3 bits por ahora
+u8 idx_aux = 0;
 // Log del DSP
 u32 log_mem_temp = 0;
 u8 log_mem_i[LOG_SIZE] = {0};
@@ -70,13 +75,14 @@ u32 write_gpio(u32 input)
 
 void send_frame_ber(u32 input)
 {
-    frame_out_ber[0] = (input >> 24) & 0x000000FF;
-    frame_out_ber[1] = (input >> 16) & 0x000000FF;
-    frame_out_ber[2] = (input >>  8) & 0x000000FF;
-    frame_out_ber[3] = (input >>  0) & 0x000000FF;
+    frame_out_ber[idx_aux]   = (input >> 24) & 0x000000FF;
+    frame_out_ber[idx_aux+1] = (input >> 16) & 0x000000FF;
+    frame_out_ber[idx_aux+2] = (input >>  8) & 0x000000FF;
+    frame_out_ber[idx_aux+3] = (input >>  0) & 0x000000FF;
 
-    XUartLite_Send(&uart_module, &frame_out_ber[0], 4);
+    XUartLite_Send(&uart_module, &frame_out_ber[idx_aux], 4);
     while(XUartLite_IsSending(&uart_module)){}
+    idx_aux += 4;
 }
 
 int main()
@@ -99,6 +105,16 @@ int main()
     XGpio_SetDataDirection(&GpioOutput, 1, 0x00000000);
     XGpio_SetDataDirection(&GpioInput, 1, 0xFFFFFFFF);
 
+    frame_out_state[0] = 0xA1; // 1010 0001 - 1 byte
+    frame_out_state[1] = dispositivo;
+    frame_out_state[3] = 0x41; // 0100 0001
+
+    frame_out_ber[0] = 0xB0; // 1011 0000
+    frame_out_ber[1] = 0x00;
+    frame_out_ber[2] = 0x20; // 32 bytes
+    frame_out_ber[3] = dispositivo;
+    frame_out_ber[36] = 0x50; // 0101 0000
+
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
         while(recv_count != 4){
@@ -107,7 +123,7 @@ int main()
                                          4 - recv_count);
         }
         recv_count = 0;
-        state = 0;
+        frame_out_state[2] = 0x00;
 
         // Comparar cabecera, dispositivo y fin de trama
         if(frame_in[0] == 0xA1 && frame_in[1] == 0xFE && frame_in[3] == 0x41){
@@ -117,8 +133,8 @@ int main()
                 write_gpio(1 << 24);
                 write_gpio(0);
                 // Enviar estado ok
-                state = 1;
-                XUartLite_Send(&uart_module, &state, 1);
+                frame_out_state[2] = 0x01;
+                XUartLite_Send(&uart_module, &frame_out_state[0], 4);
                 while(XUartLite_IsSending(&uart_module)){}
             }
             else if(frame_in[2] == 2){
@@ -126,8 +142,8 @@ int main()
                 tx_state = (tx_state == (1 << 26)) ? 0 : 1 << 26;
                 write_gpio(rx_state | tx_state | (1 << 25) | phase);
                 // Enviar estado del TX
-                state = (u8)(tx_state >> 26);
-                XUartLite_Send(&uart_module, &(state), 1);
+                frame_out_state[2] = (u8)(tx_state >> 26);
+                XUartLite_Send(&uart_module, &frame_out_state[0], 4);
                 while(XUartLite_IsSending(&uart_module)){}
             }
             else if(frame_in[2] / 10 == 3){
@@ -136,8 +152,8 @@ int main()
                 phase = (u32)(frame_in[2] % 30);
                 write_gpio(rx_state | tx_state | (1 << 25) | phase);
                 // Enviar estado del RX
-                state = (u8)(rx_state >> 27);
-                XUartLite_Send(&uart_module, &state, 1);
+                frame_out_state[2] = (u8)(rx_state >> 27);
+                XUartLite_Send(&uart_module, &frame_out_state[0], 4);
                 while(XUartLite_IsSending(&uart_module)){}
             }
             else if(frame_in[2] == 4){
@@ -153,6 +169,8 @@ int main()
                 symb_q_low   = write_and_read_gpio((1 << 30) | 7);
 
                 // Enviar todas las tramas
+                idx_aux = 4;
+                XUartLite_Send(&uart_module, &frame_out_ber[0], 4);
                 send_frame_ber(error_i_high);
                 send_frame_ber(error_i_low );
                 send_frame_ber(symb_i_high );
@@ -161,6 +179,7 @@ int main()
                 send_frame_ber(error_q_low );
                 send_frame_ber(symb_q_high );
                 send_frame_ber(symb_q_low  );
+                XUartLite_Send(&uart_module, &frame_out_ber[36], 1);
             }
             else if(frame_in[2] == 5){
                 // Comenzar logueo
