@@ -199,7 +199,7 @@ vio #()                                  // Descomentar al sintetizar
 
 assign o_led[0] = lock_clk; // Descomentar al sintetizar
 // assign o_led[0] = ber_0; // Comentar al sintetizar
-assign o_led[1] = i_rst_n    ;
+assign o_led[1] = rst_dsp_n;
 assign o_led[2] = switch[0];
 assign o_led[3] = switch[1];
 

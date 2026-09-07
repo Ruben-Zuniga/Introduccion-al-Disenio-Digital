@@ -30,12 +30,10 @@ XUartLite uart_module;
 u8 frame_in[4] = {0};
 u8 frame_out_ber[4] = {0};
 u8 frame_out_log[2 * LOG_SIZE] = {0};
-
 // Log del DSP
 u32 log_mem_temp = 0;
 u8 log_mem_i[LOG_SIZE] = {0};
 u8 log_mem_q[LOG_SIZE] = {0};
-
 // BER
 u32 error_i_high = 0;
 u32 error_i_low = 0;
@@ -45,9 +43,14 @@ u32 error_q_high = 0;
 u32 error_q_low = 0;
 u32 symb_q_high = 0;
 u32 symb_q_low = 0;
-
 // Contador de bytes recibidos
 u32 recv_count = 0;
+// Auxiliar
+u8 state;
+// Estados del TX y RX
+u32 tx_state = 0;
+u32 rx_state = 0;
+u32 phase = 0;
 
 u32 write_and_read_gpio(u32 input)
 {
@@ -95,12 +98,7 @@ int main()
     }
     XGpio_SetDataDirection(&GpioOutput, 1, 0x00000000);
     XGpio_SetDataDirection(&GpioInput, 1, 0xFFFFFFFF);
-    
-    // Prender transceptor
-    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000002);
-    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E800002);
-    XGpio_DiscreteWrite(&GpioOutput, 1, 0x0E000002);
-    
+
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
         while(recv_count != 4){
@@ -109,22 +107,50 @@ int main()
                                          4 - recv_count);
         }
         recv_count = 0;
+        state = 0;
 
         // Comparar cabecera, dispositivo y fin de trama
         if(frame_in[0] == 0xA1 && frame_in[1] == 0xFE && frame_in[3] == 0x41){
-            
-            if(frame_in[2] == 1){
 
+            if(frame_in[2] == 1){
+                // Levantar y bajar reset
+                write_gpio(1 << 24);
+                write_gpio(0);
+                // Enviar estado ok
+                state = 1;
+                XUartLite_Send(&uart_module, &state, 1);
+                while(XUartLite_IsSending(&uart_module)){}
+            }
+            else if(frame_in[2] == 2){
+                // Togglear TX
+                tx_state = (tx_state == (1 << 26)) ? 0 : 1 << 26;
+                write_gpio(rx_state | tx_state | (1 << 25) | phase);
+                // Enviar estado del TX
+                state = (u8)(tx_state >> 26);
+                XUartLite_Send(&uart_module, &(state), 1);
+                while(XUartLite_IsSending(&uart_module)){}
+            }
+            else if(frame_in[2] / 10 == 3){
+                // Togglear RX junto con la fase
+                rx_state = (rx_state == (1 << 27)) ? 0 : 1 << 27;
+                phase = (u32)(frame_in[2] % 30);
+                write_gpio(rx_state | tx_state | (1 << 25) | phase);
+                // Enviar estado del RX
+                state = (u8)(rx_state >> 27);
+                XUartLite_Send(&uart_module, &state, 1);
+                while(XUartLite_IsSending(&uart_module)){}
+            }
+            else if(frame_in[2] == 4){
                 // Extraer BER - no se latchean los registros al mismo tiempo -> hay una diferencia de 207
                 //  simbolos entre Q e I
-                error_i_high = write_and_read_gpio(0x40000000);
-                error_i_low  = write_and_read_gpio(0x40000001);
-                symb_i_high  = write_and_read_gpio(0x40000002);
-                symb_i_low   = write_and_read_gpio(0x40000003);
-                error_q_high = write_and_read_gpio(0x40000004);
-                error_q_low  = write_and_read_gpio(0x40000005);
-                symb_q_high  = write_and_read_gpio(0x40000006);
-                symb_q_low   = write_and_read_gpio(0x40000007);
+                error_i_high = write_and_read_gpio((1 << 30) | 0);
+                error_i_low  = write_and_read_gpio((1 << 30) | 1);
+                symb_i_high  = write_and_read_gpio((1 << 30) | 2);
+                symb_i_low   = write_and_read_gpio((1 << 30) | 3);
+                error_q_high = write_and_read_gpio((1 << 30) | 4);
+                error_q_low  = write_and_read_gpio((1 << 30) | 5);
+                symb_q_high  = write_and_read_gpio((1 << 30) | 6);
+                symb_q_low   = write_and_read_gpio((1 << 30) | 7);
 
                 // Enviar todas las tramas
                 send_frame_ber(error_i_high);
@@ -136,15 +162,14 @@ int main()
                 send_frame_ber(symb_q_high );
                 send_frame_ber(symb_q_low  );
             }
-            else if (frame_in[2] == 2){
-
+            else if(frame_in[2] == 5){
                 // Comenzar logueo
-                write_gpio(0x10000000);
-                // Esperar si el MSB de la respuesta (bit de memoria llena) esta en 0
-                while (!(write_and_read_gpio(0x20000000) & 0x80000000)) {}
+                write_gpio(1 << 28);
+
+                while ((write_and_read_gpio((u32)(1 << 29)) & (1 << 31)) != (u32)(1 << 31)) {}
                 // Guardar datos
                 for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
-                    log_mem_temp = write_and_read_gpio(0x20000000 | i);
+                    log_mem_temp = write_and_read_gpio((1 << 29) | i);
                     log_mem_i[i] = log_mem_temp & 0x000000FF;
                     log_mem_q[i] = (log_mem_temp >> 16) & 0x000000FF;
                 }
@@ -160,8 +185,6 @@ int main()
                 for (u32 i = 0; i < 2 * LOG_SIZE; i = i + 16) {
                     XUartLite_Send(&uart_module, &frame_out_log[i], 32);
                     while(XUartLite_IsSending(&uart_module)){}
-                    // // Tiempo de espera para no sobrecargar el buffer
-                    // for (u32 j = 0; j < 10000; j = j + 1) {}
                 }
             }
         }
@@ -169,9 +192,9 @@ int main()
 
         // // Loopback
         // for (int i = 0; i < 4; i++) {
-        //     frame_out[i] = frame_in[i];
+        //     frame_out_ber[i] = frame_in[i];
         // }
-        // XUartLite_Send(&uart_module, &frame_out[0], 4);
+        // XUartLite_Send(&uart_module, &frame_out_ber[0], 4);
         // while(XUartLite_IsSending(&uart_module)){}
 
     }
