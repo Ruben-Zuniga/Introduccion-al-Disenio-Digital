@@ -18,6 +18,7 @@
 
 // Memoria del log del DSP
 #define LOG_SIZE 1024
+#define FRAME_SIZE (2 * LOG_SIZE + 5)
 
 XGpio GpioOutput;
 XGpio GpioParameter;
@@ -30,7 +31,7 @@ XUartLite uart_module;
 u8 frame_in[4] = {0};
 u8 frame_out_state[4] = {0};
 u8 frame_out_ber[37] = {0};
-u8 frame_out_log[2 * LOG_SIZE] = {0};
+u8 frame_out_log[FRAME_SIZE] = {0};
 u8 cabecera = 0xA0; // Se cargan los primeros 3 bits por ahora
 u8 dispositivo = 0xEF;
 u8 fin_de_trama = 0x40; // Se cargan los primeros 3 bits por ahora
@@ -115,6 +116,12 @@ int main()
     frame_out_ber[3] = dispositivo;
     frame_out_ber[36] = 0x50; // 0101 0000
 
+    frame_out_log[0] = 0xB0; // 1011 0000
+    frame_out_log[1] = 0x08;
+    frame_out_log[2] = 0x00; // 2048 bytes
+    frame_out_log[3] = dispositivo;
+    frame_out_log[FRAME_SIZE - 1] = 0x50; // 0101 0000
+
 	while(1){
         // Entrar en bucle hasta leer 4 bytes (el UART a veces recibe con delay)
         while(recv_count != 4){
@@ -194,17 +201,22 @@ int main()
                 }
                 // Enviar datos
                 for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
-                    frame_out_log[i] = log_mem_i[i];
-                    // frame_out_log[i] = i;
+                    frame_out_log[i + 4] = log_mem_i[i];
+                    // frame_out_log[i + 4] = i;
+                    frame_out_log[i + 4 + LOG_SIZE] = log_mem_q[i];
+                    // frame_out_log[i + 4 + LOG_SIZE] = i;
                 }
-                for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
-                    frame_out_log[i + LOG_SIZE] = log_mem_q[i];
-                    // frame_out_log[i + LOG_SIZE] = i;
-                }
-                for (u32 i = 0; i < 2 * LOG_SIZE; i = i + 16) {
+
+                XUartLite_Send(&uart_module, &frame_out_log[0], 4);
+                while(XUartLite_IsSending(&uart_module)){}
+
+                for (u32 i = 4; i < FRAME_SIZE - 2; i = i + 16) {
                     XUartLite_Send(&uart_module, &frame_out_log[i], 32);
                     while(XUartLite_IsSending(&uart_module)){}
                 }
+
+                XUartLite_Send(&uart_module, &frame_out_log[FRAME_SIZE - 1], 1);
+                while(XUartLite_IsSending(&uart_module)){}
             }
         }
 

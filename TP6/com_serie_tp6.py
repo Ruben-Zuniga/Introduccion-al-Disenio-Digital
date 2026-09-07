@@ -83,17 +83,17 @@ def read_frame():
 
             # Leer tamaño indicado por la trama
             idx_read = 0
-            # payload = []
+            payload_uint = []
             payload_int = []
             while idx_read < size_read:
                 data_read = ser.read(1)
-                # payload.append(data_read)
                 # Convertir a entero y guardar dato recibido en arreglo
-                payload_int.append(int.from_bytes(data_read,byteorder='big'))
-                print (">>", idx_read, payload_int[idx_read])
+                payload_uint.append(int.from_bytes(data_read,byteorder='big'))
+                payload_int.append(int.from_bytes(data_read,byteorder='big', signed=True))
+                # print (">>", idx_read, payload_uint[idx_read])
                 idx_read = idx_read + 1
 
-            payload = bytearray(payload_int)
+            payload = bytearray(payload_uint)
             # print (">>",data_read_int,"(",ser.inWaiting(),")")
 
             # Comprobar fin de trama
@@ -108,13 +108,13 @@ def read_frame():
             print('size_bit_check',size_bit_check)
 
             if end_read != end or size_bit_check != size_bit_read:
-                print('Advertencia: es posible que la trama este corrupta.')
+                print('Advertencia: es posible que la trama este corrupta (end byte or size bit).')
             elif size_bit_check == 0 and size_check != size_read:
-                print('Advertencia: es posible que la trama este corrupta.')
+                print('Advertencia: es posible que la trama este corrupta (size byte).')
             elif size_bit_check == 1 and size_check != 0:
-                print('Advertencia: es posible que la trama este corrupta.')
+                print('Advertencia: es posible que la trama este corrupta (size byte).')
 
-    return payload_int, payload
+    return payload_uint, payload_int, payload
 
 # Mensaje de inicio
 print ('--- Comunicación con FPGA:',ser.port,'---\r\n')
@@ -174,7 +174,7 @@ while 1 :
     if data_write_int == 1:
 
         # Leer dato
-        data_read_int, data_read = read_frame()
+        data_read_int,_,_ = read_frame()
             
         if data_read_int[0] != 0:
             print('>> DSP reiniciado con exito.')
@@ -185,7 +185,7 @@ while 1 :
     elif data_write_int == 2:
 
         # Leer dato
-        data_read_int, data_read = read_frame()
+        data_read_int,_,_ = read_frame()
 
         if data_read_int[0] != 0:
             print('>> TX encendido.')
@@ -196,7 +196,7 @@ while 1 :
     elif data_write_int // 10 == 3:
         
         # Leer dato
-        data_read_int, data_read = read_frame()
+        data_read_int,_,_ = read_frame()
         
         if data_read_int[0] != 0:
             print('>> RX encendido con fase', data_write_int % 3)
@@ -220,11 +220,10 @@ while 1 :
         ber_values = []
 
         # Leer dato
-        data_read_int, data_read = read_frame()
+        _,_,data_read = read_frame()
 
         for i in range(0,8):
-            ber_values.append(data_read[4*i : 4*i + 4])
-            ber_values[i] = int.from_bytes(ber_values[i],byteorder='big')
+            ber_values.append(int.from_bytes(data_read[4*i : 4*i + 4],byteorder='big'))
 
         # errores/simbolos = (parte_alta * 2**32 + parte_baja)
         errors_i = ber_values[0] * 2**32 + ber_values[1]
@@ -250,27 +249,23 @@ while 1 :
         log_i_hex = []
         log_q_hex = []
 
-        while idx_read < 2 * LOG_SIZE:
+        # Leer dato
+        data_read_hex, data_read_int,_ = read_frame()
 
-            data_read = ser.read(1)
-            # Convertir a entero signado y guardar en arreglo
-            data_read_int = int.from_bytes(data_read,byteorder='big',signed=True)
-            # Convertir a entero sin signo para guardar en archivo
-            data_read_hex = int.from_bytes(data_read,byteorder='big',signed=False)
-            # print (">>", data_read)
-            if idx_read < LOG_SIZE:
-                log_i.append(data_read_int)
-                log_i_hex.append(data_read_hex)
-            else:
-                log_q.append(data_read_int)
-                log_q_hex.append(data_read_hex)
+        while idx_read < LOG_SIZE:
 
-            # print('idx:', idx_read, ' - Bytes entrantes:', ser.in_waiting, '- Dato:', data_read_int)
-            print('Leyendo memoria:', idx_read // 2, '/', LOG_SIZE, end='\r')
+            log_i.append(data_read_int[idx_read])
+            log_i_hex.append(data_read_hex[idx_read])
+            
+            log_q.append(data_read_int[idx_read + LOG_SIZE])
+            log_q_hex.append(data_read_hex[idx_read + LOG_SIZE])
+
+            # print('idx:', idx_read, '- Dato:', data_read_int[idx_read])
+            print('Leyendo memoria:', idx_read, '/', LOG_SIZE, end='\r')
 
             idx_read = idx_read + 1
 
-        print('Leyendo memoria:', idx_read // 2, '/', LOG_SIZE)
+        print('Leyendo memoria:', idx_read, '/', LOG_SIZE)
         # Crear archivo de datos en I y Q, luego crear el grafico.
         # Para descargar en mi PC:
         #   pscp -P 2222 user@186.182.36.47:/home/user/work_dda/rzuniga/scripts/logs ~/Documentos/Facultad/Disenio_Digital_Fulgor/Introduccion-al-Disenio-Digital/TP6
