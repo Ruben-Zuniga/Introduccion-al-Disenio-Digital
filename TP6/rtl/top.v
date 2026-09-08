@@ -24,7 +24,7 @@ module top
     parameter SYNC_PHASES   = 512 ,
     parameter NB_BER        = 64  ,
     // Memoria
-    parameter SIZE      = 1024          ,
+    parameter SIZE      = 32768          ,
     parameter NB_SIZE   = $clog2(SIZE)  , // 10
     parameter NB_LOG    = 32
 )

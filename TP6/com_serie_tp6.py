@@ -45,7 +45,7 @@ dispositivo_host = b'\xEF'
 # dispositivo_host = int.from_bytes(dispositivo_host,byteorder='big')
 
 # Memoria del DSP
-LOG_SIZE = 1024
+LOG_SIZE = 8192
 
 # Estado del RX
 rx_state = False
@@ -90,11 +90,10 @@ def read_frame():
                 # Convertir a entero y guardar dato recibido en arreglo
                 payload_uint.append(int.from_bytes(data_read,byteorder='big'))
                 payload_int.append(int.from_bytes(data_read,byteorder='big', signed=True))
-                # print (">>", idx_read, payload_uint[idx_read])
+                print (">>", idx_read, payload_uint[idx_read])
                 idx_read = idx_read + 1
 
             payload = bytearray(payload_uint)
-            # print (">>",data_read_int,"(",ser.inWaiting(),")")
 
             # Comprobar fin de trama
             data_read = ser.read(1)

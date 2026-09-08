@@ -17,7 +17,7 @@
 #define def_LOG_READ            3
 
 // Memoria del log del DSP
-#define LOG_SIZE 1024
+#define LOG_SIZE 8192
 #define FRAME_SIZE (2 * LOG_SIZE + 5)
 
 XGpio GpioOutput;
@@ -38,8 +38,6 @@ u8 fin_de_trama = 0x40; // Se cargan los primeros 3 bits por ahora
 u8 idx_aux = 0;
 // Log del DSP
 u32 log_mem_temp = 0;
-u8 log_mem_i[LOG_SIZE] = {0};
-u8 log_mem_q[LOG_SIZE] = {0};
 // BER
 u32 error_i_high = 0;
 u32 error_i_low = 0;
@@ -117,8 +115,8 @@ int main()
     frame_out_ber[36] = 0x50; // 0101 0000
 
     frame_out_log[0] = 0xB0; // 1011 0000
-    frame_out_log[1] = 0x08;
-    frame_out_log[2] = 0x00; // 2048 bytes
+    frame_out_log[1] = (u8)(2*LOG_SIZE >> 8);
+    frame_out_log[2] = (u8)(2*LOG_SIZE); // 2048 bytes
     frame_out_log[3] = dispositivo;
     frame_out_log[FRAME_SIZE - 1] = 0x50; // 0101 0000
 
@@ -196,17 +194,10 @@ int main()
                 // Guardar datos
                 for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
                     log_mem_temp = write_and_read_gpio((1 << 29) | i);
-                    log_mem_i[i] = log_mem_temp & 0x000000FF;
-                    log_mem_q[i] = (log_mem_temp >> 16) & 0x000000FF;
+                    frame_out_log[i + 4] = log_mem_temp & 0x000000FF;
+                    frame_out_log[i + 4 + LOG_SIZE] = (log_mem_temp >> 16) & 0x000000FF;
                 }
                 // Enviar datos
-                for (u32 i = 0; i < LOG_SIZE; i = i + 1) {
-                    frame_out_log[i + 4] = log_mem_i[i];
-                    // frame_out_log[i + 4] = i;
-                    frame_out_log[i + 4 + LOG_SIZE] = log_mem_q[i];
-                    // frame_out_log[i + 4 + LOG_SIZE] = i;
-                }
-
                 XUartLite_Send(&uart_module, &frame_out_log[0], 4);
                 while(XUartLite_IsSending(&uart_module)){}
 
