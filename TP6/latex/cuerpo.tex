@@ -111,18 +111,18 @@ La salida del GPIO se divide según la \autoref{fig:dato_gpio}, donde cada campo
         \subitem \textbf{Reset DSP}: envía una señal de reset al DSP. Cuando se resetea con el botón de la placa, es el register file el que resetea al DSP con esta señal.
         \subitem \textbf{TX/RX Mask}: se levanta esta bandera para habilitar la actualización del estado del TX y el RX.
         \subitem \textbf{Enable TX}: actualiza el estado (encendido o apagado) del transmisor. Necesita que el bit TX/RX Mask esté levantado.
-        \subitem \textbf{Enable RX}: actualiza el estado (encendido o apagado) del receptor. Necesita que el bit TX/RX Mask esté levantado.
+        \subitem \textbf{Enable RX}: actualiza el estado (encendido o apagado) del receptor. Si se enciende el RX, se especifica la fase de muestreo en el campo GPIO Data. Necesita que el bit TX/RX Mask esté levantado.
         \subitem \textbf{Run Log}: el DSP comienza a almacenar datos en toda la memoria hasta que llene.
         \subitem \textbf{Read address}: lee un dato de la memoria del DSP y lo envía al GPIO junto con la bandera de memoria llena en el bit más significativo. La dirección se especifica en el campo GPIO Data.
         \subitem \textbf{Read BER}: permite almacenar, en el GPIO de entrada, uno de los valores correspondientes al BER. Estos se deben especificar en el campo GPIO Data y pueden ser:
-            \subsubitem \emph{Error del canal I (parte alta)}
-            \subsubitem \emph{Error del canal I (parte baja)}
-            \subsubitem \emph{Símbolos totales del canal I (parte alta)}
-            \subsubitem \emph{Símbolos totales del canal I (parte baja)}
-            \subsubitem \emph{Error del canal Q (parte alta)}
-            \subsubitem \emph{Error del canal Q (parte baja)}
-            \subsubitem \emph{Símbolos totales del canal Q (parte alta)}
-            \subsubitem \emph{Símbolos totales del canal Q (parte baja)}
+            \subsubitem \texttt{23'd0}: \emph{Error del canal I (parte alta)}
+            \subsubitem \texttt{23'd1}: \emph{Error del canal I (parte baja)}
+            \subsubitem \texttt{23'd2}: \emph{Símbolos totales del canal I (parte alta)}
+            \subsubitem \texttt{23'd3}: \emph{Símbolos totales del canal I (parte baja)}
+            \subsubitem \texttt{23'd4}: \emph{Error del canal Q (parte alta)}
+            \subsubitem \texttt{23'd5}: \emph{Error del canal Q (parte baja)}
+            \subsubitem \texttt{23'd6}: \emph{Símbolos totales del canal Q (parte alta)}
+            \subsubitem \texttt{23'd7}: \emph{Símbolos totales del canal Q (parte baja)}
 \end{itemize}
 
 \begin{figure}[H]
@@ -143,7 +143,7 @@ Para verificar el register file, se realizó un testbench que estimula la entrad
     \item Leer todas las direcciones de la memoria.
 \end{enumerate}
 
-La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig:sim_rf}, donde el módulo entrega el dato de los errores y símbolos totales del canal I y los errores del canal Q. Se puede ver, cuando se solicitan los símbolos del canal I, que el dato llega 1 ciclo despues de levantar la bandera de habilitación, por lo que el dato luego tiene 1 ciclo para estabilizarse y así poder leerlo luego con el microprocesador.
+La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig:sim_rf}, donde el módulo entrega el dato de los errores y símbolos totales del canal I y los errores del canal Q. Se puede ver, cuando se solicitan los símbolos del canal I, que el dato llega 1 ciclo despues de levantar la bandera de habilitación, por lo que el dato luego tiene 1 ciclo para estabilizarse y leerse con el microprocesador. Como aclaración: en esta gráfica, \texttt{o\_led} indica que el sistema no está con reset y el transceptor está activo, \texttt{o\_led\_rgb\_0} indica que la memoria está vacía y no se la está leyendo, y \texttt{o\_led\_rgb\_1} indica que se encuentra en la fase 2 (óptima).
 
 \begin{figure}[H]
     \centering
@@ -152,9 +152,93 @@ La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig
     \label{fig:sim_rf}
 \end{figure}
 
-\subsection{Microprocesador}
+La \autoref{fig:sim_rf_ber_i} y \ref{fig:sim_rf_ber_q} muestran la lectura completa del BER en el canal I y Q cuando la fase es la errónea (fase 0). La parte alta de los valores es 0, ya que se simuló un tiempo corto; por otro lado, se puede ver que el valor del error y la cantidad total corresponden a instantes diferentes, ya que no se logró que el register file latchee al mismo tiempo los 8 registros, sin embargo, esta medición dio un resultado de $0.25$ como es de esperarse. Realizando los cálculos, se encontró que el máximo delay que hay entre el primer campo y el último es de 207 símbolos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/sim_rf_ber_i.png}
+    \caption{Forma de onda en la lectura de BER en el canal I.}
+    \label{fig:sim_rf_ber_i}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/sim_rf_ber_q.png}
+    \caption{Forma de onda en la lectura de BER en el canal Q.}
+    \label{fig:sim_rf_ber_q}
+\end{figure}
+
+Finalmente, se muestra en la \autoref{fig:sim_rf_mem} el proceso de lectura de la memoria llena. Se observa en \texttt{i\_gpio} que está solicitando la dirección 6, mientras que \texttt{o\_gpio} entrega los datos en I (bits 0 a 7) y en Q (bits 16 a 23), junto con la bandera de memoria llena (bit 31).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/sim_rf_mem.png}
+    \caption{Forma de onda en la lectura de la memoria. Al GPIO le llega el dato \texttt{41} en I, \texttt{d7} en Q y la memoria llena levantada, ya que se observa un \texttt{8}.}
+    \label{fig:sim_rf_mem}
+\end{figure}
+
+\subsection{Microprocesador y Periféricos}
+
+Se armó en Vivado el microprocesador MicroBlaze junto con el GPIO y el UART para luego instanciarlos en el top level. La arquitectura del microcontrolador completo se muestra en la \autoref{fig:esq_micro}. Debido a las limitaciones de memoria de la FPGA, se recomendó generar el micro con una memoria local de 32K, por lo que se puso en duda si es posible llegar a procesar los 32K datos de la memoria en el DSP.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_micro.png}
+    \caption{Diagrama del microcontrolador instanciado en el diseño.}
+    \label{fig:esq_micro}
+\end{figure}
+
+\subsubsection{Implementación del Módulo Completo}
+
+El módulo top en forma resumida se puede observar en la \autoref{fig:esq_top}. Se instanció el VIO con varias salidas para observar el comportamiento a la hora de la implementación, también se quizo implementar el ILA, pero la herramienta arrojaba errores de timing.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_top.pdf}
+    \caption{Esquema del diseño completo.}
+    \label{fig:esq_top}
+\end{figure}
+
+La implementación arrojó los resultados de la \autoref{fig:imp_rep_1k}, como se tuvo éxito en la implementación con memoria de 1K, se pasó a cambiarla por 32K, lo que dió como resultado lo mostrado en la \autoref{fig:imp_rep_32k}. Se puede ver que el slack con 32K es menor que con 1K pero finalmente no hay problemas de timing, por lo que se continuó el flujo con 32K. Puede notarse también el aumento significativo de bloques BRAM debido a este aumento de memoria.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_rep_1k.png}
+    \caption{Reporte de implementación con 1K de memoria.}
+    \label{fig:imp_rep_1k}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/imp_rep_32k.png}
+    \caption{Reporte de implementación con 32K de memoria.}
+    \label{fig:imp_rep_32k}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{img/imp_1k.png}
+        \subcaption{Con 1K de memoria.}
+        \label{fig:imp_1k}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{img/imp_32k.png}
+        \subcaption{Con 32K de memoria.}
+        \label{fig:imp_32k}
+    \end{minipage}
+
+    \caption{Espacio utilizado en la FPGA.}
+    \label{fig:imp}
+\end{figure}
 
 \subsection{Firmware}
+
+
 
 \section{Resultados}
 

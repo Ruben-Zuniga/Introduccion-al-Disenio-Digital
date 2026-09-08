@@ -285,8 +285,11 @@ while 1 :
         plt.xlabel('Muestras')
         plt.ylabel('Amplitud')
 
-        # Guardar grafico como archivo
+        # Guardar grafico completo como archivo
         plt.savefig('logs/log.png')
+        # Guardar una porcion
+        plt.xlim([0,100])
+        plt.savefig('logs/log_zoom.png')
 
         print('Archivos generados.')
         print()
