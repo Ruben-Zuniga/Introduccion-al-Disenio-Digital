@@ -32,9 +32,7 @@ u8 frame_in[4] = {0};
 u8 frame_out_state[4] = {0};
 u8 frame_out_ber[37] = {0};
 u8 frame_out_log[FRAME_SIZE] = {0};
-u8 cabecera = 0xA0; // Se cargan los primeros 3 bits por ahora
 u8 dispositivo = 0xEF;
-u8 fin_de_trama = 0x40; // Se cargan los primeros 3 bits por ahora
 u8 idx_aux = 0;
 // Log del DSP
 u32 log_mem_temp = 0;
@@ -49,8 +47,6 @@ u32 symb_q_high = 0;
 u32 symb_q_low = 0;
 // Contador de bytes recibidos
 u32 recv_count = 0;
-// Auxiliar
-u8 state;
 // Estados del TX y RX
 u32 tx_state = 0;
 u32 rx_state = 0;
