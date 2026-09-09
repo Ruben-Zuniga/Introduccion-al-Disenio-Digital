@@ -11,16 +11,14 @@ Al DSP se le debió colocar una memoria \emph{RAM} para guardar un log de la se�
     \label{fig:esq_consigna_dsp}
 \end{figure}
 
-Todas las señales de control salen de una interfaz denominada \emph{Register File} o mapa de registros, la cual es un banco de registros que almacena los comandos que provienen del microprocesador. La propuesta fue conectar este banco como se muestra en la \autoref{fig:esq_consigna_rf}.
+Todas las señales de control salen de una interfaz denominada \emph{Register File} o mapa de registros, la cual es un banco de registros que almacena los comandos que provienen del microprocesador. La propuesta fue conectar este banco como se muestra en la \autoref{fig:esq_consigna_rf}. Por otro lado, los comandos que envía el microprocesador pasan por un GPIO de 32 bits, en el formato mostrado en la \autoref{fig:esq_consigna_comando}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{img/esq_consigna_rf.png}
+    \includegraphics[width=0.4\linewidth]{img/esq_consigna_rf.png}
     \caption{Interfaz del mapa de registros.}
     \label{fig:esq_consigna_rf}
 \end{figure}
-
-Por otro lado, los comandos que envía el microprocesador pasan por un GPIO de 32 bits, en el formato mostrado en la \autoref{fig:esq_consigna_comando}.
 
 \begin{figure}[H]
     \centering
@@ -39,7 +37,7 @@ Integrar el bloque de DSP y de microprocesador, ya armados anteriormente en un s
 
 \subsection{Memoria de Logueo}
 
-La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se construyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{fig:esq_mem}.
+La nueva memoria que posee el transceptor se diseñó para que la herramienta Vivado infiera una Block RAM en la FPGA, para esto se escribió el RTL tomando como referencia las plantillas que posee la herramienta para sintetizar este bloque. Luego, se construyó sobre ella una máquina de estados, encargada de recibir los comandos del mapa de registros y enviar los datos correspondientes al mismo, así como se muestra en la \autoref{fig:esq_mem}. Por otro lado, el diagrama de estados se puede observar en la \autoref{fig:esq_fsm}. A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego de terminar el diseño ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
 
 \begin{figure}[H]
     \centering
@@ -48,8 +46,6 @@ La nueva memoria que posee el transceptor se diseñó para que la herramienta Vi
     \label{fig:esq_mem}
 \end{figure}
 
-El diagrama de estados se puede observar en la \autoref{fig:esq_fsm}.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\linewidth]{img/esq_fsm.pdf}
@@ -57,9 +53,7 @@ El diagrama de estados se puede observar en la \autoref{fig:esq_fsm}.
     \label{fig:esq_fsm}
 \end{figure}
 
-A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego de terminar el diseño ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
-
-Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados en la \autoref{fig:vio_mem}. Al presionar el boton \texttt{probe\_out3}, se habilitó el logueo, donde el led \texttt{probe\_in1[0]} indicó que la memoria se llenó y el led \texttt{probe\_in1[2]} se encendió y apagó para indicar que se había iniciado el proceso.
+Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados en la \autoref{fig:vio_mem}. Al presionar el botón \texttt{probe\_out3}, se habilitó el logueo, donde el led \texttt{probe\_in1[0]} indicó que la memoria se llenó y el led \texttt{probe\_in1[2]} se encendió y apagó para indicar que se había iniciado el proceso.
 
 \begin{figure}[H]
     \centering
@@ -153,7 +147,7 @@ Para verificar este register file, se realizó un testbench que estimula la entr
     \item Leer todas las direcciones de la memoria.
 \end{enumerate}
 
-La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig:sim_rf}, donde el módulo entrega el dato de los errores y símbolos totales del canal I y los errores del canal Q. Se puede ver, cuando se solicitan los símbolos del canal I, que el dato llega 1 ciclo despues de levantar la bandera de habilitación, por lo que el dato luego tiene 1 ciclo para estabilizarse y leerse con el microprocesador. Como aclaración: en esta gráfica, \texttt{o\_led} indica que el sistema no está con reset y el transceptor está activo, \texttt{o\_led\_rgb\_0} indica que la memoria está vacía y no se la está leyendo, y \texttt{o\_led\_rgb\_1} indica que se encuentra en la fase 2 (óptima).
+La lectura de algunos campos de BER se ve en la forma de onda de la \autoref{fig:sim_rf}, donde el módulo entrega el dato de los errores y símbolos totales del canal I y los errores del canal Q. Se puede ver, cuando se solicitan los símbolos del canal I, que el dato llega 1 ciclo después de levantar la bandera de habilitación, por lo que el dato luego tiene 1 ciclo para estabilizarse y leerse con el microprocesador. Como aclaración: en esta gráfica, \texttt{o\_led} indica que el sistema no está con reset y el transceptor está activo, \texttt{o\_led\_rgb\_0} indica que la memoria está vacía y no se la está leyendo, y \texttt{o\_led\_rgb\_1} indica que se encuentra en la fase 2 (óptima).
 
 \begin{figure}[H]
     \centering
@@ -166,14 +160,14 @@ La \autoref{fig:sim_rf_ber_i} y \ref{fig:sim_rf_ber_q} muestran la lectura compl
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/sim_rf_ber_i.png}
+    \includegraphics[width=0.9\linewidth]{img/sim_rf_ber_i.png}
     \caption{Forma de onda en la lectura de BER en el canal I.}
     \label{fig:sim_rf_ber_i}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{img/sim_rf_ber_q.png}
+    \includegraphics[width=0.9\linewidth]{img/sim_rf_ber_q.png}
     \caption{Forma de onda en la lectura de BER en el canal Q.}
     \label{fig:sim_rf_ber_q}
 \end{figure}
@@ -209,7 +203,7 @@ El módulo top en forma resumida se puede observar en la \autoref{fig:esq_top}. 
     \label{fig:esq_top}
 \end{figure}
 
-La implementación arrojó los resultados de la \autoref{fig:imp_rep_1k}, como se tuvo éxito en la implementación con memoria de 1K, se pasó a cambiarla por 32K, lo que dió como resultado lo mostrado en la \autoref{fig:imp_rep_32k}. Se puede ver que el slack con 32K es menor que con 1K pero finalmente no hay problemas de timing, por lo que se continuó el flujo con 32K. Puede notarse también el aumento significativo de bloques BRAM debido a este aumento de memoria.
+La implementación arrojó los resultados de la \autoref{fig:imp_rep_1k}, como se tuvo éxito en la implementación con memoria de 1K, se pasó a cambiarla por 32K, lo que dio como resultado lo mostrado en la \autoref{fig:imp_rep_32k}. Se puede ver que el slack con 32K es menor que con 1K, pero finalmente no hay problemas de timing, por lo que se continuó el flujo con 32K. Puede notarse también el aumento significativo de bloques BRAM debido a este aumento de memoria.
 
 \begin{figure}[H]
     \centering
@@ -272,18 +266,18 @@ El script de Python para comunicarse con la FPGA fue mejorado con respecto al de
 
 \section{Resultados}
 
-En un principio, todas las pruebas se realizaron con la BRAM física en 32K pero enviando 1K datos al micro, ya que el arreglo de 32K utilizado en el programa en C provocaba un error en el linker (archivo \texttt{lscript.ld}) debido a que la limitante era la memoria local del microprocesador. Una solución propuesta fue aumentar esta memoria local, editando el mapa de memoria en Vivado (\autoref{fig:addrmap}) y luego editar el linker para hacer coincidir el rango (\autoref{fig:linker}). La forma de haber logrado que el código compile fue aumentar el rango de la memoria local hasta 128K, lo cual la herramienta pudo implementar sin problemas en la FPGA. Sin embargo, a la hora de la prueba con el script de Python, la FPGA no enviaba ninguna trama, por una razón que se desconoce pero está claro que proviene de haber aumentado este rango. Otra solución fue llenar un arreglo pequeño con los datos y enviarlos por paquetes, pero debido a la falta de tiempo, esto no se implementó.
+En un principio, todas las pruebas se realizaron con la BRAM física en 32K pero enviando 1K datos al micro, ya que el arreglo de 32K utilizado en el programa en C provocaba un error en el linker (archivo \texttt{lscript.ld}) debido a que la limitante era la memoria local del microprocesador. Una solución propuesta fue aumentar esta memoria local, editando el mapa de memoria en Vivado (\autoref{fig:addrmap}) y luego editar el linker para hacer coincidir el rango (\autoref{fig:linker}). La forma de haber logrado que el código compile fue aumentar el rango de la memoria local hasta 128K, lo cual la herramienta pudo implementar sin problemas en la FPGA. Sin embargo, a la hora de la prueba con el script de Python, la FPGA no enviaba ninguna trama por una razón que se desconoce, pero está claro que proviene de haber aumentado este rango. Otra solución fue llenar un arreglo pequeño con los datos y enviarlos por paquetes, pero debido a la falta de tiempo, esto no se implementó.
 
 Por lo explicado anteriormente, se aclara que los resultados a continuación corresponden a una memoria de 8K, que es el máximo valor que pudo utilizarse.
 
-\begin{figure}[H]
+\begin{figure}[b!]
     \centering
     \includegraphics[width=\linewidth]{img/addrmap.png}
     \caption{Ventana para la edición de la memoria en el MicroBlaze.}
     \label{fig:addrmap}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[b!]
     \centering
     \includegraphics[width=\linewidth]{img/linker.png}
     \caption{Ventana para modificar la región de memoria en el linker.}
@@ -309,14 +303,18 @@ En la \autoref{fig:test1_init} se observa, a la izquierda, la interfaz principal
     \item \texttt{probe\_in4}: bit enviado por el UART.
 \end{itemize}
 
+El sistema inicia con el TX y el RX apagados, y se encienden insertando el número 2 y 3 en la consola. En la \autoref{fig:test2_tx} y \ref{fig:test3_rx} se muestra el encendido de estos, con la fase óptima. Si se desea cambiar de fase, debe apagarse el RX y volver a encenderse, como se muestra en la \autoref{fig:test4_ph0}.
+
+Se realizó la lectura de BER para la fase óptima y la errónea (\autoref{fig:test5_ber_ph2} y \ref{fig:test6_ber_ph0}), mostrando resultados que coinciden con lo esperado: con la fase óptima se obtiene $BER = 0$ y con la errónea se obtiene $BER \approx 0.25$.
+
+Un problema que se encontró fue cuando se vuelve a leer el BER luego de reiniciar el RX en la fase errónea (\autoref{fig:test7_ber_error}), donde es probable que aparezca $BER \approx 0.5$ en uno de los canales o los dos.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/test1_init.png}
     \caption{Interfaz de inicio del script.}
     \label{fig:test1_init}
 \end{figure}
-
-El sistema inicia con el TX y el RX apagados, y se encienden insertando el número 2 y 3 en la consola. En la \autoref{fig:test2_tx} y \ref{fig:test3_rx} se muestra el encendido de estos, con la fase óptima.
 
 \begin{figure}[H]
     \centering
@@ -332,7 +330,11 @@ El sistema inicia con el TX y el RX apagados, y se encienden insertando el núme
     \label{fig:test3_rx}
 \end{figure}
 
-Para cambiar de fase, debe apagarse el RX y volver a encenderse, como se muestra en la \autoref{fig:test4_ph0}.
+En la \autoref{fig:test8_mem} se puede ver cómo cambian los leds cuando se lee la memoria. El led de inicio de logueo se levanta y se baja; luego el led de lectura se levanta instantáneamente, ya que el micro espera que el bit de memoria llena se levante; y finalmente el bit de memoria llena se levanta.
+
+Finalmente, se muestra en la \autoref{fig:test9_mem_luego_rst} cómo se bajan los leds correspondientes a la memoria cuando se reinicia el sistema.
+
+El script guarda dos gráficos del log, uno completo con las 8K muestras y otro con zoom para observar mejor el comportamiento a la salida del filtro. Estos se muestran en la \autoref{fig:test10_plot_full} y \ref{fig:test11_plot}.
 
 \begin{figure}[H]
     \centering
@@ -340,8 +342,6 @@ Para cambiar de fase, debe apagarse el RX y volver a encenderse, como se muestra
     \caption{Reinicio del receptor con fase 0.}
     \label{fig:test4_ph0}
 \end{figure}
-
-Se realizó la lectura de BER para la fase óptima y la errónea (\autoref{fig:test5_ber_ph2} y \ref{fig:test6_ber_ph0}), mostrando resultados que coinciden con lo esperado: con la fase óptima se obtiene $BER = 0$ y con la errónea se obtiene $BER \approx 0.25$.
 
 \begin{figure}[H]
     \centering
@@ -357,8 +357,6 @@ Se realizó la lectura de BER para la fase óptima y la errónea (\autoref{fig:t
     \label{fig:test6_ber_ph0}
 \end{figure}
 
-Un problema que se encontró fue cuando se vuelve a leer el BER luego de reiniciar el RX en la fase errónea (\autoref{fig:test7_ber_error}), donde es probable que aparezca $BER \approx 0.5$ en uno de los canales o los dos.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/test7_ber_error.png}
@@ -366,16 +364,12 @@ Un problema que se encontró fue cuando se vuelve a leer el BER luego de reinici
     \label{fig:test7_ber_error}
 \end{figure}
 
-En la \autoref{fig:test8_mem} se puede ver cómo cambian los leds cuando se lee la memoria. El led de inicio de logueo se levanta y se baja; luego el led de lectura se levanta instantáneamente, ya que el micro espera que el bit de memoria llena se levante; y finalmente el bit de memoria llena se levanta.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{img/test8_mem.png}
-    \caption{Almacenamiento de los ultimos 8K datos.}
+    \caption{Almacenamiento de los últimos 8K datos.}
     \label{fig:test8_mem}
 \end{figure}
-
-Finalmente, se muestra en la \autoref{fig:test9_mem_luego_rst} cómo se bajan los leds correspondientes a la memoria cuando se reinicia el sistema.
 
 \begin{figure}[H]
     \centering
@@ -383,8 +377,6 @@ Finalmente, se muestra en la \autoref{fig:test9_mem_luego_rst} cómo se bajan lo
     \caption{Reset del sistema luego de realizar el logueo.}
     \label{fig:test9_mem_luego_rst}
 \end{figure}
-
-El script guarda dos gráficos del log, uno completo con las 8K muestras y otro con zoom para observar mejor el comportamiento a la salida del filtro. Estos se muestran en la \autoref{fig:test10_plot_full} y \ref{fig:test11_plot}.
 
 \begin{figure}[H]
     \centering
@@ -400,10 +392,11 @@ El script guarda dos gráficos del log, uno completo con las 8K muestras y otro 
     \label{fig:test11_plot}
 \end{figure}
 
-\section{Conclusión}
+\section{Conclusiones}
 
 Se implementó una memoria al DSP del Laboratorio N°4 y se lo integró con el microcontrolador del Laboratorio N°5 para ser controlado con un script de Python. El control pudo realizarse con éxito, permitiendo obtener una BER de aproximadamente $0.25$ en la fase errónea y BER de 0 en las demás fases. Sin embargo, al reiniciar el receptor con fase errónea, el BER sube repentinamente y no se encontró la causa. En cuanto a la lectura de memoria, solo se pudo obtener un logueo de hasta 8K muestras, mientras que el hardware del DSP sí puede escribir en una memoria de 32K. Como trabajo a futuro se propone modificar el programa en C para realizar la recepción de estas muestras por paquetes para así aprovechar toda la memoria.
 
+\newpage
 \appendix
 
 \section{Archivos y Códigos} \label{appx:archivos}
@@ -412,6 +405,18 @@ Todos los códigos del trabajo se encuentran en el siguiente link:
 
 \noindent
 \url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP6}
+
+La organización del repositorio adjunto es el siguiente:
+
+\begin{itemize}
+    \item \emph{com\_serie\_tp6.py}: el script de Python utilizado.
+    \item \emph{main.c}: el programa en C del microprocesador.
+    \item \emph{rtl}: contiene todos los módulos en Verilog del hardware.
+    \item \emph{tb}: contiene dos testbenches: uno que funciona con el register file (el utilizado en este trabajo) y uno que no.
+    \item \emph{latex}: contiene todos los códigos en Latex e imágenes del informe.
+    \item \emph{drawio}: proyectos realizados para generar los esquemas en este informe.
+    \item \emph{Arty\_Master\_v2.xdc}: el constraint para la implementación.
+\end{itemize}
 
 % \begin{equation}
 %     \boxed{
