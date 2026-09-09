@@ -1,6 +1,6 @@
 \section{Introducción}
 
-En la industria de la microelectrónica, los DSP están controlados por microprocesadores con firmware embebido, lo que permite al operario gestionarlos a través de estos últimos. Por esta razón, se propuso integrar el filtro transmisor del Laboratorio N°4 y el microprocesador del Laboratorio N°5 en un solo diseño. De esta forma, todo el control externo se puede realizar a través de UART con un script de Python.
+En la industria de la microelectrónica, los DSP están controlados por microprocesadores con firmware embebido, lo que permite al operario gestionarlos a través de estos últimos. Por esta razón, se propuso integrar el filtro transmisor del Laboratorio N°4 y el microprocesador del Laboratorio N°5 en un solo diseño. De esta forma, todo el control externo del transceptor se puede realizar a través de UART con un script de Python.
 
 Al DSP se le debió colocar una memoria \emph{RAM} para guardar un log de la señal filtrada, como se muestra en la \autoref{fig:esq_consigna_dsp}.
 
@@ -59,7 +59,7 @@ El diagrama de estados se puede observar en la \autoref{fig:esq_fsm}.
 
 A pesar de que la consigna especifique una memoria de 32K, primero se intentó sintetizar el diseño con 1K y luego de terminar el diseño ir subiendo la capacidad, debido a los limitados recursos de esta FPGA.
 
-Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados en la \autoref{fig:vio_mem}. Al presionar el boton \emph{probe\_out3}, se habilitó el logueo, donde el led \emph{probe\_in1[0]} indicó que la memoria se llenó y el led \emph{probe\_in1[2]} se encendió y apagó para indicar que se había iniciado el proceso.
+Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados en la \autoref{fig:vio_mem}. Al presionar el boton \texttt{probe\_out3}, se habilitó el logueo, donde el led \texttt{probe\_in1[0]} indicó que la memoria se llenó y el led \texttt{probe\_in1[2]} se encendió y apagó para indicar que se había iniciado el proceso.
 
 \begin{figure}[H]
     \centering
@@ -82,7 +82,7 @@ Esta nueva implementación se puso a prueba con el VIO, mostrando los resultados
     \label{fig:vio_mem}
 \end{figure}
 
-En la \autoref{fig:ila_mem_read} se puede ver cómo la señal del canal I y Q (\emph{probe\_1} y \emph{probe\_2} respectivamente) cambiar al usar el trigger del ILA mientras se cambia la dirección de lectura.
+En la \autoref{fig:ila_mem_read} se puede ver cómo la señal del canal I y Q (\texttt{probe\_1} y \texttt{probe\_2} respectivamente) cambian al usar el trigger del ILA mientras se cambia la dirección de lectura.
 
 \begin{figure}[H]
     \centering
@@ -91,7 +91,7 @@ En la \autoref{fig:ila_mem_read} se puede ver cómo la señal del canal I y Q (\
     \label{fig:ila_mem_read}
 \end{figure}
 
-\subsection{Register File}
+\subsection{Register File} \label{sec:rf}
 
 El banco de registros se modeló según la arquitectura de la \autoref{fig:esq_rf}. En este esquema, el dato de 32 bits proveniente del GPIO es desarmado en grupos de bits para almacenarlos en registros o comandar multiplexores según corresponda. También almacena cada dato que se recibe del DSP y lo envía al GPIO dependiendo el comando que se reciba.
 
@@ -111,8 +111,8 @@ La salida del GPIO se divide según la \autoref{fig:dato_gpio}, donde cada campo
         \subitem \textbf{Reset DSP}: envía una señal de reset al DSP. Cuando se resetea con el botón de la placa, es el register file el que resetea al DSP con esta señal.
         \subitem \textbf{TX/RX Mask}: se levanta esta bandera para habilitar la actualización del estado del TX y el RX.
         \subitem \textbf{Enable TX}: actualiza el estado (encendido o apagado) del transmisor. Necesita que el bit TX/RX Mask esté levantado.
-        \subitem \textbf{Enable RX}: actualiza el estado (encendido o apagado) del receptor. Si se enciende el RX, se especifica la fase de muestreo en el campo GPIO Data. Necesita que el bit TX/RX Mask esté levantado.
-        \subitem \textbf{Run Log}: el DSP comienza a almacenar datos en toda la memoria hasta que llene.
+        \subitem \textbf{Enable RX}: actualiza el estado (encendido o apagado) del receptor. Si se lo enciende, se especifica la fase de muestreo en el campo GPIO Data. Necesita que el bit TX/RX Mask esté levantado.
+        \subitem \textbf{Run Log}: el DSP comienza a almacenar datos en toda la memoria hasta que se llene.
         \subitem \textbf{Read address}: lee un dato de la memoria del DSP y lo envía al GPIO junto con la bandera de memoria llena en el bit más significativo. La dirección se especifica en el campo GPIO Data.
         \subitem \textbf{Read BER}: permite almacenar, en el GPIO de entrada, uno de los valores correspondientes al BER. Estos se deben especificar en el campo GPIO Data y pueden ser:
             \subsubitem \texttt{23'd0}: \emph{Error del canal I (parte alta)}
@@ -132,7 +132,17 @@ La salida del GPIO se divide según la \autoref{fig:dato_gpio}, donde cada campo
     \label{fig:dato_gpio}
 \end{figure}
 
-Para verificar el register file, se realizó un testbench que estimula la entrada con los comandos antes mencionados, como si fuera el propio periférico GPIO. El flujo que realiza el testbench es:
+La idea de utilizar el campo Enable Command, es que el microprocesador escriba 3 veces un comando al GPIO de la siguiente manera:
+
+\begin{enumerate}
+    \item Escribe el campo GPIO Command y GPIO Data
+    \item Escribe el bit Enable Command en 1
+    \item Escribe el bit Enable Command en 0
+\end{enumerate}
+
+Con esto, el register file tiene 2 ciclos para mantener estable los bits del GPIO y así el comando se obtiene de forma segura. Esto es muy útil sobre todo en el caso de register files con cambios de dominio de reloj.
+
+Para verificar este register file, se realizó un testbench que estimula la entrada con los comandos y el método antes mencionado, como si fuera el propio periférico GPIO. El flujo que realiza el testbench es:
 
 \begin{enumerate}
     \item Resetear y luego encender el TX y el RX con la fase óptima.
@@ -238,12 +248,161 @@ La implementación arrojó los resultados de la \autoref{fig:imp_rep_1k}, como s
 
 \subsection{Firmware}
 
+El firmware programado para el micro se realizó de tal forma que se comunique con la PC de la misma forma que en el Laboratorio N°5. En este caso, escribe los GPIO 3 veces para mantener estables los comandos, como se explicó en la \autoref{sec:rf}.
 
+En forma resumida, se programó el código en C según el diagrama de la \autoref{fig:esq_fw}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_fw.pdf}
+    \caption{Diagrama de flujo del programa para el microprocesador.}
+    \label{fig:esq_fw}
+\end{figure}
+
+\subsection{Python}
+
+El script de Python para comunicarse con la FPGA fue mejorado con respecto al del Laboratorio N°5 para que pueda procesar de forma más completa las tramas recibidas de acuerdo al protocolo recomendado. Además de que se eliminó el tiempo de espera para que el resultado sea mostrado inmediatamente. El diagrama de flujo del script se muestra en la \autoref{fig:esq_python}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_python.pdf}
+    \caption{Diagrama de flujo del script de Python.}
+    \label{fig:esq_python}
+\end{figure}
 
 \section{Resultados}
 
+En un principio, todas las pruebas se realizaron con la BRAM física en 32K pero enviando 1K datos al micro, ya que el arreglo de 32K utilizado en el programa en C provocaba un error en el linker (archivo \texttt{lscript.ld}) debido a que la limitante era la memoria local del microprocesador. Una solución propuesta fue aumentar esta memoria local, editando el mapa de memoria en Vivado (\autoref{fig:addrmap}) y luego editar el linker para hacer coincidir el rango (\autoref{fig:linker}). La forma de haber logrado que el código compile fue aumentar el rango de la memoria local hasta 128K, lo cual la herramienta pudo implementar sin problemas en la FPGA. Sin embargo, a la hora de la prueba con el script de Python, la FPGA no enviaba ninguna trama, por una razón que se desconoce pero está claro que proviene de haber aumentado este rango. Otra solución fue llenar un arreglo pequeño con los datos y enviarlos por paquetes, pero debido a la falta de tiempo, esto no se implementó.
+
+Por lo explicado anteriormente, se aclara que los resultados a continuación corresponden a una memoria de 8K, que es el máximo valor que pudo utilizarse.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/addrmap.png}
+    \caption{Ventana para la edición de la memoria en el MicroBlaze.}
+    \label{fig:addrmap}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/linker.png}
+    \caption{Ventana para modificar la región de memoria en el linker.}
+    \label{fig:linker}
+\end{figure}
+
+En la \autoref{fig:test1_init} se observa, a la izquierda, la interfaz principal del script conectado a la FPGA, y a la derecha, la interfaz del VIO. Las entradas del VIO son:
+
+\begin{itemize}
+    \item \texttt{probe\_in0[0]}: enganche del reloj del micro.
+    \item \texttt{probe\_in0[1]}: reset del DSP.
+    \item \texttt{probe\_in0[2]}: TX habilitado.
+    \item \texttt{probe\_in0[3]}: RX habilitado.
+    \item \texttt{probe\_in1[0]}: memoria llena.
+    \item \texttt{probe\_in1[1]}: memoria leyéndose.
+    \item \texttt{probe\_in1[2]}: iniciar logueo en la memoria.
+    \item \texttt{probe\_in2}: fase de muestreo:
+        \subitem \emph{Rojo}: fase 0.
+        \subitem \emph{Verde}: fase 1.
+        \subitem \emph{Rojo y verde}: fase 2.
+        \subitem \emph{Azul}: fase 3.
+    \item \texttt{probe\_in3}: bit recibido por el UART.
+    \item \texttt{probe\_in4}: bit enviado por el UART.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test1_init.png}
+    \caption{Interfaz de inicio del script.}
+    \label{fig:test1_init}
+\end{figure}
+
+El sistema inicia con el TX y el RX apagados, y se encienden insertando el número 2 y 3 en la consola. En la \autoref{fig:test2_tx} y \ref{fig:test3_rx} se muestra el encendido de estos, con la fase óptima.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test2_tx.png}
+    \caption{Habilitación del transmisor.}
+    \label{fig:test2_tx}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test3_rx.png}
+    \caption{Habilitación del receptor con fase 2.}
+    \label{fig:test3_rx}
+\end{figure}
+
+Para cambiar de fase, debe apagarse el RX y volver a encenderse, como se muestra en la \autoref{fig:test4_ph0}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test4_ph0.png}
+    \caption{Reinicio del receptor con fase 0.}
+    \label{fig:test4_ph0}
+\end{figure}
+
+Se realizó la lectura de BER para la fase óptima y la errónea (\autoref{fig:test5_ber_ph2} y \ref{fig:test6_ber_ph0}), mostrando resultados que coinciden con lo esperado: con la fase óptima se obtiene $BER = 0$ y con la errónea se obtiene $BER \approx 0.25$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test5_ber_ph2.png}
+    \caption{Lectura de BER con fase 2.}
+    \label{fig:test5_ber_ph2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test6_ber_ph0.png}
+    \caption{Lectura de BER con fase 0.}
+    \label{fig:test6_ber_ph0}
+\end{figure}
+
+Un problema que se encontró fue cuando se vuelve a leer el BER luego de reiniciar el RX en la fase errónea (\autoref{fig:test7_ber_error}), donde es probable que aparezca $BER \approx 0.5$ en uno de los canales o los dos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test7_ber_error.png}
+    \caption{BER erróneo luego de reiniciar el RX.}
+    \label{fig:test7_ber_error}
+\end{figure}
+
+En la \autoref{fig:test8_mem} se puede ver cómo cambian los leds cuando se lee la memoria. El led de inicio de logueo se levanta y se baja; luego el led de lectura se levanta instantáneamente, ya que el micro espera que el bit de memoria llena se levante; y finalmente el bit de memoria llena se levanta.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test8_mem.png}
+    \caption{Almacenamiento de los ultimos 8K datos.}
+    \label{fig:test8_mem}
+\end{figure}
+
+Finalmente, se muestra en la \autoref{fig:test9_mem_luego_rst} cómo se bajan los leds correspondientes a la memoria cuando se reinicia el sistema.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test9_mem_luego_rst.png}
+    \caption{Reset del sistema luego de realizar el logueo.}
+    \label{fig:test9_mem_luego_rst}
+\end{figure}
+
+El script guarda dos gráficos del log, uno completo con las 8K muestras y otro con zoom para observar mejor el comportamiento a la salida del filtro. Estos se muestran en la \autoref{fig:test10_plot_full} y \ref{fig:test11_plot}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test10_plot_full.png}
+    \caption{Grafico completo del logueo.}
+    \label{fig:test10_plot_full}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test11_plot.png}
+    \caption{Gráfico del logueo con zoom.}
+    \label{fig:test11_plot}
+\end{figure}
+
 \section{Conclusión}
 
+Se implementó una memoria al DSP del Laboratorio N°4 y se lo integró con el microcontrolador del Laboratorio N°5 para ser controlado con un script de Python. El control pudo realizarse con éxito, permitiendo obtener una BER de aproximadamente $0.25$ en la fase errónea y BER de 0 en las demás fases. Sin embargo, al reiniciar el receptor con fase errónea, el BER sube repentinamente y no se encontró la causa. En cuanto a la lectura de memoria, solo se pudo obtener un logueo de hasta 8K muestras, mientras que el hardware del DSP sí puede escribir en una memoria de 32K. Como trabajo a futuro se propone modificar el programa en C para realizar la recepción de estas muestras por paquetes para así aprovechar toda la memoria.
 
 \appendix
 

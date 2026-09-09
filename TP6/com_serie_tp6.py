@@ -59,9 +59,9 @@ def read_frame():
     init_read = (data_read_int & 0xE0) >> 5
     size_bit_read = (data_read_int & 0x10) >> 4
 
-    print('data read',data_read)
-    print('init read',init_read)
-    print('size_bit_read',size_bit_read)
+    # print('data read',data_read)
+    # print('init read',init_read)
+    # print('size_bit_read',size_bit_read)
 
     if init_read == init:
         # Tamaño corto
@@ -72,12 +72,12 @@ def read_frame():
             data_read = ser.read(2)
             size_read = int.from_bytes(data_read,byteorder='big')
 
-        print('size_read',size_read)
+        # print('size_read',size_read)
 
         # Leer dispositivo
         data_read = ser.read(1)
 
-        print('data_read',data_read)
+        # print('data_read',data_read)
 
         if data_read == dispositivo_host:
 
@@ -90,21 +90,21 @@ def read_frame():
                 # Convertir a entero y guardar dato recibido en arreglo
                 payload_uint.append(int.from_bytes(data_read,byteorder='big'))
                 payload_int.append(int.from_bytes(data_read,byteorder='big', signed=True))
-                print (">>", idx_read, payload_uint[idx_read])
+                # print (">>", idx_read, payload_uint[idx_read])
                 idx_read = idx_read + 1
 
             payload = bytearray(payload_uint)
 
             # Comprobar fin de trama
             data_read = ser.read(1)
-            print('data_read',data_read)
+            # print('data_read',data_read)
             data_read_int = int.from_bytes(data_read,byteorder='big')
             end_read = (data_read_int & 0xE0) >> 5
             size_bit_check = (data_read_int & 0x10) >> 4
             size_check = data_read_int & 0x0F
 
-            print('end_read',end_read)
-            print('size_bit_check',size_bit_check)
+            # print('end_read',end_read)
+            # print('size_bit_check',size_bit_check)
 
             if end_read != end or size_bit_check != size_bit_read:
                 print('Advertencia: es posible que la trama este corrupta (end byte or size bit).')
@@ -134,7 +134,7 @@ while 1 :
 
     data_write = input("<< ")
     data_write_str = str(data_write)
-    print(data_write_str)
+    # print(data_write_str)
 
     # Convertir a entero si no es una entrada vacia
     if data_write_str != '':
@@ -167,7 +167,7 @@ while 1 :
     ser.reset_input_buffer()
     # Enviar dato
     ser.write(cabecera + dispositivo + data_write_byte + fin_de_trama)
-    print(cabecera + dispositivo + data_write_byte + fin_de_trama)
+    # print(cabecera + dispositivo + data_write_byte + fin_de_trama)
 
     # Resetear
     if data_write_int == 1:
