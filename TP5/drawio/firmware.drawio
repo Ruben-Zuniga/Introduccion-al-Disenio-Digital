@@ -1,0 +1,121 @@
+<mxfile host="Electron">
+  <diagram name="Página-1" id="S9fsNShss3lSJDbVt3Co">
+    <mxGraphModel dx="955" dy="625" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="E28NtprCjlKCiuoTaAss-17" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Main" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-8" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="n_bytes = 0" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-9" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-11" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="280" />
+              <mxPoint x="560" y="520" />
+              <mxPoint x="460" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-3" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="n != 4" vertex="1">
+          <mxGeometry height="80" width="120" x="400" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-15" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Recibir &quot;4 - n&quot; bytes" vertex="1">
+          <mxGeometry height="50" width="120" x="400" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-18" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="580" />
+              <mxPoint x="320" y="140" />
+            </Array>
+            <mxPoint x="460" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-19" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="La cabecera, dispositivo y fin de trama coinciden" vertex="1">
+          <mxGeometry height="80" width="200" x="360" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-24" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-26" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-7" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Payload" vertex="1">
+          <mxGeometry height="40" width="80" x="420" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Si" vertex="1">
+          <mxGeometry height="20" width="20" x="440" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="20" width="20" x="520" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-16" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="470.03" />
+              <mxPoint x="360" y="280.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="n += bytes recibidos" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-25" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Leer los 4 primeros bits del GPIO" vertex="1">
+          <mxGeometry height="40" width="120" x="320" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-28" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="920" />
+              <mxPoint x="280" y="920" />
+              <mxPoint x="280" y="140" />
+              <mxPoint x="320" y="140" />
+            </Array>
+            <mxPoint x="320" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Enviar el valor al UART" vertex="1">
+          <mxGeometry height="40" width="120" x="320" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-27" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="E28NtprCjlKCiuoTaAss-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-22" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Decodificar payload para encontrar led y color seleccionado" vertex="1">
+          <mxGeometry height="50" width="120" x="480" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-29" edge="1" parent="1" source="E28NtprCjlKCiuoTaAss-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="540" y="920" />
+            </Array>
+            <mxPoint x="380" y="920" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28NtprCjlKCiuoTaAss-23" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Escribir los bits correspondientes del GPIO" vertex="1">
+          <mxGeometry height="50" width="120" x="480" y="830" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

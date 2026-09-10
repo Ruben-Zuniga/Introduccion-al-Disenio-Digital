@@ -1,43 +1,130 @@
 \section{Introducción}
 
+Este informe detalla el desarrollo de una plataforma de control basada en el microprocesador MicroBlaze, de acuerdo con el tutorial explicado en el cursado. Para lograr esto, la arquitectura del sistema se articula en tres componentes que interactúan entre sí: el procesador junto con los periféricos GPIO y UART, implementados en Vivado; el firmware embebido al microprocesador para gestionar en hardware, desarrollado en Vitis; y el script que es controlado por el usuario y actúa como host, realizado en Python. El esquema de esta arquitectura se muestra en la \autoref{fig:esq_consigna}.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/esq_consigna.png}
+    \caption{Esquema de la arquitectura propuesta.}
+    \label{fig:esq_consigna}
+\end{figure}
 
-\section{Objetivos}
+La funcionalidad central del diseño exige que, mediante tramas enviadas desde Python, el usuario permita seleccionar individualmente qué LED RGB encender y configurar su color, ya sea rojo, verde, azul o cualquier combinación de ellos. Por otro lado, el usuario también debe ser capaz de leer el estado lógico de los switches de la placa.
 
+\section{Objetivo}
 
+El objetivo principal del proyecto es aprender a utilizar el MicroBlaze para controlar los leds y leer el estado de los switches de la FPGA.
 
 \section{Desarrollo}
 
 \subsection{Microcontrolador}
 
+El diseño del hardware del sistema embebido se implementó en Vivado 2024.2 mediante la instanciación e interconexión de diversos bloques IP. La arquitectura general de este sistema se puede ver en la \autoref{fig:esq_micro}. Los componentes más importantes son:
 
+\begin{itemize}
+    \item \textbf{Clocking Wizard}: a partir de un reloj de entrada base del sistema, este módulo distribuye las señales de reloj a los demás bloques para asegurar el funcionamiento sincrónico del procesador y del resto de los periféricos.
+    \item \textbf{MicroBlaze}: es la unidad central de procesamiento (CPU) de la arquitectura. Su función principal es ejecutar el firmware desarrollado en lenguaje C.
+    \item \textbf{AXI SmartConnect}: es la matriz de interconexión central de la plataforma. Utiliza el protocolo AXI para enrutar y arbitrar la comunicación entre el procesador y los distintos periféricos.
+    \item \textbf{AXI Uartlite}: es el controlador encargado de la interfaz de comunicación serial.
+    \item \textbf{AXI GPIO}: es la interfaz responsable de vincular los registros internos del microprocesador con los pines físicos de la placa, permitiendo la lectura del estado de los switches y la excitación de los LEDs.
+\end{itemize}
 
-\subsection{Protocolo de Comunicación}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/esq_micro.png}
+    \caption{Arquitectura del microcontrolador desarrollado.}
+    \label{fig:esq_micro}
+\end{figure}
 
+\subsection{Protocolo de Comunicación} \label{sec:protocolo}
 
+El protocolo utilizado para el envío de tramas fue el propuesto por los profesores, mostrado en la \autoref{fig:trama}. Los campos a utilizar se explican a continuación:
 
-\subsection{Programa en C}
+\begin{itemize}
+    \item \textbf{Cabecera}: indica el tamaño del paquete de datos y el dispositivo destino. Los primeros 3 bits son el inicio de trama y \emph{L/S} indica si se transmite una trama corta (0) o larga (1). Si la trama es corta, el tamaño se carga en el campo \emph{S.Size} y si la trama es larga, se carga en los dos octetos \emph{L.Size}.
+    \item \textbf{Data}: son todos los datos de interés a transmitir (payload).
+    \item \textbf{Fin de trama}: tiene los mismos valores que la cabecera pero con los primeros 3 bits alternados.
+\end{itemize}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\linewidth]{img/trama.png}
+    \caption{Trama de comunicación utilizada.}
+    \label{fig:trama}
+\end{figure}
 
+\subsection{Programa en C} \label{sec:firmware}
+
+El flujo del programa en C desarrollado en Vitis 2024.2 se muestra en la \autoref{fig:esq_firmware}. En el curso se proveyó un modelo de código para seguir, y en este trabajo se lo adoptó y se insertó un mecanismo de polling para obtener la trama completa, ya que, según la documentación del periférico Uartlite, la trama puede llegar incompleta con solo 1 llamado a la función de recepción. Sobre este modelo también se introdujo el procesamiento de los campos de la trama, pero solo para detectar una trama de 1 byte de dato, que es lo que siempre envía en este caso el Python.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.75\textheight]{img/esq_firmware.pdf}
+    \caption{Diagrama de flujo del programa en C para embeber al MicroBlaze.}
+    \label{fig:esq_firmware}
+\end{figure}
 
 \subsection{Script de Python}
 
+El flujo en Python fue armado siguiendo el modelo dado por los profesores, pero con algunos cambios para introducir el protocolo de comunicación. Este script se describe en la \autoref{fig:esq_python}. Contrario al programa en C, este script puede procesar distintos tamaños de bytes en la trama, pero solo para una de tipo corta.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/esq_python.pdf}
+    \caption{Diagrama de flujo del script de Python.}
+    \label{fig:esq_python}
+\end{figure}
 
 \section{Resultados}
 
+La lectura de los switches se observa en la \autoref{fig:test_sw1}, \ref{fig:test_sw2} y \ref{fig:test_sw3}. Con el modelo de programa en C dado por los profesores, el valor del switch entregado no era el correcto en algunos casos, por lo que la propuesta explicada en la \autoref{sec:firmware} solucionó el problema.
 
+El encendido de uno de los LEDs se muestra en la \autoref{fig:test_rgb0} donde se enciende el led 0 al color rojo + azul. La \autoref{fig:test_rgb3} muestra finalmente como se enciende otro LED mientras un LED anterior estaba encendido, esto provoca que el LED anterior se apague. Lo que se intentó fue poder encender varios LEDs sin que suceda este apagado, pero no se llegó a lograrlo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test_sw1.png}
+    \caption{Lectura de switches en posición \texttt{1001} mediante el script junto al VIO.}
+    \label{fig:test_sw1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{img/test_sw2.png}
+    \caption{Lectura de switches en posición \texttt{1111} mediante el script junto al VIO.}
+    \label{fig:test_sw2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/test_sw3.png}
+    \caption{Lectura de switches en posición \texttt{0000} mediante el script junto al VIO.}
+    \label{fig:test_sw3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/test_rgb0.png}
+    \caption{Encendido del LED 0 mediante el script junto al VIO.}
+    \label{fig:test_rgb0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/test_rgb3.png}
+    \caption{Encendido del LED 3 mediante el script junto al VIO.}
+    \label{fig:test_rgb3}
+\end{figure}
 
 \section{Conclusión}
 
+La FPGA fue programada para que un microprocesador envíe datos sobre los switches y controle los leds mediante comunicación en serie con el usuario. El único inconveniente fue el encendido de más de 1 LED RGB, pero en 1 LED fue posible controlar todas las combinaciones de colores. Por otro lado, se logró que el micro envíe el dato actual de los switches constantemente gracias a un mecanismo de polling.
 
-
-\newpage
 \appendix
 
 \section{Archivos y Códigos} \label{appx:archivos}
 
-Todos los códigos del trabajo se encuentran en el siguiente link:
+Todos los archivos del trabajo se encuentran en el siguiente link:
 
 \noindent
 \url{https://github.com/Ruben-Zuniga/Introduccion-al-Disenio-Digital/tree/main/TP5}
@@ -45,7 +132,11 @@ Todos los códigos del trabajo se encuentran en el siguiente link:
 La organización del repositorio adjunto es el siguiente:
 
 \begin{itemize}
-    \item \emph{com\_serie\_tp6.py}:
+    \item \emph{com\_serie\_tp5.py}: el script de Python que realiza la comunicación entre el usuario y el microcontrolador.
+    \item \emph{protocolo\_main.c}: programa en C desarrollado para embeber al micro.
+    \item \emph{fpga\_procom.v}: RTL del hardware para la FPGA.
+    \item \emph{latex}: carpeta con todos los archivos en latex e imágenes del informe.
+    \item \emph{drawio}: proyectos donde se realizaron los diagramas de este informe.
 \end{itemize}
 
 % \begin{equation}

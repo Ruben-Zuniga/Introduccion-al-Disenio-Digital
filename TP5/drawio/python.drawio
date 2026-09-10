@@ -1,0 +1,120 @@
+<mxfile host="Electron">
+  <diagram name="Página-1" id="JN65yRI7JkK404rktTSv">
+    <mxGraphModel dx="1160" dy="759" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-15" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Init" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-16" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Abrir puerto serial" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-17" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-19" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-20" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Esperar entrada del usuario:&lt;div&gt;0 - Controlar LEDs&lt;/div&gt;&lt;div&gt;1 - Leer switches&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="120" x="400" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-22" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Reiniciar buffer de recepcion y enviar trama" vertex="1">
+          <mxGeometry height="50" width="120" x="400" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-21" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Esperar entrada del usuario:&lt;div&gt;- R [0/1]&lt;/div&gt;&lt;div&gt;- G [0/1]&lt;/div&gt;&lt;div&gt;- B [0/1]&lt;/div&gt;&lt;div&gt;Formato: &quot;RGB&quot;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="120" x="200" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-27" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="820" />
+              <mxPoint x="160" y="820" />
+              <mxPoint x="160" y="220" />
+              <mxPoint x="460" y="220" />
+            </Array>
+            <mxPoint x="460" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Codificar y enviar trama por el puerto" vertex="1">
+          <mxGeometry height="40" width="120" x="200" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-23" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Esperar 2 seg. y leer respuesta del micro" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-24" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-30" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-11" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="La cabecera y dispositivo coinciden" vertex="1">
+          <mxGeometry height="80" width="120" x="400" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-25" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YIEZTgIsagoZDAfWGpTo-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Leer el numero de bytes indicado por la trama" vertex="1">
+          <mxGeometry height="50" width="120" x="400" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-28" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="820" />
+            </Array>
+            <mxPoint x="260" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Convertir a entero e imprimir en pantalla" vertex="1">
+          <mxGeometry height="40" width="120" x="400" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-29" edge="1" parent="1" source="YIEZTgIsagoZDAfWGpTo-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="820" />
+            </Array>
+            <mxPoint x="460" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Carrar puerto" vertex="1">
+          <mxGeometry height="40" width="120" x="600" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="0" vertex="1">
+          <mxGeometry height="20" width="20" x="270" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-32" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1" vertex="1">
+          <mxGeometry height="20" width="20" x="470" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="exit" vertex="1">
+          <mxGeometry height="20" width="30" x="670" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Si" vertex="1">
+          <mxGeometry height="20" width="20" x="440" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="YIEZTgIsagoZDAfWGpTo-35" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="20" width="20" x="380" y="550" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
