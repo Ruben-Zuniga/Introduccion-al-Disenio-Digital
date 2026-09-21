@@ -42,7 +42,7 @@ def rcosine(beta, Tbaud, oversampling, N_bauds, Norm):
         return (t_vect,y_vect)
 
 ### Calculo de tres pulsos con diferente roll-off
-(t,rc0) = rcosine(beta, T_baud,os,N_bauds,Norm=False)
+(t,rc0) = rcosine(beta, T_baud,os,N_bauds,Norm=True)
 
 print(f'Potencia del RC: {np.sum(rc0**2)}')
 print(f'Ganancia del RC: {np.sum(rc0)}')
