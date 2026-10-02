@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import signal
 
 class DeltaSigmaModulator:
     """
@@ -15,7 +16,27 @@ class DeltaSigmaModulator:
             quantizer_levels: Número de niveles del cuantificador (2 = binario por defecto)
         """
         self.quantizer_levels = quantizer_levels
-        self.v_delay = 0  # Estado inicial del delay z^-1
+        # Estado inicial del delay z^-1
+        self.v_delay = 0
+        # Pre-calcular los niveles posibles
+        self.quantizer_levels_array = self._compute_quantizer_levels()
+
+    def _compute_quantizer_levels(self):
+        """
+        Calcula los valores posibles del cuantificador según las reglas:
+        - Niveles impares: simétricos alrededor de 0
+        - Niveles pares: desde -(N-2)/2 hasta N/2
+        """
+        if self.quantizer_levels % 2 == 1:
+            # Impar: simétrico alrededor de 0
+            min_level = -(self.quantizer_levels - 1) // 2
+            max_level = (self.quantizer_levels - 1) // 2
+        else:
+            # Par: asimétrico
+            min_level = -(self.quantizer_levels - 2) // 2
+            max_level = self.quantizer_levels // 2
+        
+        return np.arange(min_level, max_level + 1)
     
     def quantize(self, v):
         """
@@ -27,15 +48,10 @@ class DeltaSigmaModulator:
         Returns:
             y: Salida cuantizada (+1 o -1 para 2 niveles)
         """
-        if self.quantizer_levels == 2:
-            if v >= 0:
-                return 1
-            else:
-                return -1
-        else:
-            # Para múltiples niveles - probablemente este mal
-            step_size = 2.0 / (self.quantizer_levels - 1)
-            return step_size * np.round((v + 1) / step_size)
+        y_int = int(np.round(v))
+        y_quantized = np.clip(y_int, self.quantizer_levels_array[0], self.quantizer_levels_array[-1])
+
+        return y_quantized
     
     def process_sample(self, x_n):
         """
@@ -122,8 +138,9 @@ if __name__ == "__main__":
     # Parámetros de simulación
     fs = 64000          # Frecuencia de muestreo (Hz)
     num_samples = 10000   # Numero de muestras
-    f_input = 100       # Frecuencia de entrada (Hz)
-    amplitude = 1     # Amplitud de entrada
+    f_input = 20       # Frecuencia de entrada (Hz)
+    amplitude = 4     # Amplitud de entrada
+    quantizer_levels = 3 # Niveles de cuantizacion a la salida
     
     duration = num_samples / fs    # Duración (segundos)
     
@@ -138,14 +155,21 @@ if __name__ == "__main__":
     
     # ==================== Generar Señal de Entrada ====================
     
-    ## Señal sinusoidal como entrada
-    x_n = generate_sine_wave(f_input, amplitude, fs, duration, num_samples)
+    ## Sinusoidal
+    # x_n = generate_sine_wave(f_input, amplitude, fs, duration, num_samples)
+
     ## Constantes: 0, 0.5, -1 y 1
     ## En 0, la frecuencia a la salida es maxima. En 1 y -1, la frecuencia es 0
     # x_n = np.array([0]*(num_samples//4) + [0.5]*(num_samples//4) + [-1]*(num_samples//4) + [1]*(num_samples//4))
+
+    ## Rampa
+    t = np.linspace(0, duration, num_samples, endpoint=False)
+    x_n = 1 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
+    # x_n = 0.5 + 2.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 6 niveles
+    print(x_n)
     
     # Crear instancia del modulador
-    modulator = DeltaSigmaModulator(quantizer_levels=2)
+    modulator = DeltaSigmaModulator(quantizer_levels=quantizer_levels)
     
     # ==================== Procesar Señal ====================
     
@@ -181,11 +205,11 @@ if __name__ == "__main__":
     # axes[0].set_xlim(0, 100)
     
     # 2. Salida del cuantificador
-    axes[1].plot(t_ms, y_n, 'r-', linewidth=1, alpha=0.8)
+    axes[1].plot(t_ms, y_n, 'r-', linewidth=1, alpha=0.8, drawstyle='steps-post')
     axes[1].set_ylabel('Nivel Binario')
     axes[1].set_title('Salida Cuantizada y[n]')
     axes[1].grid(True, alpha=0.3)
-    axes[1].set_ylim(-1.5, 1.5)
+    # axes[1].set_ylim(-1.5, 1.5)
     # axes[1].set_xlim(0, 100)
     
     # # 3. Señales internas u[n] y v[n]
@@ -204,7 +228,7 @@ if __name__ == "__main__":
     # v_seq = np.array(v_seq)
     
     axes[2].plot(t_ms, u_n, 'g-', label='u[n]', alpha=0.8)
-    axes[2].plot(t_ms, v_n, 'm--', label='v[n]', alpha=0.8)
+    axes[2].plot(t_ms, v_n, 'm-', label='v[n]', alpha=0.8, linewidth=0.7)
     axes[2].set_ylabel('Valor')
     axes[2].set_title('Señales Internas del Modulador')
     axes[2].legend(loc='upper right')
@@ -221,14 +245,14 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(1, 1, figsize=(12, 10))
     fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bold')
     
-    axes.semilogy(freq[:5000], fft_x[:5000]**2, 'b-', label='Entrada', alpha=0.8)
-    axes.semilogy(freq[:5000], fft_y[:5000]**2, 'r-', label='Salida DS', alpha=0.8)
+    axes.semilogy(freq, fft_x**2, 'b-', label='Entrada', alpha=0.8)
+    axes.semilogy(freq, fft_y**2, 'r-', label='Salida', alpha=0.8)
     axes.set_xlabel('Frecuencia (Hz)')
     axes.set_ylabel('Potencia Espectral')
     axes.set_title('Espectro de Frecuencia (Primeros 5 kHz)')
     axes.legend(loc='upper right')
     axes.grid(True, alpha=0.3)
-    axes.set_xlim(0, 5000)
+    # axes.set_xlim(0, 5000)
     
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     # plt.savefig('delta_sigma_simulation.png', dpi=150, bbox_inches='tight')
