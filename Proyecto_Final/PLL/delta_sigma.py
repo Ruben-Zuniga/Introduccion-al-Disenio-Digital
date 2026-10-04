@@ -113,13 +113,6 @@ class DeltaSigmaModulator:
         """Resetea el estado interno del modulador"""
         self.v_delay = 0
 
-
-def generate_sine_wave(frequency, amplitude, sampling_rate, duration, num_samples):
-    """Genera una onda sinusoidal de prueba"""
-    t = np.linspace(0, duration, num_samples, endpoint=False)
-    return amplitude * np.sin(2 * np.pi * frequency * t)
-
-
 def calculate_signal_to_noise_ratio(signal, noise):
     """Calcula la relación señal-ruido en dB"""
     signal_power = np.mean(signal ** 2)
@@ -136,36 +129,23 @@ if __name__ == "__main__":
     # ==================== Configuración de Simulación ====================
     
     # Parámetros de simulación
-    fs = 64000          # Frecuencia de muestreo (Hz)
+    fs = 64e3          # Frecuencia de muestreo (Hz)
     num_samples = 10000   # Numero de muestras
-    f_input = 20       # Frecuencia de entrada (Hz)
+    f_input = 10       # Frecuencia de entrada (Hz)
     amplitude = 4     # Amplitud de entrada
-    quantizer_levels = 3 # Niveles de cuantizacion a la salida
+    quantizer_levels = 2 # Niveles de cuantizacion a la salida
     
     duration = num_samples / fs    # Duración (segundos)
     
-    # print("=" * 60)
-    # print("SIMULACIÓN DEL MODULATOR DELTA-SIGMA DE 1ER ORDEN")
-    # print("=" * 60)
-    # print(f"Frecuencia de muestreo: {fs} Hz")
-    # print(f"Frecuencia de entrada: {f_input} Hz")
-    # print(f"Número de muestras: {num_samples}")
-    # print(f"Relación OSR (Oversampling Ratio): ~{fs // (2 * f_input)}")
-    # print("=" * 60)
-    
     # ==================== Generar Señal de Entrada ====================
-    
-    ## Sinusoidal
-    # x_n = generate_sine_wave(f_input, amplitude, fs, duration, num_samples)
 
-    ## Constantes: 0, 0.5, -1 y 1
-    ## En 0, la frecuencia a la salida es maxima. En 1 y -1, la frecuencia es 0
-    # x_n = np.array([0]*(num_samples//4) + [0.5]*(num_samples//4) + [-1]*(num_samples//4) + [1]*(num_samples//4))
-
-    ## Rampa
     t = np.linspace(0, duration, num_samples, endpoint=False)
-    x_n = 1 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
-    # x_n = 0.5 + 2.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 6 niveles
+
+    # # Sinusoidal
+    # x_n = 0.5 + 0.5 * np.sin(2 * np.pi * f_input * t)
+
+    # Rampa
+    x_n = 0.5 + 0.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
     print(x_n)
     
     # Crear instancia del modulador
