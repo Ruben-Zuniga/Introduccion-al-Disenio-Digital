@@ -146,7 +146,6 @@ if __name__ == "__main__":
 
     # Rampa
     x_n = 0.5 + 0.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
-    print(x_n)
     
     # Crear instancia del modulador
     modulator = DeltaSigmaModulator(quantizer_levels=quantizer_levels)
@@ -156,7 +155,7 @@ if __name__ == "__main__":
     # Procesar la señal completa
     y_n, u_n, v_n = modulator.process_sequence(x_n)
     
-    # ==================== Análisis de Resultados ====================
+    # ==================== Calculo de Resultados ====================
     
     # Calcular error de cuantificación
     quantization_error = x_n - y_n
@@ -164,9 +163,24 @@ if __name__ == "__main__":
     # Calcular SNR
     snr = calculate_signal_to_noise_ratio(x_n, quantization_error)
     
-    print(f"\nResultados:")
+    # ==================== Resultados ====================
+    
+    print("\n" + "=" * 60)
+    print("RESULTADOS")
+    print("=" * 60)
     print(f"SNR: {snr:.2f} dB")
-    print(f"Pico de codificación: {'Binario' if modulator.quantizer_levels == 2 else 'Múltiples niveles'}")
+    print(f"\nDistribución de salida y[n]:")
+    unique, counts = np.unique(y_n, return_counts=True)
+    for val, count in zip(unique, counts):
+        percentage = count / len(y_n) * 100
+        print(f"  Nivel {val}: {count} muestras ({percentage:.2f}%)")
+    
+    print(f"\nError de cuantificación:")
+    print(f"  Media: {np.mean(quantization_error):.6f}")
+    print(f"  Desviación estándar: {np.std(quantization_error):.6f}")
+    print(f"  Valor pico: {np.max(np.abs(quantization_error)):.6f}")
+    
+    print("=" * 60)
     
     # ==================== Visualización ====================
     
@@ -189,23 +203,6 @@ if __name__ == "__main__":
     axes[1].set_ylabel('Nivel Binario')
     axes[1].set_title('Salida Cuantizada y[n]')
     axes[1].grid(True, alpha=0.3)
-    # axes[1].set_ylim(-1.5, 1.5)
-    # axes[1].set_xlim(0, 100)
-    
-    # # 3. Señales internas u[n] y v[n]
-    # modulator.reset()
-    # u_seq = []
-    # v_seq = []
-    # for i in range(min(500, num_samples)):
-    #     u = x_n[i] - (modulator.v_delay if i > 0 else 0)
-    #     v = u + modulator.v_delay
-    #     y_out = modulator.quantize(v)
-    #     modulator.v_delay = v
-    #     u_seq.append(u)
-    #     v_seq.append(v)
-    
-    # u_seq = np.array(u_seq)
-    # v_seq = np.array(v_seq)
     
     axes[2].plot(t_ms, u_n, 'g-', label='u[n]', alpha=0.8)
     axes[2].plot(t_ms, v_n, 'm-', label='v[n]', alpha=0.8, linewidth=0.7)
@@ -214,7 +211,6 @@ if __name__ == "__main__":
     axes[2].legend(loc='upper right')
     axes[2].grid(True, alpha=0.3)
     axes[2].set_xlabel('Tiempo (ms)')
-    # axes[2].set_xlim(0, 100)
     
 
     # 4. Espectro de frecuencia (FFT)
@@ -232,28 +228,7 @@ if __name__ == "__main__":
     axes.set_title('Espectro de Frecuencia (Primeros 5 kHz)')
     axes.legend(loc='upper right')
     axes.grid(True, alpha=0.3)
-    # axes.set_xlim(0, 5000)
     
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    # plt.savefig('delta_sigma_simulation.png', dpi=150, bbox_inches='tight')
-    # print("\nGráficos guardados como 'delta_sigma_simulation.png'")
     
     plt.show()
-    
-    # ==================== Estadísticas Adicionales ====================
-    
-    print("\n" + "=" * 60)
-    print("ESTADÍSTICAS ADICIONALES")
-    print("=" * 60)
-    print(f"Distribución de salida y[n]:")
-    unique, counts = np.unique(y_n, return_counts=True)
-    for val, count in zip(unique, counts):
-        percentage = count / len(y_n) * 100
-        print(f"  Nivel {val}: {count} muestras ({percentage:.2f}%)")
-    
-    print(f"\nError de cuantificación:")
-    print(f"  Media: {np.mean(quantization_error):.6f}")
-    print(f"  Desviación estándar: {np.std(quantization_error):.6f}")
-    print(f"  Valor pico: {np.max(np.abs(quantization_error)):.6f}")
-    
-    print("=" * 60)
