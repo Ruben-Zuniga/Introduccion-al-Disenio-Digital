@@ -17,43 +17,6 @@ def quantize(v):
     else:
         return -1
 
-def ds_1st_order(x_n, v_delay):
-    """
-    Procesa una sola muestra según el diagrama de bloques
-    
-    Diagrama:
-        x[n] -> (+) -> u[n] -> (+) -> [z^-1] -> v[n] -> [quantizer] -> y[n]
-                -^              ^               |                      |
-                 |              |_______________|                      |
-                 |_____________________________________________________|
-    Ecuaciones:
-    u[n] = x[n] - y[n-1]
-    v[n] = u[n] + v[n-1]
-    y[n] = Q(v[n])
-    
-    Args:
-        x_n: Muestra de entrada actual
-        
-    Returns:
-        y_n: Muestra de salida cuantizada
-    """
-    # Salida anterior del cuantificador
-    y_prev = quantize(v_delay)
-    
-    # Primera suma: u[n] = x[n] - y[n-1]
-    u_n = x_n - y_prev
-    
-    # Segunda suma con integrador: v[n] = u[n] + v[n-1]
-    v_n = u_n + v_delay
-    
-    # Cuantificación: y[n] = quantizer(v[n])
-    y_n = quantize(v_n)
-    
-    # Actualizar estado del delay para la próxima muestra
-    v_delay = v_n
-    
-    return y_n, u_n, v_n, v_delay
-
 # ==================== Configuración de Simulación ====================
 
 # Parámetros de simulación
@@ -75,54 +38,61 @@ x = 0.5 * np.ones(num_samples)
 
 # ==================== Procesar Señal ====================
 
+# Etapa 1
 u1 = np.zeros_like(x)
 v1 = np.zeros_like(x)
 y1 = np.zeros_like(x)
 e1 = np.zeros_like(x)
-
+# Etapa 2
 u2 = np.zeros_like(x)
 v2 = np.zeros_like(x)
 y2 = np.zeros_like(x)
 e2 = np.zeros_like(x)
 y2t = np.zeros_like(x)
-
+# Etapa 3
 u3 = np.zeros_like(x)
 v3 = np.zeros_like(x)
 y3 = np.zeros_like(x)
 e3 = np.zeros_like(x)
-
 y23 = np.zeros_like(x)
+# Salida
 y = np.zeros_like(x)
 
 # Empezar en i = N_orden-1 para tener estados iniciales
 for i in range(2,len(x)):
+    # Actualizacion de registros
     v1[i] = v1[i-1] + u1[i-1]
     v2[i] = v2[i-1] + u2[i-1]
     v3[i] = v3[i-1] + u3[i-1]
 
+    # Salida de los cuantizadores
     y1[i] = quantize(v1[i])
     y2[i] = quantize(v2[i])
     y3[i] = quantize(v3[i])
 
+    ## Señales intermedias
+    # Etapa 1
     u1[i] = x[i] - y1[i]
     e1[i] = v1[i] - y1[i]
-
+    # Etapa 2
     u2[i] = e1[i] - y2[i]
     e2[i] = v2[i] - y2[i]
-
+    # Etapa 3
     u3[i] = e2[i] - y3[i]
 
+    ## Red de cancelacion de error
     y2t[i] = y1[i-1] + y2[i] - y2[i-1]
     y23[i] = y2[i-1] + y3[i] - y3[i-1]
+    # Salida
     y[i] = y1[i-2] + y23[i] - y23[i-1]
 
 
 # ==================== Calculo de Resultados ====================
 
-# Calcular error de cuantificación
-quantization_error = x - y
-quantization_error_y2 = x - y2t
-quantization_error_y1 = x - y1
+# Calcular error de cuantizacion
+quantization_error = x - y      # Error final
+quantization_error_y2 = x - y2t # Error 2do orden
+quantization_error_y1 = x - y1  # Error 1er orden
 
 # ==================== Resultados ====================
 
@@ -148,7 +118,7 @@ fig, axes = plt.subplots(3, 1, figsize=(12, 10))
 plt.subplots_adjust(hspace=0.409)
 fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bold')
 
-# Tiempo en ms para mejor visualización
+# Tiempo en ms
 t_ms = np.linspace(0, duration*1000, num_samples, endpoint=False)
 
 # 1. Señal de entrada
