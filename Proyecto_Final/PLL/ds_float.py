@@ -12,10 +12,10 @@ def quantize(v):
     Returns:
         y: Salida cuantizada (+1 o -1 para 2 niveles)
     """
-    y_int = int(np.round(v))
-    y_quantized = np.clip(y_int, quantizer_levels_v[0], quantizer_levels_v[-1])
-
-    return y_quantized
+    if v >= 0:
+        return 1
+    else:
+        return -1
 
 def ds_1st_order(x_n, v_delay):
     """
@@ -70,31 +70,11 @@ duration = num_samples / fs    # Duración (segundos)
 t = np.linspace(0, duration, num_samples, endpoint=False)
 
 # Constante
-x = np.concatenate( [-1 * np.ones(num_samples//4), 0.2 * np.ones(num_samples//4), 0.5 * np.ones(num_samples//4), 1 * np.ones(num_samples//4)] )
-
-# # Sinusoidal
-# x_n = 0.5 + 0.5 * np.sin(2 * np.pi * f_input * t)
-
-# # Rampa
-# x = 0.5 + 0.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
+x = 0.5 * np.ones(num_samples)
+# x = np.concatenate( [-1 * np.ones(num_samples//4), 0 * np.ones(num_samples//4), 0.5 * np.ones(num_samples//4), 1 * np.ones(num_samples//4)] )
 
 # ==================== Procesar Señal ====================
 
-# Generacion de niveles de cuantizacion
-if quantizer_levels % 2 == 1:
-    # Impar: simétrico alrededor de 0
-    min_level = -(quantizer_levels - 1) // 2
-    max_level = (quantizer_levels - 1) // 2
-else:
-    # Par: asimétrico
-    min_level = -(quantizer_levels - 2) // 2
-    max_level = quantizer_levels // 2
-
-quantizer_levels_v = np.arange(min_level, max_level + 1)
-print(quantizer_levels_v)
-# Procesar la señal completa
-v1_delay = 0  # Resetear estado inicial
-v2_delay = 0
 u1 = np.zeros_like(x)
 v1 = np.zeros_like(x)
 y1 = np.zeros_like(x)
@@ -104,26 +84,45 @@ u2 = np.zeros_like(x)
 v2 = np.zeros_like(x)
 y2 = np.zeros_like(x)
 e2 = np.zeros_like(x)
+y2t = np.zeros_like(x)
 
+u3 = np.zeros_like(x)
+v3 = np.zeros_like(x)
+y3 = np.zeros_like(x)
+e3 = np.zeros_like(x)
+
+y23 = np.zeros_like(x)
 y = np.zeros_like(x)
 
+# Empezar en i = N_orden-1 para tener estados iniciales
 for i in range(2,len(x)):
-    # 1ra etapa
-    y1[i], u1[i], v1[i], v1_delay = ds_1st_order(x[i], v1_delay)
+    v1[i] = v1[i-1] + u1[i-1]
+    v2[i] = v2[i-1] + u2[i-1]
+    v3[i] = v3[i-1] + u3[i-1]
+
+    y1[i] = quantize(v1[i])
+    y2[i] = quantize(v2[i])
+    y3[i] = quantize(v3[i])
+
+    u1[i] = x[i] - y1[i]
     e1[i] = v1[i] - y1[i]
 
-    # 2da etapa
-    y2[i], u2[i], v2[i], v2_delay = ds_1st_order(e1[i], v2_delay)
+    u2[i] = e1[i] - y2[i]
     e2[i] = v2[i] - y2[i]
 
+    u3[i] = e2[i] - y3[i]
 
-    y[i] = y2[i] - y2[i-1] + y1[i-1]
+    y2t[i] = y1[i-1] + y2[i] - y2[i-1]
+    y23[i] = y2[i-1] + y3[i] - y3[i-1]
+    y[i] = y1[i-2] + y23[i] - y23[i-1]
 
 
 # ==================== Calculo de Resultados ====================
 
 # Calcular error de cuantificación
 quantization_error = x - y
+quantization_error_y2 = x - y2t
+quantization_error_y1 = x - y1
 
 # ==================== Resultados ====================
 
@@ -161,14 +160,16 @@ axes[0].grid(True, alpha=0.3)
 
 # 2. Salida del cuantificador
 axes[1].plot(t_ms, y, 'r-',label='y[n]', linewidth=1, alpha=0.8, drawstyle='steps-post')
-axes[1].plot(t_ms, y1, 'g-',label='y1[n]', linewidth=1, alpha=0.8, drawstyle='steps-post')
+axes[1].plot(t_ms, y2t, 'g-',label='y1[n]', linewidth=0.7, alpha=0.8, drawstyle='steps-post')
+axes[1].plot(t_ms, y1, 'b-',label='y1[n]', linewidth=0.7, alpha=0.8, drawstyle='steps-post')
 axes[1].set_ylabel('Nivel Binario')
 axes[1].set_title('Salida Cuantizada y[n]')
-axes[2].legend(loc='upper right')
+axes[1].legend(loc='upper right')
 axes[1].grid(True, alpha=0.3)
 
-axes[2].plot(t_ms, e1, 'g-', label='e1[n]', alpha=0.8)
-axes[2].plot(t_ms, e2, 'm-', label='e2[n]', alpha=0.8, linewidth=0.7)
+axes[2].plot(t_ms, quantization_error, 'r-', label='e[n]', alpha=0.8)
+axes[2].plot(t_ms, quantization_error_y2, 'g-', label='e2[n]', alpha=0.8, linewidth=0.7)
+axes[2].plot(t_ms, quantization_error_y1, 'b-', label='e1[n]', alpha=0.8, linewidth=0.7)
 axes[2].set_ylabel('Valor')
 axes[2].set_title('Errores de Cuantizacion')
 axes[2].legend(loc='upper right')
@@ -180,6 +181,7 @@ axes[2].set_xlabel('Tiempo (ms)')
 fft_x = np.abs(np.fft.fft(x)[:len(x)//2])
 fft_y = np.abs(np.fft.fft(y)[:len(y)//2])
 fft_y1 = np.abs(np.fft.fft(y1)[:len(y1)//2])
+fft_y2 = np.abs(np.fft.fft(y2t)[:len(y1)//2])
 freq = np.fft.fftfreq(num_samples, 1/fs)[:len(fft_x)]
 
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
@@ -188,6 +190,7 @@ fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bo
 axes.semilogy(freq, fft_x**2, 'b-', label='Entrada', alpha=0.8)
 axes.semilogy(freq, fft_y**2, 'r-', label='Salida', alpha=0.8)
 axes.semilogy(freq, fft_y1**2, 'g-', label='Y_1', alpha=0.8)
+axes.semilogy(freq, fft_y2**2, 'm-', label='Y_2', alpha=0.8)
 axes.set_xlabel('Frecuencia (Hz)')
 axes.set_ylabel('Potencia Espectral')
 axes.set_title('Espectro de Frecuencia')
