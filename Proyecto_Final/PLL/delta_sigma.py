@@ -133,7 +133,13 @@ if __name__ == "__main__":
     num_samples = 10000   # Numero de muestras
     f_input = 10       # Frecuencia de entrada (Hz)
     amplitude = 4     # Amplitud de entrada
-    quantizer_levels = 2 # Niveles de cuantizacion a la salida
+
+    # Niveles de cuantizacion a la salida. La entrada debe estar en el mismo rango de amplitud
+    # 2 niveles: 0,1
+    # 3 niveles: -1,0,1
+    # 4 niveles: -1,0,1,2
+    # Etc.
+    quantizer_levels = 2 
     
     duration = num_samples / fs    # Duración (segundos)
     
@@ -141,11 +147,14 @@ if __name__ == "__main__":
 
     t = np.linspace(0, duration, num_samples, endpoint=False)
 
+    # Constante
+    x_n = np.concatenate([0.2 * np.ones(num_samples)])
+
     # # Sinusoidal
     # x_n = 0.5 + 0.5 * np.sin(2 * np.pi * f_input * t)
 
-    # Rampa
-    x_n = 0.5 + 0.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 3 niveles
+    # # Triangular
+    # x_n = 0.5 + 0.5 * signal.sawtooth(2 * np.pi * f_input * t, width=0.5) # 2 niveles
     
     # Crear instancia del modulador
     modulator = DeltaSigmaModulator(quantizer_levels=quantizer_levels)
