@@ -20,11 +20,11 @@ def quantize(v):
 # ==================== Configuración de Simulación ====================
 
 # Parámetros de simulación
-fs = 64e3          # Frecuencia de muestreo (Hz)
-num_samples = 50000   # Numero de muestras
-f_input = 10       # Frecuencia de entrada (Hz)
-amplitude = 4     # Amplitud de entrada
-quantizer_levels = 2 # Niveles de cuantizacion a la salida
+fs = 64e3               # Frecuencia de muestreo (Hz)
+num_samples = 50000     # Numero de muestras
+f_input = 10            # Frecuencia de entrada (Hz)
+amplitude = 4           # Amplitud de entrada
+quantizer_levels = 2    # Niveles de cuantizacion a la salida
 
 duration = num_samples / fs    # Duración (segundos)
 
@@ -33,7 +33,7 @@ duration = num_samples / fs    # Duración (segundos)
 t = np.linspace(0, duration, num_samples, endpoint=False)
 
 # Constante
-x = 0.5 * np.ones(num_samples)
+x = np.pi/5 * np.ones(num_samples)
 # x = np.concatenate( [-1 * np.ones(num_samples//4), 0 * np.ones(num_samples//4), 0.5 * np.ones(num_samples//4), 1 * np.ones(num_samples//4)] )
 
 # ==================== Procesar Señal ====================
@@ -54,6 +54,7 @@ u3 = np.zeros_like(x)
 v3 = np.zeros_like(x)
 y3 = np.zeros_like(x)
 e3 = np.zeros_like(x)
+# Salida teorica de 2do orden
 y23 = np.zeros_like(x)
 # Salida
 y = np.zeros_like(x)
@@ -81,9 +82,9 @@ for i in range(2,len(x)):
     u3[i] = e2[i] - y3[i]
 
     ## Red de cancelacion de error
-    y2t[i] = y1[i-1] + y2[i] - y2[i-1]
     y23[i] = y2[i-1] + y3[i] - y3[i-1]
     # Salida
+    y2t[i] = y1[i-1] + y2[i] - y2[i-1]
     y[i] = y1[i-2] + y23[i] - y23[i-1]
 
 
@@ -99,11 +100,14 @@ quantization_error_y1 = x - y1  # Error 1er orden
 print("\n" + "=" * 60)
 print("RESULTADOS")
 print("=" * 60)
-print(f"\nDistribución de salida y[n]:")
+print(f"\nSalida y[n]:")
+print(f"  Media: {np.mean(y):.6f}")
+print(f"  Desviación estándar: {np.std(y):.6f}")
+print(f"  Distribución:")
 unique, counts = np.unique(y, return_counts=True)
 for val, count in zip(unique, counts):
     percentage = count / len(y) * 100
-    print(f"  Nivel {val}: {count} muestras ({percentage:.2f}%)")
+    print(f"    Nivel {val}: {count} muestras ({percentage:.2f}%)")
 
 print(f"\nError de cuantificación:")
 print(f"  Media: {np.mean(quantization_error):.6f}")
@@ -130,7 +134,7 @@ axes[0].grid(True, alpha=0.3)
 
 # 2. Salida del cuantificador
 axes[1].plot(t_ms, y, 'r-',label='y[n]', linewidth=1, alpha=0.8, drawstyle='steps-post')
-axes[1].plot(t_ms, y2t, 'g-',label='y1[n]', linewidth=0.7, alpha=0.8, drawstyle='steps-post')
+axes[1].plot(t_ms, y2t, 'g-',label='y2[n]', linewidth=0.7, alpha=0.8, drawstyle='steps-post')
 axes[1].plot(t_ms, y1, 'b-',label='y1[n]', linewidth=0.7, alpha=0.8, drawstyle='steps-post')
 axes[1].set_ylabel('Nivel Binario')
 axes[1].set_title('Salida Cuantizada y[n]')
@@ -149,9 +153,9 @@ axes[2].set_xlabel('Tiempo (ms)')
 
 # 4. Espectro de frecuencia (FFT)
 fft_x = np.abs(np.fft.fft(x)[:len(x)//2])
-fft_y = np.abs(np.fft.fft(y)[:len(y)//2])
-fft_y1 = np.abs(np.fft.fft(y1)[:len(y1)//2])
-fft_y2 = np.abs(np.fft.fft(y2t)[:len(y1)//2])
+fft_y = np.abs(np.fft.fft(y[10:])[:len(y)//2])
+fft_y1 = np.abs(np.fft.fft(y1[10:])[:len(y1)//2])
+fft_y2 = np.abs(np.fft.fft(y2t[10:])[:len(y1)//2])
 freq = np.fft.fftfreq(num_samples, 1/fs)[:len(fft_x)]
 
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
@@ -162,7 +166,7 @@ axes.semilogy(freq, fft_y**2, 'r-', label='Salida', alpha=0.8)
 axes.semilogy(freq, fft_y1**2, 'g-', label='Y_1', alpha=0.8)
 axes.semilogy(freq, fft_y2**2, 'm-', label='Y_2', alpha=0.8)
 axes.set_xlabel('Frecuencia (Hz)')
-axes.set_ylabel('Potencia Espectral')
+axes.set_ylabel('Potencia Espectral [dB]')
 axes.set_title('Espectro de Frecuencia')
 axes.legend(loc='upper right')
 axes.grid(True, alpha=0.3)
