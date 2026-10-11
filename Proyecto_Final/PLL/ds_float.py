@@ -22,9 +22,6 @@ def quantize(v):
 # Parámetros de simulación
 fs = 64e3               # Frecuencia de muestreo (Hz)
 num_samples = 50000     # Numero de muestras
-f_input = 10            # Frecuencia de entrada (Hz)
-amplitude = 4           # Amplitud de entrada
-quantizer_levels = 2    # Niveles de cuantizacion a la salida
 
 duration = num_samples / fs    # Duración (segundos)
 
