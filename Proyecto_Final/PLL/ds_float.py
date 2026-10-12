@@ -20,7 +20,7 @@ def quantize(v):
 # ==================== Configuración de Simulación ====================
 
 # Parámetros de simulación
-fs = 64e3               # Frecuencia de muestreo (Hz)
+fs = 200e3               # Frecuencia de muestreo (Hz)
 num_samples = 50000     # Numero de muestras
 
 duration = num_samples / fs    # Duración (segundos)
@@ -30,7 +30,7 @@ duration = num_samples / fs    # Duración (segundos)
 t = np.linspace(0, duration, num_samples, endpoint=False)
 
 # Constante
-x = np.pi/5 * np.ones(num_samples)
+x = -0.5 * np.ones(num_samples)
 # x = np.concatenate( [-1 * np.ones(num_samples//4), 0 * np.ones(num_samples//4), 0.5 * np.ones(num_samples//4), 1 * np.ones(num_samples//4)] )
 
 # ==================== Procesar Señal ====================
@@ -56,7 +56,61 @@ y23 = np.zeros_like(x)
 # Salida
 y = np.zeros_like(x)
 
-# Empezar en i = N_orden-1 para tener estados iniciales
+#### ITERACION INICIAL
+### Iteracion 0
+# Estados iniciales - Cambiar estos valores a eleccion
+v1[0] = 0.23113851357429
+v2[0] = 0.2
+v3[0] = 0
+
+# Salida de los cuantizadores
+y1[0] = quantize(v1[0])
+y2[0] = quantize(v2[0])
+y3[0] = quantize(v3[0])
+
+## Señales intermedias
+# Etapa 1
+u1[0] = x[0] - y1[0]
+e1[0] = v1[0] - y1[0]
+# Etapa 2
+u2[0] = e1[0] - y2[0]
+e2[0] = v2[0] - y2[0]
+# Etapa 3
+u3[0] = e2[0] - y3[0]
+
+## Red de cancelacion de error
+y23[0] = 0 + y3[0] - 0
+# Salida
+y2t[0] = np.sign(0 + y2[0] - 0)
+y[0] = np.sign(0 + y23[0] - 0)
+
+### Iteracion 1
+v1[1] = v1[0] + u1[0]
+v2[1] = v2[0] + u2[0]
+v3[1] = v3[0] + u3[0]
+
+# Salida de los cuantizadores
+y1[1] = quantize(v1[1])
+y2[1] = quantize(v2[1])
+y3[1] = quantize(v3[1])
+
+## Señales intermedias
+# Etapa 1
+u1[1] = x[1] - y1[1]
+e1[1] = v1[1] - y1[1]
+# Etapa 2
+u2[1] = e1[1] - y2[1]
+e2[1] = v2[1] - y2[1]
+# Etapa 3
+u3[1] = e2[1] - y3[1]
+
+## Red de cancelacion de error
+y23[1] = y2[0] + y3[1] - y3[0]
+# Salida
+y2t[1] = np.sign(y1[0] + y2[1] - y2[0])
+y[1] = np.sign(0 + y23[1] - y23[0])
+
+
 for i in range(2,len(x)):
     # Actualizacion de registros
     v1[i] = v1[i-1] + u1[i-1]
@@ -81,8 +135,8 @@ for i in range(2,len(x)):
     ## Red de cancelacion de error
     y23[i] = y2[i-1] + y3[i] - y3[i-1]
     # Salida
-    y2t[i] = y1[i-1] + y2[i] - y2[i-1]
-    y[i] = y1[i-2] + y23[i] - y23[i-1]
+    y2t[i] = (y1[i-1] + y2[i] - y2[i-1])
+    y[i] = (y1[i-2] + y23[i] - y23[i-1])
 
 
 # ==================== Calculo de Resultados ====================
@@ -158,10 +212,10 @@ freq = np.fft.fftfreq(num_samples, 1/fs)[:len(fft_x)]
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
 fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bold')
 
-axes.semilogy(freq, fft_x**2, 'b-', label='Entrada', alpha=0.8)
-axes.semilogy(freq, fft_y**2, 'r-', label='Salida', alpha=0.8)
-axes.semilogy(freq, fft_y1**2, 'g-', label='Y_1', alpha=0.8)
-axes.semilogy(freq, fft_y2**2, 'm-', label='Y_2', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_x), 'b-', label='Entrada', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_y), 'r-', label='Salida', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_y1), 'g-', label='Y_1', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_y2), 'm-', label='Y_2', alpha=0.8)
 axes.set_xlabel('Frecuencia (Hz)')
 axes.set_ylabel('Potencia Espectral [dB]')
 axes.set_title('Espectro de Frecuencia')
