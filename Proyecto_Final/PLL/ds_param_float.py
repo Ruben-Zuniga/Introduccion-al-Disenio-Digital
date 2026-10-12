@@ -20,7 +20,7 @@ def quantize(v):
 # ==================== Configuración de Simulación ====================
 
 # Parámetros de simulación
-N_ORDER = 3             # Orden del modulador
+N_ORDER = 10             # Orden del modulador
 N_SAMPLES = 50000       # Numero de muestras
 fs = 64e3               # Frecuencia de muestreo (Hz)
 
@@ -70,7 +70,7 @@ for i in range(N_ORDER-1, len(x)):
 
         y_sum [0][i] = y_parc[0][i - (N_ORDER-1)] + y_diff[1][i]
 
-        y[i] = y_sum[0][i]
+        y[i] = np.sign(y_sum[0][i])
 
 
     # y_sum [2][i] = y_parc[2][i-1] + y_diff[3][i]
@@ -153,8 +153,8 @@ freq = np.fft.fftfreq(N_SAMPLES, 1/fs)[:len(fft_x)]
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
 fig.suptitle(f'Simulación Delta-Sigma de Orden {N_ORDER}', fontsize=14, fontweight='bold')
 
-axes.semilogy(freq, fft_x**2, 'b-', label='Entrada', alpha=0.8)
-axes.semilogy(freq, fft_y**2, 'r-', label='Salida', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_x), 'b-', label='Entrada', alpha=0.8)
+axes.semilogx(freq, 20*np.log10(fft_y), 'r-', label='Salida', alpha=0.8)
 axes.set_xlabel('Frecuencia (Hz)')
 axes.set_ylabel('Potencia Espectral')
 axes.set_title('Espectro de Frecuencia')
