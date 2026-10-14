@@ -30,8 +30,17 @@ duration = num_samples / fs    # Duración (segundos)
 t = np.linspace(0, duration, num_samples, endpoint=False)
 
 # Constante
-x = -0.5 * np.ones(num_samples)
+x = 0 * np.ones(num_samples)
 # x = np.concatenate( [-1 * np.ones(num_samples//4), 0 * np.ones(num_samples//4), 0.5 * np.ones(num_samples//4), 1 * np.ones(num_samples//4)] )
+
+# Estados iniciales - Cambiar estos valores a eleccion
+# v1_0 = 0
+# v2_0 = 0
+# v3_0 = 0
+
+v1_0 = 0.242864824
+v2_0 = 0.2
+v3_0 = 0
 
 # ==================== Procesar Señal ====================
 
@@ -58,10 +67,9 @@ y = np.zeros_like(x)
 
 #### ITERACION INICIAL
 ### Iteracion 0
-# Estados iniciales - Cambiar estos valores a eleccion
-v1[0] = 0.23113851357429
-v2[0] = 0.2
-v3[0] = 0
+v1[0] = v1_0
+v2[0] = v2_0
+v3[0] = v3_0
 
 # Salida de los cuantizadores
 y1[0] = quantize(v1[0])
@@ -81,8 +89,8 @@ u3[0] = e2[0] - y3[0]
 ## Red de cancelacion de error
 y23[0] = 0 + y3[0] - 0
 # Salida
-y2t[0] = np.sign(0 + y2[0] - 0)
-y[0] = np.sign(0 + y23[0] - 0)
+y2t[0] = (0 + y2[0] - 0)
+y[0] = (0 + y23[0] - 0)
 
 ### Iteracion 1
 v1[1] = v1[0] + u1[0]
@@ -107,8 +115,8 @@ u3[1] = e2[1] - y3[1]
 ## Red de cancelacion de error
 y23[1] = y2[0] + y3[1] - y3[0]
 # Salida
-y2t[1] = np.sign(y1[0] + y2[1] - y2[0])
-y[1] = np.sign(0 + y23[1] - y23[0])
+y2t[1] = (y1[0] + y2[1] - y2[0])
+y[1] = (0 + y23[1] - y23[0])
 
 
 for i in range(2,len(x)):
@@ -148,12 +156,17 @@ quantization_error_y1 = x - y1  # Error 1er orden
 
 # ==================== Resultados ====================
 
+y_media_v = [np.mean(y1), np.mean(y2t), np.mean(y)]
+y_desv_v = [np.std(y1), np.std(y2t), np.std(y)]
+qe_media_v = [np.mean(quantization_error_y1), np.mean(quantization_error_y2), np.mean(quantization_error)]
+qe_desv_v = [np.std(quantization_error_y1), np.std(quantization_error_y2), np.std(quantization_error)]
+
 print("\n" + "=" * 60)
 print("RESULTADOS")
 print("=" * 60)
 print(f"\nSalida y[n]:")
-print(f"  Media: {np.mean(y):.6f}")
-print(f"  Desviación estándar: {np.std(y):.6f}")
+print(f"  Media: {y_media_v}")
+print(f"  Desviación estándar: {y_desv_v}")
 print(f"  Distribución:")
 unique, counts = np.unique(y, return_counts=True)
 for val, count in zip(unique, counts):
@@ -161,17 +174,17 @@ for val, count in zip(unique, counts):
     print(f"    Nivel {val}: {count} muestras ({percentage:.2f}%)")
 
 print(f"\nError de cuantificación:")
-print(f"  Media: {np.mean(quantization_error):.6f}")
-print(f"  Desviación estándar: {np.std(quantization_error):.6f}")
+print(f"  Media: {qe_media_v}")
+print(f"  Desviación estándar: {qe_desv_v}")
 print(f"  Valor pico: {np.max(np.abs(quantization_error)):.6f}")
 
 print("=" * 60)
 
 # ==================== Visualización ====================
 
-fig, axes = plt.subplots(3, 1, figsize=(12, 10))
+fig, axes = plt.subplots(3, 1, figsize=(7, 10))
 plt.subplots_adjust(hspace=0.409)
-fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bold')
+fig.suptitle('Simulación Delta-Sigma (Punto Flotante)', fontsize=14, fontweight='bold')
 
 # Tiempo en ms
 t_ms = np.linspace(0, duration*1000, num_samples, endpoint=False)
@@ -196,7 +209,7 @@ axes[2].plot(t_ms, quantization_error, 'r-', label='e[n]', alpha=0.8)
 axes[2].plot(t_ms, quantization_error_y2, 'g-', label='e2[n]', alpha=0.8, linewidth=0.7)
 axes[2].plot(t_ms, quantization_error_y1, 'b-', label='e1[n]', alpha=0.8, linewidth=0.7)
 axes[2].set_ylabel('Valor')
-axes[2].set_title('Errores de Cuantizacion')
+axes[2].set_title('Errores de Cuantizacion e[n]')
 axes[2].legend(loc='upper right')
 axes[2].grid(True, alpha=0.3)
 axes[2].set_xlabel('Tiempo (ms)')
@@ -209,8 +222,8 @@ fft_y1 = np.abs(np.fft.fft(y1[10:])[:len(y1)//2])
 fft_y2 = np.abs(np.fft.fft(y2t[10:])[:len(y1)//2])
 freq = np.fft.fftfreq(num_samples, 1/fs)[:len(fft_x)]
 
-fig, axes = plt.subplots(1, 1, figsize=(12, 10))
-fig.suptitle('Simulación Delta-Sigma de 1er Orden', fontsize=14, fontweight='bold')
+fig, axes = plt.subplots(1, 1, figsize=(7, 10))
+fig.suptitle('Simulación Delta-Sigma (Punto Flotante)', fontsize=14, fontweight='bold')
 
 axes.semilogx(freq, 20*np.log10(fft_x), 'b-', label='Entrada', alpha=0.8)
 axes.semilogx(freq, 20*np.log10(fft_y), 'r-', label='Salida', alpha=0.8)
@@ -219,7 +232,7 @@ axes.semilogx(freq, 20*np.log10(fft_y2), 'm-', label='Y_2', alpha=0.8)
 axes.set_xlabel('Frecuencia (Hz)')
 axes.set_ylabel('Potencia Espectral [dB]')
 axes.set_title('Espectro de Frecuencia')
-axes.legend(loc='upper right')
+axes.legend(loc='upper left')
 axes.grid(True, alpha=0.3)
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
